@@ -18,6 +18,9 @@ drop policy if exists "masters_read_self" on public.masters;
 create policy "masters_read_self" on public.masters
   for select to authenticated using (user_id = (select auth.uid()));
 -- (aucune règle d'écriture : la liste ne se modifie que depuis le tableau de bord Supabase)
+-- Droits explicites (nécessaires si « Automatically expose new tables » est désactivé)
+grant select on public.masters to authenticated;
+grant select, insert, update, delete on public.masters to service_role;
 
 -- 3) Fonction « l'utilisateur connecté est-il Master ? »
 create or replace function public.or_is_master()
