@@ -11,13 +11,30 @@ const cors = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
 
+// Clé d'administration fournie automatiquement par Supabase (ancien ou nouveau système de clés)
+function adminKey(): string {
+  const legacy = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (legacy) return legacy;
+  const single = Deno.env.get("SUPABASE_SECRET_KEY");
+  if (single) return single;
+  const many = Deno.env.get("SUPABASE_SECRET_KEYS");
+  if (many) {
+    try {
+      const obj = JSON.parse(many);
+      const k = obj.default ?? Object.values(obj)[0];
+      if (k) return String(k);
+    } catch { /* ignore */ }
+  }
+  throw new Error("Clé d'administration introuvable dans l'environnement de la fonction.");
+}
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "Méthode non autorisée" }, 405);
   try {
-    const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {
+    const admin = createClient(Deno.env.get("SUPABASE_URL")!, adminKey(), {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
