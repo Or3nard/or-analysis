@@ -25,33 +25,38 @@ Hébergement gratuit : site sur **GitHub Pages**, comptes et stockage sur **Supa
    (cette clé est faite pour être publique ; la sécurité repose sur les règles de `setup.sql`).
 6. Renseigner ces deux valeurs dans `index.html`, bloc `OR_CONFIG` en haut du script.
 
-### 2. GitHub Pages
+### 2. Fonction « or-admin » (onglet Comptes)
+Elle permet aux Masters de créer, modifier et supprimer des comptes depuis le dashboard.
+La clé d'administration reste sur le serveur Supabase : elle n'apparaît jamais dans le site.
+1. Supabase → **Edge Functions** → **Deploy a new function** → **Via Editor**.
+2. Nom : `or-admin` (exactement). Remplacer le code par le contenu de
+   [`supabase/functions/or-admin/index.ts`](supabase/functions/or-admin/index.ts) → **Deploy function**.
+3. Dans les réglages de la fonction (**Details / Settings**), désactiver **Enforce JWT verification**
+   (ou « Verify JWT with legacy secret ») : la fonction vérifie elle-même la session et le rôle Master.
+
+### 3. Premier compte Master
+Supabase → **Authentication → Users → Add user → Create new user** (votre e-mail, un mot de passe, *Auto Confirm User*),
+puis **SQL Editor** :
+```sql
+insert into public.masters (user_id)
+select id from auth.users where email = 'votre-email@exemple.fr';
+```
+Tous les autres comptes se gèrent ensuite depuis l'onglet **Comptes** du dashboard.
+
+### 4. GitHub Pages
 Dépôt → **Settings → Pages** → *Source* : `Deploy from a branch`, branche `main`, dossier `/ (root)`.
 
 ## Gérer les utilisateurs
-Supabase → **Authentication → Users** :
-- **Add user → Create new user** : e-mail + mot de passe, cocher *Auto Confirm User*. Communiquez les identifiants à la personne ;
-  elle pourra changer son mot de passe dans le dashboard (bouton « Mot de passe »).
-- ou **Invite user** : la personne reçoit un e-mail et choisit elle-même son mot de passe.
-- Supprimer un utilisateur lui retire l'accès immédiatement.
+Dans le dashboard, onglet **Comptes** (visible uniquement par les Masters) :
+- **Ajouter un membre** : e-mail + mot de passe provisoire (bouton « Générer ») + rôle **Lecture** ou **Master**.
+  Le compte est actif immédiatement ; transmettez les identifiants affichés. Le membre peut changer son mot de passe
+  (bouton « Mot de passe » en haut à droite).
+- **Changer le rôle** à tout moment via la liste déroulante (pris en compte à la prochaine connexion du membre).
+- **Nouveau mot de passe** : génère et affiche un nouveau mot de passe pour un membre.
+- **Supprimer** : retire définitivement l'accès.
+- Un Master ne peut ni se supprimer ni retirer ses propres droits : il reste toujours au moins un Master.
 
-**Tout nouveau compte est en Lecture.** Pour le passer en **Master**, Supabase → **SQL Editor** :
-
-```sql
-insert into public.masters (user_id)
-select id from auth.users where email = 'email-du-master@exemple.fr'
-on conflict do nothing;
-```
-
-Repasser un Master en Lecture :
-
-```sql
-delete from public.masters
-where user_id = (select id from auth.users where email = 'email-du-master@exemple.fr');
-```
-
-Liste des Masters : `select u.email from public.masters m join auth.users u on u.id = m.user_id;`
-(Le changement de rôle est pris en compte à la prochaine connexion ou au rechargement de la page.)
+En secours, tout reste faisable dans Supabase (Authentication → Users, et table `masters` via SQL, voir `setup.sql`).
 
 « Mot de passe oublié ? » sur l'écran de connexion envoie un lien de réinitialisation.
 Le service d'e-mail gratuit de Supabase est limité à quelques e-mails par heure (suffisant pour un petit groupe).
@@ -68,5 +73,7 @@ Le service d'e-mail gratuit de Supabase est limité à quelques e-mails par heur
 (un dossier par match conseillé). `tracking-produced.jsonl` n'est pas nécessaire.
 
 Sans configuration Supabase (`OR_CONFIG` vide), le dashboard fonctionne en **mode local** : sans comptes, données dans le navigateur.
+
+Gratuit : Edge Functions jusqu'à 500 000 appels / mois.
 
 Bibliothèques incluses : Chart.js 4.4.1 (MIT), supabase-js 2.45.4 (MIT, `vendor/`).

@@ -135,6 +135,19 @@ input.j{width:64px}
 .userbox .btn{padding:4px 9px;font-size:12.5px}
 .role{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--surface-2);color:var(--text-2)}
 .role.master{background:var(--accent);color:#fff}
+.accform{display:flex;flex-direction:column;gap:12px}
+.accform label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--text-2);font-weight:550}
+.accform input,.accform select,.search{font:inherit;font-size:14px;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 10px;min-width:0}
+.pwdrow{display:flex;gap:6px}.pwdrow input{flex:1;font-family:ui-monospace,Menlo,Consolas,monospace}
+.accres{margin-top:14px;padding:12px;border-radius:10px;background:var(--accent-soft);font-size:13px;line-height:1.6}
+.accres.err{background:var(--surface-2);color:var(--bad)}
+.accres code{font-family:ui-monospace,Menlo,Consolas,monospace;background:var(--surface);padding:1px 6px;border-radius:4px;user-select:all}
+.search{font-size:13px;padding:5px 9px;width:200px}
+#accList td{vertical-align:middle}
+#accList tbody tr{cursor:default}
+#accList select{padding:4px 6px;font-size:13px}
+#accList .btn{padding:3px 9px;font-size:12.5px}
+.you{font-size:11px;color:var(--text-3);margin-left:6px}
 @media (max-width:700px){.userbox .email{display:none}}
 </style>
 </head>
@@ -145,6 +158,7 @@ input.j{width:64px}
     <button role="tab" data-tab="data" aria-selected="true">Données</button>
     <button role="tab" data-tab="tac" aria-selected="false">Analyse tactique</button>
     <button role="tab" data-tab="phy" aria-selected="false">Physique</button>
+    <button role="tab" data-tab="acc" aria-selected="false" hidden>Comptes</button>
   </nav>
   <div class="userbox" id="userBox">
     <span class="sync local" id="syncState"><i></i><span>Local</span></span>
@@ -300,6 +314,34 @@ input.j{width:64px}
         <div id="passMap" style="max-width:900px;margin:0 auto"></div>
         <p class="note">Sens d'attaque de gauche à droite. Maximum 600 passes affichées.</p>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ COMPTES (Master) ============ -->
+<section class="panel" id="panel-acc">
+  <div class="grid">
+    <div class="card c4">
+      <h2>Ajouter un membre</h2>
+      <p class="sub">Le compte est utilisable immédiatement. Transmettez l’e-mail et le mot de passe à la personne : elle pourra le changer ensuite.</p>
+      <form id="accForm" class="accform">
+        <label>E-mail<input type="email" id="accEmail" required autocomplete="off"></label>
+        <label>Mot de passe provisoire
+          <span class="pwdrow"><input type="text" id="accPwd" minlength="8" required autocomplete="off" spellcheck="false"><button type="button" class="btn" id="accGen">Générer</button></span>
+        </label>
+        <label>Rôle
+          <select id="accRole"><option value="reader">Lecture : consulte les dashboards</option><option value="master">Master : gère les matchs et les comptes</option></select>
+        </label>
+        <button class="btn primary" type="submit" id="accSubmit">Créer le compte</button>
+      </form>
+      <div id="accResult" class="accres" hidden></div>
+    </div>
+    <div class="card c8">
+      <div class="card-head">
+        <div><h2>Membres</h2><p class="sub" id="accSub">Modifiez le rôle directement dans la liste. Le changement s’applique à la prochaine connexion du membre.</p></div>
+        <div class="ctrl"><input type="search" id="accSearch" placeholder="Rechercher un e-mail…" class="search"><button class="btn" id="accRefresh">Actualiser</button></div>
+      </div>
+      <div id="accList"><div class="empty">Chargement…</div></div>
     </div>
   </div>
 </section>
@@ -920,7 +962,7 @@ function evPlayers(m) {
 function refreshFilters() {
   const TN = teamNames(), PI = playerInfo();
   const all = Object.values(S.matches);
-  $('#filters').hidden = S.tab === 'data' || !all.length;
+  $('#filters').hidden = !['tac', 'phy'].includes(S.tab) || !all.length;
   const teams = Object.entries(TN).sort((a, b) => a[1].localeCompare(b[1]));
   S.f.team = fillSelect($('#fTeam'), [['', 'Toutes les équipes'], ...teams], S.f.team);
   const js = [...new Set(all.map(m => m.j))].sort((a, b) => a - b);
@@ -1583,6 +1625,7 @@ function render() {
   chartDefaults();
   if (S.tab === 'tac') renderTactical();
   else if (S.tab === 'phy') renderPhysical();
+  else if (S.tab === 'acc' && !ACC.loaded) loadAccounts();
   renderData();
 }
 function refreshAll() { refreshFilters(); render(); }
@@ -1673,6 +1716,10 @@ function applyRole() {
   $('#importCard').hidden = !ed; $('#dbCtrl').hidden = !ed; $('#helpCard').hidden = !ed;
   $('#matchListSub').textContent = ed ? 'Les journées sont déduites de l’ordre chronologique de chaque équipe ; corrigez-les si besoin, elles sont mémorisées.' : 'Matchs disponibles (consultation uniquement).';
   document.querySelector('nav.tabs button[data-tab="data"]').textContent = ed ? 'Données' : 'Matchs';
+  const accTab = document.querySelector('nav.tabs button[data-tab="acc"]');
+  accTab.hidden = !(CLOUD && S.role === 'master');
+  if (accTab.hidden && S.tab === 'acc') document.querySelector('nav.tabs button[data-tab="data"]').click();
+  ACC.loaded = false;
   const rb = $('#roleBadge');
   rb.hidden = !CLOUD || !Cloud.user;
   rb.textContent = S.role === 'master' ? 'Master' : 'Lecture';
@@ -1716,10 +1763,98 @@ async function onLogin(user) {
 function startApp() {
   let tab = 'data';
   try { tab = localStorage.getItem('dash-tab') || 'data'; } catch (e) {}
-  if (!Object.keys(S.matches).length) tab = 'data';
-  document.querySelector(`nav.tabs button[data-tab="${tab}"]`).click();
+  if (!Object.keys(S.matches).length && tab !== 'acc') tab = 'data';
+  const btn = document.querySelector(`nav.tabs button[data-tab="${tab}"]`);
+  (btn && !btn.hidden ? btn : document.querySelector('nav.tabs button[data-tab="data"]')).click();
+}
+
+/* ---------- Gestion des comptes (Master) ---------- */
+const ACC = {loaded: false, users: [], me: null};
+async function adminCall(body) {
+  const {data, error} = await Cloud.sb.functions.invoke('or-admin', {body});
+  if (error) {
+    let msg = error.message || 'Erreur';
+    try { const j = await error.context.json(); if (j && j.error) msg = j.error; } catch (e) {}
+    if (/Failed to send|FunctionsFetchError|not found|404/i.test(msg + (error.name || ''))) msg = 'Le module de gestion des comptes n’est pas installé sur Supabase (voir README, étape « Fonction or-admin »).';
+    throw new Error(msg);
+  }
+  if (data && data.error) throw new Error(data.error);
+  return data;
+}
+function genPassword() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+  const a = new Uint32Array(12); crypto.getRandomValues(a);
+  return [...a].map(x => chars[x % chars.length]).join('');
+}
+const fmtDate = d => d ? new Date(d).toLocaleDateString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric'}) + ' ' + new Date(d).toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'}) : '—';
+function accResult(html, err) { const el = $('#accResult'); el.hidden = false; el.className = 'accres' + (err ? ' err' : ''); el.innerHTML = html; }
+async function loadAccounts() {
+  ACC.loaded = true;
+  $('#accList').innerHTML = '<div class="empty">Chargement…</div>';
+  try { const d = await adminCall({action: 'list'}); ACC.users = d.users; ACC.me = d.me; renderAccounts(); }
+  catch (e) { ACC.loaded = false; $('#accList').innerHTML = `<div class="empty"><b>Impossible de charger les comptes</b>${esc(e.message)}</div>`; }
+}
+function renderAccounts() {
+  const q = ($('#accSearch').value || '').toLowerCase();
+  const list = ACC.users.filter(u => (u.email || '').toLowerCase().includes(q))
+    .sort((a, b) => (a.role === b.role ? 0 : a.role === 'master' ? -1 : 1) || (a.email || '').localeCompare(b.email || ''));
+  const nM = ACC.users.filter(u => u.role === 'master').length;
+  $('#accSub').textContent = `${ACC.users.length} compte(s) · ${nM} Master · ${ACC.users.length - nM} Lecture. Le changement de rôle s’applique à la prochaine connexion du membre.`;
+  $('#accList').innerHTML = `<div class="tbl-wrap"><table><thead><tr><th class="txt">E-mail</th><th class="txt">Rôle</th><th class="txt">Créé le</th><th class="txt">Dernière connexion</th><th></th></tr></thead><tbody>` +
+    list.map(u => {
+      const me = u.id === ACC.me;
+      return `<tr data-uid="${esc(u.id)}"><td class="txt">${esc(u.email)}${me ? '<span class="you">(vous)</span>' : ''}</td>
+        <td class="txt"><select data-role="${esc(u.id)}" ${me ? 'disabled title="Vous ne pouvez pas modifier votre propre rôle"' : ''}>
+          <option value="reader" ${u.role === 'reader' ? 'selected' : ''}>Lecture</option><option value="master" ${u.role === 'master' ? 'selected' : ''}>Master</option></select></td>
+        <td class="txt">${fmtDate(u.created_at)}</td><td class="txt">${u.last_sign_in_at ? fmtDate(u.last_sign_in_at) : '<span class="muted">jamais</span>'}</td>
+        <td>${me ? '' : `<button class="btn" data-reset="${esc(u.id)}">Nouveau mot de passe</button> <button class="btn danger" data-deluser="${esc(u.id)}">Supprimer</button>`}</td></tr>`;
+    }).join('') + '</tbody></table></div>';
+  const byId = id => ACC.users.find(u => u.id === id);
+  $('#accList').querySelectorAll('[data-role]').forEach(sel => sel.onchange = async () => {
+    const u = byId(sel.dataset.role), role = sel.value;
+    const label = role === 'master' ? 'Master (pourra gérer les matchs et les comptes)' : 'Lecture (consultation uniquement)';
+    if (!confirm(`Passer ${u.email} en ${label} ?`)) { sel.value = u.role; return; }
+    sel.disabled = true;
+    try { await adminCall({action: 'setRole', userId: u.id, role}); u.role = role; renderAccounts(); accResult(`<b>${esc(u.email)}</b> est maintenant <b>${role === 'master' ? 'Master' : 'Lecture'}</b>.`); }
+    catch (e) { sel.value = u.role; sel.disabled = false; accResult(esc(e.message), true); }
+  });
+  $('#accList').querySelectorAll('[data-reset]').forEach(b => b.onclick = async () => {
+    const u = byId(b.dataset.reset);
+    if (!confirm(`Générer un nouveau mot de passe pour ${u.email} ? L’ancien ne fonctionnera plus.`)) return;
+    const pwd = genPassword(); b.disabled = true;
+    try { await adminCall({action: 'resetPassword', userId: u.id, password: pwd}); accResult(`Nouveau mot de passe pour <b>${esc(u.email)}</b> : <code>${pwd}</code><br>Transmettez-le à la personne.`); }
+    catch (e) { accResult(esc(e.message), true); }
+    b.disabled = false;
+  });
+  $('#accList').querySelectorAll('[data-deluser]').forEach(b => b.onclick = async () => {
+    const u = byId(b.dataset.deluser);
+    if (!confirm(`Supprimer définitivement le compte ${u.email} ? La personne n’aura plus accès à OR Analysis.`)) return;
+    b.disabled = true;
+    try { await adminCall({action: 'delete', userId: u.id}); ACC.users = ACC.users.filter(x => x.id !== u.id); renderAccounts(); accResult(`Compte <b>${esc(u.email)}</b> supprimé.`); }
+    catch (e) { b.disabled = false; accResult(esc(e.message), true); }
+  });
+}
+function bindAccounts() {
+  $('#accGen').onclick = () => { $('#accPwd').value = genPassword(); };
+  $('#accPwd').value = genPassword();
+  $('#accRefresh').onclick = () => loadAccounts();
+  $('#accSearch').oninput = () => renderAccounts();
+  $('#accForm').onsubmit = async e => {
+    e.preventDefault();
+    const email = $('#accEmail').value.trim(), password = $('#accPwd').value, role = $('#accRole').value;
+    if (password.length < 8) return accResult('Mot de passe : 8 caractères minimum.', true);
+    $('#accSubmit').disabled = true;
+    try {
+      await adminCall({action: 'create', email, password, role});
+      accResult(`Compte créé (${role === 'master' ? 'Master' : 'Lecture'}). Identifiants à transmettre :<br>E-mail : <code>${esc(email)}</code><br>Mot de passe : <code>${esc(password)}</code><br>Adresse : <code>${esc(location.origin + location.pathname)}</code>`);
+      $('#accEmail').value = ''; $('#accPwd').value = genPassword();
+      loadAccounts();
+    } catch (err) { accResult(esc(err.message), true); }
+    $('#accSubmit').disabled = false;
+  };
 }
 function bindAuth() {
+  bindAccounts();
   $('#fLogin').onsubmit = async e => {
     e.preventDefault(); authMsg('Connexion…', true);
     const {data, error} = await Cloud.sb.auth.signInWithPassword({email: $('#lEmail').value.trim(), password: $('#lPwd').value});
