@@ -5,8 +5,10 @@ Dashboard d'analyse de matchs de football (tracking Second Spectrum + événemen
 - **Analyse tactique** : classement, xG, tirs, passes qui cassent la ligne, progression, pressing (PPDA), possessions, récupérations…
 - **Physique** : distance, m/min, zones de vitesse, haute intensité, sprints, vitesse max, avec / sans ballon, évolution par 5 min.
 - **Filtres** : équipe, journée, match, joueur, quart d'heure.
-- **Comptes** : chaque utilisateur se connecte avec son e-mail et son mot de passe et dispose de son propre espace
-  de données en ligne, invisible pour les autres.
+- **Comptes et rôles** : connexion par e-mail + mot de passe. Une seule base de matchs, partagée :
+  - **Master** : ajoute, modifie (journées) et supprime les matchs ;
+  - **Lecture** : consulte les dashboards et utilise les filtres, sans pouvoir rien modifier.
+  Les droits sont contrôlés par le serveur (règles Supabase), pas seulement masqués dans l'interface.
 
 Hébergement gratuit : site sur **GitHub Pages**, comptes et stockage sur **Supabase** (offre gratuite).
 
@@ -33,11 +35,31 @@ Supabase → **Authentication → Users** :
 - ou **Invite user** : la personne reçoit un e-mail et choisit elle-même son mot de passe.
 - Supprimer un utilisateur lui retire l'accès immédiatement.
 
+**Tout nouveau compte est en Lecture.** Pour le passer en **Master**, Supabase → **SQL Editor** :
+
+```sql
+insert into public.masters (user_id)
+select id from auth.users where email = 'email-du-master@exemple.fr'
+on conflict do nothing;
+```
+
+Repasser un Master en Lecture :
+
+```sql
+delete from public.masters
+where user_id = (select id from auth.users where email = 'email-du-master@exemple.fr');
+```
+
+Liste des Masters : `select u.email from public.masters m join auth.users u on u.id = m.user_id;`
+(Le changement de rôle est pris en compte à la prochaine connexion ou au rechargement de la page.)
+
 « Mot de passe oublié ? » sur l'écran de connexion envoie un lien de réinitialisation.
 Le service d'e-mail gratuit de Supabase est limité à quelques e-mails par heure (suffisant pour un petit groupe).
 
 ## Limites de l'offre gratuite Supabase
-- 1 Go de stockage de fichiers (un match ≈ 70 Ko compressé → plusieurs milliers de matchs), 5 Go de transfert / mois.
+- 1 Go de stockage de fichiers (un match ≈ 70 Ko compressé → plusieurs milliers de matchs).
+- 5 Go de transfert / mois : chaque compte télécharge la base une fois puis seulement les nouveautés
+  (ex. 300 matchs ≈ 21 Mo par nouvel appareil).
 - Le projet **se met en pause après 7 jours sans activité** : il se réactive en un clic depuis le tableau de bord Supabase
   (aucune donnée perdue).
 

@@ -133,6 +133,8 @@ input.j{width:64px}
 .sync i{width:7px;height:7px;border-radius:50%;background:var(--good)}
 .sync.busy i{background:var(--accent)}.sync.err i{background:var(--bad)}.sync.local i{background:var(--text-3)}
 .userbox .btn{padding:4px 9px;font-size:12.5px}
+.role{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--surface-2);color:var(--text-2)}
+.role.master{background:var(--accent);color:#fff}
 @media (max-width:700px){.userbox .email{display:none}}
 </style>
 </head>
@@ -146,6 +148,7 @@ input.j{width:64px}
   </nav>
   <div class="userbox" id="userBox">
     <span class="sync local" id="syncState"><i></i><span>Local</span></span>
+    <span class="role" id="roleBadge" hidden></span>
     <span class="email" id="userEmail"></span>
     <button class="btn" id="pwdBtn" hidden>Mot de passe</button>
     <button class="btn" id="logoutBtn" hidden>Déconnexion</button>
@@ -194,7 +197,7 @@ input.j{width:64px}
 <!-- ============ DONNÉES ============ -->
 <section class="panel active" id="panel-data">
   <div class="grid">
-    <div class="card c12">
+    <div class="card c12" id="importCard">
       <div class="drop" id="drop">
         <p><b style="font-size:16px;color:var(--text)">Glissez ici les fichiers ou dossiers de vos matchs</b></p>
         <p>Un dossier par match est l'idéal, mais vous pouvez aussi déposer tous les fichiers en vrac : le dashboard les regroupe automatiquement par match.</p>
@@ -209,8 +212,8 @@ input.j{width:64px}
     </div>
     <div class="card c12">
       <div class="card-head">
-        <div><h2>Matchs chargés</h2><p class="sub">Les journées sont déduites de l'ordre chronologique de chaque équipe ; corrigez-les si besoin, elles sont mémorisées.</p></div>
-        <div class="ctrl">
+        <div><h2>Matchs chargés</h2><p class="sub" id="matchListSub">Les journées sont déduites de l'ordre chronologique de chaque équipe ; corrigez-les si besoin, elles sont mémorisées.</p></div>
+        <div class="ctrl" id="dbCtrl">
           <button class="btn" id="exportDb">Exporter la base (.json)</button>
           <button class="btn" id="importDbBtn">Importer une base</button>
           <input type="file" id="importDb" accept=".json" hidden>
@@ -219,7 +222,7 @@ input.j{width:64px}
       </div>
       <div id="matchList"></div>
     </div>
-    <div class="card c12 help">
+    <div class="card c12 help" id="helpCard">
       <h2>Fichiers reconnus</h2>
       <p>Le type de chaque fichier est détecté d'après son contenu, pas son nom.</p>
       <p><code>metadata.json</code> / <code>meta.json</code> : équipes, joueurs, score (au moins l'un des deux est obligatoire) ·
@@ -444,14 +447,15 @@ const isSet = v => v && !/^__.*__$/.test(v);
 const CLOUD = !!window.__SB_MOCK__ || (isSet(OR_CONFIG.supabaseUrl) && isSet(OR_CONFIG.supabaseKey));
 const Cloud = {
   sb: null, user: null, q: Promise.resolve(), pending: 0, failed: 0,
-  path(id) { return `${this.user.id}/${id}.json.gz`; },
+  folder: 'shared',
+  path(id) { return `${this.folder}/${id}.json.gz`; },
   bucket() { return this.sb.storage.from(OR_CONFIG.bucket); },
   async gz(obj) { return await new Response(new Blob([JSON.stringify(obj)]).stream().pipeThrough(new CompressionStream('gzip'))).blob(); },
   async ungz(blob) { return JSON.parse(await new Response(blob.stream().pipeThrough(new DecompressionStream('gzip'))).text()); },
   async list() {
     const out = []; let offset = 0;
     for (;;) {
-      const {data, error} = await this.bucket().list(this.user.id, {limit: 1000, offset, sortBy: {column: 'name', order: 'asc'}});
+      const {data, error} = await this.bucket().list(this.folder, {limit: 1000, offset, sortBy: {column: 'name', order: 'asc'}});
       if (error) throw error;
       for (const f of data || []) if (f.name.endsWith('.json.gz')) out.push({id: f.name.slice(0, -8), t: Date.parse(f.updated_at || f.created_at || 0) || 0});
       if (!data || data.length < 1000) break; offset += 1000;
@@ -491,12 +495,15 @@ function setSync(state) {
   el.title = Cloud.failed ? 'Certaines modifications n’ont pas pu être envoyées. Vérifiez la connexion puis rechargez la page.' : '';
 }
 // Sauvegarde locale + en ligne
+const canEdit = () => !CLOUD || S.role === 'master';
 function persist(m) {
+  if (!canEdit()) return;
   m._saved = Date.now(); m._synced = false; DB.put(m);
   if (!CLOUD || !Cloud.user) return;
   Cloud.enqueue(async () => { await Cloud.put(m); m._synced = true; m._saved = Date.now(); DB.put(m); });
 }
 function unpersist(ids) {
+  if (!canEdit()) return;
   ids.forEach(id => DB.del(id));
   if (CLOUD && Cloud.user) Cloud.enqueue(() => Cloud.del(ids));
 }
@@ -513,8 +520,8 @@ async function syncFromCloud() {
   }
   for (const m of Object.values(S.matches)) {
     if (rIds.has(m.id)) continue;
-    if (m._synced) { delete S.matches[m.id]; DB.del(m.id); }  // supprimé depuis un autre appareil
-    else persist(m);                                           // jamais envoyé
+    if (m._synced || !canEdit()) { delete S.matches[m.id]; DB.del(m.id); }  // supprimé par un Master
+    else persist(m);                                                       // jamais envoyé
   }
   setSync();
 }
@@ -526,6 +533,7 @@ const S = {
   matches: {},            // id -> match
   tab: 'data',
   f: {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0,1,2,3,4,5])},
+  role: 'local',
   sort: {},               // tableId -> {k, asc}
   charts: {}
 };
@@ -566,6 +574,7 @@ function parseText(text) {
 }
 
 async function importFiles(list) {
+  if (!canEdit()) return;
   logEl.textContent = '';
   log(`Analyse de ${list.length} fichier(s)…`);
   const parsed = [];
@@ -1544,13 +1553,13 @@ function renderData() {
   const TN = teamNames();
   const list = Object.values(S.matches).sort((a, b) => a.date - b.date);
   $('#hdrCount').textContent = list.length ? `${list.length} match(s)` : '';
-  if (!list.length) { $('#matchList').innerHTML = '<div class="empty"><b>Aucun match chargé</b>Déposez les fichiers d’un ou plusieurs matchs ci-dessus.</div>'; return; }
+  if (!list.length) { $('#matchList').innerHTML = canEdit() ? '<div class="empty"><b>Aucun match chargé</b>Déposez les fichiers d’un ou plusieurs matchs ci-dessus.</div>' : '<div class="empty"><b>Aucun match disponible</b>Les matchs apparaîtront ici dès qu’un compte Master les aura ajoutés.</div>'; return; }
   $('#matchList').innerHTML = `<div class="tbl-wrap"><table><thead><tr><th class="txt">Date</th><th class="txt">Journée</th><th class="txt">Match</th><th>Score</th><th class="txt">Données</th><th></th></tr></thead><tbody>` +
     list.map(m => `<tr data-id="${m.id}" style="cursor:default"><td class="txt">${new Date(m.date).toLocaleDateString('fr-FR', {weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric'})}</td>
-      <td class="txt"><input type="number" class="j" min="1" value="${m.j}" data-j="${m.id}" title="Modifier la journée">${m.jManual ? ' <span class="muted" title="Modifiée manuellement">✎</span>' : ''}</td>
+      <td class="txt">${canEdit() ? `<input type="number" class="j" min="1" value="${m.j}" data-j="${m.id}" title="Modifier la journée">${m.jManual ? ' <span class="muted" title="Modifiée manuellement">✎</span>' : ''}` : 'J' + m.j}</td>
       <td class="txt">${esc(TN[m.home.id])} – ${esc(TN[m.away.id])}</td><td>${m.score[0]} – ${m.score[1]}</td>
       <td class="txt"><span class="badge on">Fiche</span><span class="badge ${m.ev ? 'on' : ''}">Événements</span><span class="badge ${m.phys && m.phys.sum ? 'on' : ''}">Physique résumé</span><span class="badge ${m.phys && m.phys.bins ? 'on' : ''}">Physique ${m.phys && m.phys.binsSrc === 'minute' ? '/min' : '/5 min'}</span></td>
-      <td><button class="btn danger" data-del="${m.id}" style="padding:3px 9px">Supprimer</button></td></tr>`).join('') + '</tbody></table></div>';
+      <td>${canEdit() ? `<button class="btn danger" data-del="${m.id}" style="padding:3px 9px">Supprimer</button>` : ''}</td></tr>`).join('') + '</tbody></table></div>';
   $('#matchList').querySelectorAll('[data-j]').forEach(inp => inp.onchange = () => {
     const m = S.matches[inp.dataset.j]; const v = parseInt(inp.value, 10);
     if (v > 0) { m.j = v; m.jManual = true; persist(m); S.f.j0 = null; S.f.j1 = null; refreshAll(); }
@@ -1619,7 +1628,7 @@ function bindUI() {
   const drop = $('#drop');
   ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
   ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
-  drop.addEventListener('drop', async e => importFiles(await collectDropped(e.dataTransfer)));
+  drop.addEventListener('drop', async e => { if (canEdit()) importFiles(await collectDropped(e.dataTransfer)); });
   $('#pickFiles').onclick = () => $('#inFiles').click();
   $('#pickDir').onclick = () => $('#inDir').click();
   $('#inFiles').onchange = e => { importFiles([...e.target.files].map(f => ({file: f, path: f.name}))); e.target.value = ''; };
@@ -1658,6 +1667,23 @@ function bindUI() {
   window.addEventListener('resize', () => {});
 }
 
+/* ---------- Rôles ---------- */
+function applyRole() {
+  const ed = canEdit();
+  $('#importCard').hidden = !ed; $('#dbCtrl').hidden = !ed; $('#helpCard').hidden = !ed;
+  $('#matchListSub').textContent = ed ? 'Les journées sont déduites de l’ordre chronologique de chaque équipe ; corrigez-les si besoin, elles sont mémorisées.' : 'Matchs disponibles (consultation uniquement).';
+  document.querySelector('nav.tabs button[data-tab="data"]').textContent = ed ? 'Données' : 'Matchs';
+  const rb = $('#roleBadge');
+  rb.hidden = !CLOUD || !Cloud.user;
+  rb.textContent = S.role === 'master' ? 'Master' : 'Lecture';
+  rb.className = 'role' + (S.role === 'master' ? ' master' : '');
+  rb.title = S.role === 'master' ? 'Peut ajouter, modifier et supprimer les matchs' : 'Consultation des dashboards uniquement';
+}
+async function fetchRole() {
+  try { const {data, error} = await Cloud.sb.rpc('or_is_master'); if (error) throw error; return data === true ? 'master' : 'reader'; }
+  catch (e) { console.warn(e); return 'reader'; }
+}
+
 /* ---------- Écran de connexion ---------- */
 function showAuth(mode, opts = {}) {
   $('#auth').hidden = false;
@@ -1676,13 +1702,16 @@ async function onLogin(user) {
   Cloud.user = user; Cloud.failed = 0;
   $('#userEmail').textContent = user.email || '';
   $('#pwdBtn').hidden = false; $('#logoutBtn').hidden = false;
+  S.role = await fetchRole();
+  applyRole();
   await DB.open('or-analysis-' + user.id);
   S.matches = {};
   for (const m of await DB.all()) S.matches[m.id] = m;
   $('#auth').hidden = true;
   startApp();
   await syncFromCloud();
-  refreshAll();
+  if (S.role !== 'master' && S.tab === 'data' && Object.keys(S.matches).length) document.querySelector('nav.tabs button[data-tab="tac"]').click();
+  else refreshAll();
 }
 function startApp() {
   let tab = 'data';
@@ -1723,7 +1752,7 @@ function bindAuth() {
     if (Cloud.pending && !confirm('Des modifications sont encore en cours d’envoi. Se déconnecter quand même ?')) return;
     try { await Cloud.sb.auth.signOut(); } catch (e) {}
     DB.drop();                       // efface le cache local de ce navigateur
-    Cloud.user = null; S.matches = {}; S.f = {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0, 1, 2, 3, 4, 5])};
+    Cloud.user = null; S.role = 'reader'; applyRole(); S.matches = {}; S.f = {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0, 1, 2, 3, 4, 5])};
     Object.values(S.charts).forEach(c => c.destroy()); S.charts = {};
     $('#userEmail').textContent = ''; $('#pwdBtn').hidden = true; $('#logoutBtn').hidden = true; logEl.textContent = ''; logEl.style.display = 'none';
     refreshAll();
@@ -1742,7 +1771,8 @@ function bindAuth() {
     startApp();
     return;
   }
-  $('#storageHelp').textContent = 'Vos matchs sont enregistrés dans votre espace personnel en ligne : vous les retrouvez sur n’importe quel ordinateur en vous connectant. Les autres utilisateurs n’y ont pas accès.';
+  $('#storageHelp').textContent = 'Les matchs sont enregistrés en ligne et partagés avec tous les comptes. Seuls les comptes Master peuvent ajouter, modifier ou supprimer des matchs ; les comptes Lecture consultent les dashboards.';
+  S.role = 'reader'; applyRole();
   bindAuth();
   const hash = location.hash;
   Cloud.sb = window.__SB_MOCK__ || supabase.createClient(OR_CONFIG.supabaseUrl, OR_CONFIG.supabaseKey, {auth: {persistSession: true, autoRefreshToken: true, detectSessionInUrl: true}});
