@@ -1111,7 +1111,21 @@ const TAC_FIELDS = ['mp', 'secs', 'gf', 'ga', 'xg', 'xga', 'sh', 'sha', 'sot', '
   'recovH', 'shCtr', 'xgCtr', 'shCpa', 'xgCpa', 'gfCpa', 'gaCpa', 'shaCpa', 'xgaCpa', 'pen', 'penG', 'cpaPoss', 'cpaXgP', 'cpaXgaP', 'cornD', 'cornAtt', 'cornShort', 'cornIn', 'cornOut', 'mV2'];
 const newAgg = () => { const o = {starts: {}, cpaT: {}, cpaTa: {}, byQ: [0, 1, 2, 3, 4, 5].map(() => ({xg: 0, xga: 0, gf: 0, ga: 0, sh: 0, lb: 0, pass: 0, possT: 0, possTot: 0}))}; TAC_FIELDS.forEach(k => o[k] = 0); return o; };
 
-function aggTactical(ms, qsOverride) {
+/* Cache des agrégations : changer d'onglet ou de sous-onglet ne recalcule rien
+   tant que la sélection de matchs et de quarts d'heure est la même. */
+const AGG_CACHE = new Map();
+function memoAgg(kind, fn, ms, qs) {
+  const key = kind + '|' + [...qs].sort().join('') + '|' + ms.map(m => m.id).join(',');
+  const hit = AGG_CACHE.get(key);
+  if (hit && hit.ms.length === ms.length && hit.ms.every((m, i) => m === ms[i])) return hit.r;
+  const r = fn(ms, qs);
+  if (AGG_CACHE.size > 60) AGG_CACHE.delete(AGG_CACHE.keys().next().value);
+  AGG_CACHE.set(key, {ms: ms.slice(), r});
+  return r;
+}
+function aggTactical(ms, qsOverride) { return memoAgg('T', aggTacticalRaw, ms, qsOverride || S.f.qs); }
+function aggPhys(ms, qsOverride) { return memoAgg('P', aggPhysRaw, ms, qsOverride || S.f.qs); }
+function aggTacticalRaw(ms, qsOverride) {
   const qs = qsOverride || S.f.qs;
   const T = {}, P = {};
   const t = id => T[id] || (T[id] = newAgg());
@@ -1214,7 +1228,7 @@ function aggTactical(ms, qsOverride) {
   return {T, P};
 }
 
-function aggPhys(ms, qsOverride) {
+function aggPhysRaw(ms, qsOverride) {
   const qs = qsOverride || S.f.qs;
   const allQ = qs.size === 6;
   const T = {}, P = {};
@@ -1361,14 +1375,39 @@ function exportCSV(id) {
 function chart(id, cfg) {
   let el = document.getElementById(id); if (!el) return;
   if (!el.offsetParent) { if (S.charts[id]) { S.charts[id].destroy(); delete S.charts[id]; } return; }
-  if (S.charts[id]) {
-    S.charts[id].destroy(); delete S.charts[id];
-    // Safari limite la mémoire des <canvas> : on libère l'ancien et on repart d'un canvas neuf
-    const fresh = document.createElement('canvas'); fresh.id = id;
-    el.width = 0; el.height = 0; el.replaceWith(fresh); el = fresh;
-  }
+  if (S.charts[id]) { try { S.charts[id].destroy(); } catch (e) {} delete S.charts[id]; }
+  // Toujours repartir d'un <canvas> neuf : un canvas déjà utilisé (taille remise à 0,
+  // contexte perdu par le navigateur…) peut rester blanc jusqu'au rafraîchissement.
+  const fresh = document.createElement('canvas'); fresh.id = id;
+  if (el.className) fresh.className = el.className;
+  for (const a of ['role', 'aria-label']) if (el.hasAttribute(a)) fresh.setAttribute(a, el.getAttribute(a));
+  el.width = 0; el.height = 0; el.replaceWith(fresh); el = fresh;
+  el.addEventListener('contextlost', scheduleRender);
+  el.addEventListener('contextrestored', scheduleRender);
   try { S.charts[id] = new Chart(el, cfg); }
   catch (e) { console.error('Graphique ' + id, e); }
+}
+/* Rendu différé d'une frame (le temps que l'onglet affiché ait sa mise en page),
+   puis vérification : si un graphique visible est vide, on le redessine une fois. */
+let RENDER_PENDING = false, HEAL_TRIES = 0;
+function scheduleRender() {
+  if (RENDER_PENDING) return; RENDER_PENDING = true;
+  requestAnimationFrame(() => requestAnimationFrame(() => { RENDER_PENDING = false; render(); }));
+}
+function chartsHealthy() {
+  for (const el of document.querySelectorAll('.panel.active canvas')) {
+    if (!el.offsetParent || !el.id) continue;
+    const c = S.charts[el.id];
+    if (!c || c.canvas !== el || !el.width || !el.height) return false;
+  }
+  return true;
+}
+function healCharts() {
+  setTimeout(() => {
+    if (chartsHealthy() || HEAL_TRIES >= 2) return;
+    HEAL_TRIES++;
+    requestAnimationFrame(() => render(true));
+  }, 250);
 }
 function chartDefaults() {
   Chart.defaults.font.family = 'system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
@@ -1969,13 +2008,17 @@ function releaseHiddenCharts() {
     if ((panel && !panel.classList.contains('active')) || !c.canvas || !c.canvas.offsetParent) { const el = c.canvas; c.destroy(); el.width = 0; el.height = 0; delete S.charts[id]; }
   }
 }
-function render() {
+function render(healing) {
+  if (!healing) HEAL_TRIES = 0;
   releaseHiddenCharts();
   chartDefaults();
-  if (S.tab === 'tac') renderTactical();
-  else if (S.tab === 'phy') renderPhysical();
-  else if (S.tab === 'acc' && !ACC.loaded) loadAccounts();
+  try {
+    if (S.tab === 'tac') renderTactical();
+    else if (S.tab === 'phy') renderPhysical();
+    else if (S.tab === 'acc' && !ACC.loaded) loadAccounts();
+  } catch (e) { console.error('Rendu', e); }
   renderData();
+  healCharts();
 }
 function refreshAll() { refreshFilters(); render(); }
 
@@ -2003,7 +2046,7 @@ function bindSubtabs() {
     const b = e.target.closest('button[data-sub]'); if (!b) return;
     S.sub[nav.dataset.for] = b.dataset.sub;
     try { localStorage.setItem('dash-sub', JSON.stringify(S.sub)); } catch (err) {}
-    applySubtabs(); render(); window.scrollTo({top: 0});
+    applySubtabs(); window.scrollTo({top: 0}); scheduleRender();
   });
   applySubtabs();
 }
@@ -2014,8 +2057,11 @@ function bindUI() {
     document.querySelectorAll('nav.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
     document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + S.tab));
     try { localStorage.setItem('dash-tab', S.tab); } catch (e) {}
-    refreshAll();
+    refreshFilters(); scheduleRender();
   });
+  // Retour sur l'onglet du navigateur après un moment : Chrome peut avoir libéré les canvas
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && (S.tab === 'tac' || S.tab === 'phy')) scheduleRender(); });
+  window.addEventListener('pageshow', e => { if (e.persisted) scheduleRender(); });
   $('#fTeam').onchange = e => { S.f.team = e.target.value; S.f.match = ''; S.f.player = ''; refreshAll(); };
   $('#fJ0').onchange = e => { S.f.j0 = +e.target.value; if (S.f.j1 != null && S.f.j1 < S.f.j0) S.f.j1 = S.f.j0; refreshAll(); };
   $('#fJ1').onchange = e => { S.f.j1 = +e.target.value; if (S.f.j0 != null && S.f.j0 > S.f.j1) S.f.j0 = S.f.j1; refreshAll(); };
