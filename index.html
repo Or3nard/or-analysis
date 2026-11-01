@@ -10,7 +10,7 @@
   --bg:#f4f4f2; --surface:#fcfcfb; --surface-2:#f0efec; --border:#e2e1dc;
   --text:#0b0b0b; --text-2:#52514e; --text-3:#8a8984;
   --accent:#2a78d6; --accent-soft:#e3eefb;
-  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#7c4fd0;
   --grid:#e8e7e3; --pitch:#f3f7f2; --pitch-line:#b9c4b6;
   --z1:#86b6ef; --z2:#5598e7; --z3:#2a78d6; --z4:#1c5cab; --z5:#104281;
   --good:#008300; --bad:#c23b3a;
@@ -21,7 +21,7 @@
     --bg:#121211; --surface:#1a1a19; --surface-2:#232321; --border:#33332f;
     --text:#f0efec; --text-2:#c3c2b7; --text-3:#8d8c84;
     --accent:#3987e5; --accent-soft:#1d2c40;
-    --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#9a78e8;
     --grid:#2b2b28; --pitch:#1c211c; --pitch-line:#4a5547;
     --z1:#184f95; --z2:#256abf; --z3:#3987e5; --z4:#6da7ec; --z5:#b7d3f6;
     --good:#3fae3f; --bad:#e66767;
@@ -32,7 +32,7 @@
   --bg:#121211; --surface:#1a1a19; --surface-2:#232321; --border:#33332f;
   --text:#f0efec; --text-2:#c3c2b7; --text-3:#8d8c84;
   --accent:#3987e5; --accent-soft:#1d2c40;
-  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#9a78e8;
   --grid:#2b2b28; --pitch:#1c211c; --pitch-line:#4a5547;
   --z1:#184f95; --z2:#256abf; --z3:#3987e5; --z4:#6da7ec; --z5:#b7d3f6;
   --good:#3fae3f; --bad:#e66767;
@@ -79,6 +79,43 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .chart-box{position:relative;height:340px}
 .chart-box.tall{height:460px}
 .chart-box.short{height:260px}
+.chart-box.xl{height:560px}
+.lbl{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:var(--text-2);font-weight:600}
+.pair-tbl{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.pair-tbl h3{font-size:13px;margin:0 0 6px;font-weight:650;text-align:center}
+.tbl-wrap.rk{max-height:430px}
+@media (max-width:800px){.pair-tbl{grid-template-columns:1fr}}
+.hint{font-size:13px;color:var(--text-3);margin:10px 0 0}
+.pct-list{display:flex;flex-direction:column;gap:7px}
+.pct-row{display:grid;grid-template-columns:150px 1fr 92px;gap:10px;align-items:center;font-size:12.5px}
+.pct-row .nm{color:var(--text-2)}
+.pct-row .bar{position:relative;height:16px;background:var(--surface-2);border-radius:4px;overflow:hidden}
+.pct-row .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+.pct-row .bar b{position:absolute;left:50%;top:-2px;bottom:-2px;border-left:1px dashed var(--text-3)}
+.pct-row .vl{text-align:right;font-variant-numeric:tabular-nums}
+.pct-row .vl small{color:var(--text-3);display:block;font-size:11px}
+.h2h-ctrl{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.h2h-ctrl select{max-width:260px}
+.h2h-ctrl .lbl.a{color:var(--s1)}.h2h-ctrl .lbl.b{color:var(--s2)}
+.h2h-head{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:stretch;margin-top:14px}
+.h2h-side{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;border-top:4px solid var(--s1)}
+.h2h-side.b{border-top-color:var(--s2);flex-direction:row-reverse;text-align:right}
+.h2h-side img{width:44px;height:44px;object-fit:contain}
+.h2h-side .nm{font-size:17px;font-weight:700}
+.h2h-side .meta{font-size:12.5px;color:var(--text-3)}
+.h2h-vs{align-self:center;font-weight:800;color:var(--text-3);font-size:15px}
+.h2h-cmp{display:flex;flex-direction:column}
+.h2h-row{display:grid;grid-template-columns:70px 1fr 150px 1fr 70px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--grid);font-size:13px}
+.h2h-row:last-child{border-bottom:0}
+.h2h-row .v{font-variant-numeric:tabular-nums;color:var(--text-2)}
+.h2h-row .v.a{text-align:right}.h2h-row .v.win{color:var(--text);font-weight:700}
+.h2h-row .m{text-align:center;color:var(--text-2);font-size:12.5px;line-height:1.2}
+.h2h-row .m small{display:block;color:var(--text-3);font-size:10.5px}
+.h2h-row .bar{height:12px;background:var(--surface-2);border-radius:3px;position:relative;overflow:hidden}
+.h2h-row .bar i{position:absolute;top:0;bottom:0;border-radius:3px}
+.h2h-row .bar.a i{right:0;background:var(--s1)}.h2h-row .bar.b i{left:0;background:var(--s2)}
+.h2h-row .bar i.lose{opacity:.45}
+@media (max-width:700px){.h2h-head{grid-template-columns:1fr}.h2h-vs{display:none}.h2h-row{grid-template-columns:52px 1fr 100px 1fr 52px}}
 .tbl-wrap{overflow:auto;max-height:520px;border:1px solid var(--border);border-radius:8px}
 table{border-collapse:collapse;width:100%;font-size:12.8px;font-variant-numeric:tabular-nums}
 th,td{padding:6px 9px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--grid)}
@@ -460,28 +497,36 @@ input.j{width:64px}
 <section class="panel" id="panel-phy">
   <div id="phyEmpty" class="empty" hidden><b>Aucune donnée physique</b>Importez des fichiers <code>physical-*.jsonl</code> dans l'onglet Données.</div>
   <div id="phyBody">
-    <nav class="subtabs" data-for="phy"><button data-sub="res">Résumé</button><button data-sub="cls">Classements</button></nav>
+    <nav class="subtabs" data-for="phy"><button data-sub="team">Équipe</button><button data-sub="player">Joueur</button><button data-sub="h2h">Face à face</button><button data-sub="cls">Classements</button></nav>
     <p class="focus-line" id="phyFocus"></p>
 
-    <div class="subpanel" data-sub="res">
+    <!-- ===================== Équipe ===================== -->
+    <div class="subpanel" data-sub="team">
       <div class="kpis" id="phyKpis"></div>
       <div class="grid" style="margin-top:14px">
+        <div class="card c12">
+          <div class="card-head">
+            <div><h2 id="phyTScTitle">Dist. totale vs Dist. &gt;25 km/h</h2><p class="sub" id="phyTScSub"></p></div>
+            <div class="ctrl"><label class="lbl">X <select id="phyTX"></select></label><label class="lbl">Y <select id="phyTY"></select></label></div>
+          </div>
+          <div class="chart-box xl"><canvas id="chPhyTSc"></canvas></div>
+          <div class="pair-tbl">
+            <div><h3 id="phyTRkXh"></h3><div class="tbl-wrap rk" id="tblPhyTX"></div></div>
+            <div><h3 id="phyTRkYh"></h3><div class="tbl-wrap rk" id="tblPhyTY"></div></div>
+          </div>
+        </div>
         <div class="card c8">
           <div class="card-head"><div><h2>Évolution au fil du match</h2><p class="sub">Par tranche de 5 minutes, moyenne par joueur sur le terrain</p></div>
-          <div class="ctrl"><select id="phyEvoMetric"><option value="mpm">Distance (m/min)</option><option value="himpm">Haute intensité (m/min)</option><option value="sprmpm">Sprint (m/min)</option></select></div></div>
+          <div class="ctrl"><select id="phyEvoMetric"><option value="mpm">Distance (m/min)</option><option value="himpm">Haute intensité (m/min)</option><option value="sprmpm">Sprint &gt;25 km/h (m/min)</option></select></div></div>
           <div class="chart-box"><canvas id="chEvo"></canvas></div>
         </div>
         <div class="card c4">
           <div class="card-head"><div><h2>Par quart d'heure</h2><p class="sub">Même indicateur, regroupé par 15 min</p></div></div>
           <div class="chart-box"><canvas id="chPhyQ"></canvas></div>
         </div>
-        <div class="card c6">
-          <div class="card-head"><div><h2>Volume vs intensité</h2><p class="sub">Joueurs de champ, par 90 min (≥ 45 min ou seuil choisi)</p></div></div>
-          <div class="chart-box"><canvas id="chPhyScatter"></canvas></div>
-        </div>
-        <div class="card c6">
+        <div class="card c12">
           <div class="card-head"><div><h2>Haute intensité avec / sans ballon</h2><p class="sub">Distance HSR + sprint par match, par équipe</p></div></div>
-          <div class="chart-box"><canvas id="chPoss"></canvas></div>
+          <div class="chart-box tall"><canvas id="chPoss"></canvas></div>
         </div>
         <div class="card c12">
           <div class="card-head">
@@ -493,6 +538,68 @@ input.j{width:64px}
       </div>
     </div>
 
+    <!-- ===================== Joueur ===================== -->
+    <div class="subpanel" data-sub="player">
+      <div class="kpis" id="phyPKpis"></div>
+      <p class="hint" id="phyPHint">Choisissez un joueur (filtre <b>Joueur</b>, clic sur un point ou dans un tableau) pour afficher sa fiche.</p>
+      <div class="grid" style="margin-top:14px">
+        <div class="card c12">
+          <div class="card-head">
+            <div><h2 id="phyPScTitle">Dist. totale vs Dist. &gt;25 km/h</h2><p class="sub" id="phyPScSub"></p></div>
+            <div class="ctrl">
+              <div class="chips" id="phyRole"></div>
+              <span>Match ≥ <input type="number" id="phyRoleMin" min="0" max="120" step="5" style="width:58px"> min</span>
+              <label class="lbl">X <select id="phyPX"></select></label><label class="lbl">Y <select id="phyPY"></select></label>
+            </div>
+          </div>
+          <div class="chart-box xl"><canvas id="chPhyPSc"></canvas></div>
+          <div class="pair-tbl">
+            <div><h3 id="phyPRkXh"></h3><div class="tbl-wrap rk" id="tblPhyPX"></div></div>
+            <div><h3 id="phyPRkYh"></h3><div class="tbl-wrap rk" id="tblPhyPY"></div></div>
+          </div>
+        </div>
+        <div class="card c6" id="phyProfileCard">
+          <div class="card-head"><div><h2>Profil du joueur</h2><p class="sub" id="phyProfileSub"></p></div></div>
+          <div id="phyProfile" class="pct-list"></div>
+        </div>
+        <div class="card c6" id="phyPEvoCard">
+          <div class="card-head"><div><h2>Au fil du match</h2><p class="sub" id="phyPEvoSub"></p></div>
+          <div class="ctrl"><select id="phyPEvoMetric"><option value="mpm">Distance (m/min)</option><option value="himpm">Haute intensité (m/min)</option><option value="sprmpm">Sprint &gt;25 km/h (m/min)</option></select></div></div>
+          <div class="chart-box"><canvas id="chPhyPEvo"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== Face à face ===================== -->
+    <div class="subpanel" data-sub="h2h">
+      <div class="card h2h-ctrl">
+        <div class="chips" id="h2hMode"><button class="chip" data-m="team">Équipes</button><button class="chip" data-m="player">Joueurs</button></div>
+        <label class="lbl a">A <select id="h2hA"></select></label>
+        <button class="btn" id="h2hSwap" title="Inverser">⇄</button>
+        <label class="lbl b">B <select id="h2hB"></select></label>
+        <span class="sub" id="h2hNote"></span>
+      </div>
+      <div class="h2h-head" id="h2hHead"></div>
+      <div class="grid" style="margin-top:14px">
+        <div class="card c7">
+          <div class="card-head"><div><h2>Comparaison</h2><p class="sub" id="h2hCmpSub"></p></div></div>
+          <div id="h2hCmp" class="h2h-cmp"></div>
+        </div>
+        <div class="card c5">
+          <div class="card-head"><div><h2>Profil (percentiles)</h2><p class="sub" id="h2hRadarSub"></p></div></div>
+          <div class="chart-box tall"><canvas id="chH2hRadar"></canvas></div>
+        </div>
+        <div class="card c8">
+          <div class="card-head"><div><h2>Au fil du match</h2><p class="sub">Par tranche de 5 minutes</p></div>
+          <div class="ctrl"><select id="h2hEvoMetric"><option value="mpm">Distance (m/min)</option><option value="himpm">Haute intensité (m/min)</option><option value="sprmpm">Sprint &gt;25 km/h (m/min)</option></select></div></div>
+          <div class="chart-box"><canvas id="chH2hEvo"></canvas></div>
+        </div>
+        <div class="card c4">
+          <div class="card-head"><div><h2>Par quart d'heure</h2><p class="sub">Même indicateur</p></div></div>
+          <div class="chart-box"><canvas id="chH2hQ"></canvas></div>
+        </div>
+      </div>
+    </div>
     <div class="subpanel" data-sub="cls">
       <div class="grid">
         <div class="card c7">
@@ -691,7 +798,9 @@ const S = {
   tab: 'data',
   f: {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0,1,2,3,4,5])},
   role: 'local',
-  sub: {tac: 'res', phy: 'res'},
+  sub: {tac: 'res', phy: 'team'},
+  h2h: {mode: 'team', team: ['', ''], player: ['', '']},
+  role: 'CB', roleMin: {},
   sort: {},               // tableId -> {k, asc}
   charts: {}
 };
@@ -1311,7 +1420,7 @@ const PHY = {
   mp: {l: 'MJ', t: 'cnt'}, min: {l: 'Min', t: 'cnt', f: o => o.time / 60},
   dist: {l: 'Distance (m)', t: 'add'}, mpm: {l: 'm/min', t: 'ratio', d: 1, f: o => o.time ? o.dist / (o.time / 60) : null, h: 'Distance par minute jouée'},
   walk: {l: 'Marche (m)', t: 'add'}, jog: {l: 'Footing (m)', t: 'add'}, lsr: {l: 'Course lente (m)', t: 'add'},
-  hsr: {l: 'Haute vitesse (m)', t: 'add', h: 'High Speed Running'}, spr: {l: 'Sprint (m)', t: 'add'},
+  hsr: {l: 'Haute vitesse (m)', t: 'add', h: 'High Speed Running'}, spr: {l: 'Sprint >25 km/h (m)', t: 'add', h: 'Distance parcourue au-dessus de 25 km/h'},
   hi: {l: 'HSR + sprint (m)', t: 'add', f: o => o.hsr + o.spr, h: 'Distance à haute intensité'},
   hiPct: {l: '% haute int.', t: 'ratio', d: 1, f: o => o.dist ? (o.hsr + o.spr) / o.dist * 100 : null},
   nhsr: {l: 'Efforts HSR', t: 'add'}, nspr: {l: 'Sprints', t: 'add'},
@@ -1839,122 +1948,312 @@ function renderTactical() {
 /* =====================================================================
    Rendu : onglet physique
    ===================================================================== */
+/* =====================================================================
+   Physique : postes, nuages de points, fiches, face à face
+   ===================================================================== */
+const ROLE_L = {CB: 'Défenseur central', FB: 'Latéral', CM: 'Milieu central', WM: 'Milieu excentré', FW: 'Attaquant'};
+const ROLE_ORDER = ['CB', 'FB', 'CM', 'WM', 'FW'];
+const ROLE_MIN = {CB: 75, FB: 60, CM: 75, WM: 60, FW: 45, all: 60};
+const POS_ROLE = {GK: 'GK', G: 'GK', CB: 'CB', LCB: 'CB', RCB: 'CB', SW: 'CB', LB: 'FB', RB: 'FB', LWB: 'FB', RWB: 'FB',
+  DM: 'CM', CDM: 'CM', LDM: 'CM', RDM: 'CM', CM: 'CM', LCM: 'CM', RCM: 'CM', AM: 'CM', CAM: 'CM',
+  LM: 'WM', RM: 'WM', LW: 'WM', RW: 'WM', LAM: 'WM', RAM: 'WM',
+  ST: 'FW', CF: 'FW', LF: 'FW', RF: 'FW', SS: 'FW', LS: 'FW', RS: 'FW', LCF: 'FW', RCF: 'FW'};
+const POS_GENERIC = {DF: 'DF', D: 'DF', DEF: 'DF', MF: 'MF', M: 'MF', MID: 'MF', FW: 'FW', F: 'FW', FWD: 'FW'};
+
+// Empreinte des actions d'un joueur dans un match : profondeur et largeur moyennes
+const FOOT = new WeakMap();
+function footprint(m) {
+  let f = FOOT.get(m); if (f) return f;
+  f = {};
+  const add = (p, x, w) => { if (!p || x == null || !isFinite(x)) return; const a = f[p] || (f[p] = {n: 0, x: 0, w: 0}); a.n++; a.x += x; a.w += w; };
+  if (m.ev) {
+    for (const e of m.ev.passes || []) add(e.p, e.x0, Math.abs(e.y0 - 34));
+    for (const e of m.ev.opta || []) if (e.x || e.y) add(e.p, e.x * 1.05, Math.abs((100 - e.y) * .68 - 34));
+  }
+  FOOT.set(m, f); return f;
+}
+function guessRole(fp, base) {
+  if (!fp || fp.n < 8) return null;
+  const x = fp.x / fp.n, w = fp.w / fp.n;
+  const g = base || (x < 40 ? 'DF' : x < 60 ? 'MF' : 'FW');
+  if (g === 'DF') return w >= 20 ? 'FB' : 'CB';
+  if (g === 'MF') return w >= 18.5 ? 'WM' : 'CM';
+  return 'FW';
+}
+// Poste de référence de chaque joueur sur la saison (poste le plus fréquent)
+let ROLE_MEMO = null;
+function seasonRoles() {
+  const all = Object.values(S.matches);
+  if (ROLE_MEMO && ROLE_MEMO.ms.length === all.length && ROLE_MEMO.ms.every((m, i) => m === all[i])) return ROLE_MEMO.r;
+  const tally = {};
+  const vote = (p, r, w) => { if (!r) return; const t = tally[p] || (tally[p] = {}); t[r] = (t[r] || 0) + w; };
+  for (const m of all) {
+    const fp = footprint(m);
+    for (const [pid, pl] of Object.entries(m.players || {})) {
+      const pos = String(pl.pos || '').toUpperCase();
+      if (POS_ROLE[pos]) vote(pid, POS_ROLE[pos], 3);
+      else if (POS_GENERIC[pos]) vote(pid, guessRole(fp[pid], POS_GENERIC[pos]), 2);
+      else vote(pid, guessRole(fp[pid], null), 1);
+    }
+  }
+  const r = {};
+  for (const [pid, t] of Object.entries(tally)) r[pid] = Object.entries(t).sort((a, b) => b[1] - a[1])[0][0];
+  ROLE_MEMO = {ms: all, r};
+  return r;
+}
+
+// Lignes physiques d'un match pour les quarts d'heure choisis
+function physRows(m, qs) {
+  if (!m.phys) return null;
+  if (qs.size === 6 && m.phys.sum) return m.phys.sum;
+  if (!m.phys.bins) return null;
+  const acc = {};
+  for (const b of m.phys.bins) if (qs.has(b.q)) { if (acc[b.p]) addVec(acc[b.p].v, b.v); else acc[b.p] = {p: b.p, tm: b.tm, v: b.v.slice()}; }
+  return Object.values(acc);
+}
+function flatPhys(o) { const x = {mp: o.mp, tm: o.tm}; PKEYS.forEach((k, i) => x[k] = o.v[i]); x.secs = x.time; return x; }
+// Joueurs : seuls les matchs où il a joué au moins minSecs (temps du match entier)
+function phyByPlayerRaw(ms, qs, minSecs) {
+  const P = {};
+  for (const m of ms) {
+    const rows = physRows(m, qs); if (!rows) continue;
+    const full = {}; if (m.phys.sum) for (const r of m.phys.sum) full[r.p] = r.v[0];
+    for (const r of rows) {
+      if (r.v[0] <= 0) continue;
+      if ((full[r.p] ?? r.v[0]) < minSecs) continue;
+      const o = P[r.p] || (P[r.p] = {mp: 0, tm: r.tm, v: PKEYS.map(() => 0)});
+      addVec(o.v, r.v); o.mp++; o.tm = r.tm;
+    }
+  }
+  const out = {}; for (const k in P) out[k] = flatPhys(P[k]);
+  return out;
+}
+const phyByPlayer = (ms, minSecs) => memoAgg('PM' + minSecs, (a, q) => phyByPlayerRaw(a, q, minSecs), ms, S.f.qs);
+// Contexte « championnat » : journées choisies (ou le match choisi), toutes équipes
+function leagueMatches() {
+  const f = S.f;
+  if (f.match && S.matches[f.match]) return [S.matches[f.match]];
+  return Object.values(S.matches).filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1)).sort((a, b) => a.date - b.date);
+}
+
+// Indicateurs des nuages de points / comparaisons. T = équipe (par match), P = joueur (par 90 min)
+const SCM = {
+  dist: {l: 'Dist. totale', uT: 'km', uP: 'km', dT: 1, dP: 1, f: o => o.dist / 1000},
+  spr: {l: 'Dist. >25 km/h', uT: 'km', uP: 'm', dT: 2, dP: 0, f: o => o.spr, kmT: 1},
+  hsr: {l: 'Dist. haute vitesse (HSR)', uT: 'km', uP: 'm', dT: 2, dP: 0, f: o => o.hsr, kmT: 1},
+  hi: {l: 'HSR + >25 km/h', uT: 'km', uP: 'm', dT: 2, dP: 0, f: o => o.hsr + o.spr, kmT: 1},
+  nspr: {l: 'Nb de sprints', uT: '', uP: '', dT: 1, dP: 1, f: o => o.nspr},
+  nhsr: {l: 'Efforts HSR', uT: '', uP: '', dT: 0, dP: 1, f: o => o.nhsr},
+  hOP: {l: 'HI sans ballon', uT: 'm', uP: 'm', dT: 0, dP: 0, f: o => o.hOP},
+  hIP: {l: 'HI avec ballon', uT: 'm', uP: 'm', dT: 0, dP: 0, f: o => o.hIP},
+  mpm: {l: 'Distance / min', uT: 'm/min', uP: 'm/min', dT: 1, dP: 1, rate: 1, f: o => o.time ? o.dist / (o.time / 60) : null},
+  hiPct: {l: '% haute intensité', uT: '%', uP: '%', dT: 1, dP: 1, rate: 1, f: o => o.dist ? (o.hsr + o.spr) / o.dist * 100 : null},
+  vmax: {l: 'Vitesse max', uT: 'km/h', uP: 'km/h', dT: 1, dP: 1, rate: 1, f: o => o.vmax || null}
+};
+function scVal(k, o, lvl) {
+  const d = SCM[k]; if (!o) return null;
+  let v = d.f(o); if (v == null || !isFinite(v)) return null;
+  if (d.rate) return v;
+  if (lvl === 'T') { if (!o.mp) return null; v /= o.mp; if (d.kmT) v /= 1000; return v; }
+  return o.time >= 60 ? v / o.time * 5400 : null;
+}
+const scUnit = (k, lvl) => lvl === 'T' ? SCM[k].uT : SCM[k].uP;
+const scDec = (k, lvl) => lvl === 'T' ? SCM[k].dT : SCM[k].dP;
+const scAxis = (k, lvl) => { const u = scUnit(k, lvl), d = SCM[k]; return d.l + (u ? ` (${u}${!d.rate ? (lvl === 'T' ? ' /match' : ' /90') : ''})` : (!d.rate ? (lvl === 'T' ? ' /match' : ' /90') : '')); };
+const median = arr => { const v = arr.filter(x => x != null && isFinite(x)).sort((a, b) => a - b); if (!v.length) return null; const h = v.length >> 1; return v.length % 2 ? v[h] : (v[h - 1] + v[h]) / 2; };
+function linreg(pts) {
+  const n = pts.length; if (n < 3) return null;
+  let sx = 0, sy = 0, sxx = 0, sxy = 0;
+  for (const p of pts) { sx += p.x; sy += p.y; sxx += p.x * p.x; sxy += p.x * p.y; }
+  const den = n * sxx - sx * sx; if (!den) return null;
+  const b = (n * sxy - sx * sy) / den; return {a: (sy - b * sx) / n, b};
+}
+function percentile(vals, v) {
+  const a = vals.filter(x => x != null && isFinite(x)); if (!a.length || v == null) return null;
+  let below = 0, eq = 0; for (const x of a) { if (x < v) below++; else if (x === v) eq++; }
+  return Math.round((below + eq / 2) / a.length * 100);
+}
+
+// Médianes (bleu = X, violet = Y), droite de tendance (orange) et étiquettes de noms
+function medianTrend(mx, my, reg, fx, fy) {
+  const tag = (ctx, txt, cx, cy, col, align) => {
+    ctx.font = '700 10.5px system-ui,sans-serif';
+    const w = ctx.measureText(txt).width + 10, h = 16;
+    const x0 = align === 'right' ? cx - w : align === 'left' ? cx : cx - w / 2;
+    ctx.fillStyle = col; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x0, cy - h / 2, w, h, 3) : ctx.rect(x0, cy - h / 2, w, h); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(txt, x0 + w / 2, cy + .5);
+  };
+  return {
+    id: 'medianTrend',
+    beforeDatasetsDraw(c) {
+      const {ctx, chartArea: a, scales: {x, y}} = c;
+      ctx.save(); ctx.lineWidth = 1.25; ctx.setLineDash([5, 4]);
+      if (mx != null) { const px = x.getPixelForValue(mx); ctx.strokeStyle = css('--s1'); ctx.beginPath(); ctx.moveTo(px, a.top); ctx.lineTo(px, a.bottom); ctx.stroke(); }
+      if (my != null) { const py = y.getPixelForValue(my); ctx.strokeStyle = css('--s4'); ctx.beginPath(); ctx.moveTo(a.left, py); ctx.lineTo(a.right, py); ctx.stroke(); }
+      if (reg) {
+        ctx.save(); ctx.beginPath(); ctx.rect(a.left, a.top, a.right - a.left, a.bottom - a.top); ctx.clip();
+        const x0 = x.min, x1 = x.max;
+        ctx.strokeStyle = css('--s2'); ctx.lineWidth = 1.6; ctx.beginPath();
+        ctx.moveTo(x.getPixelForValue(x0), y.getPixelForValue(reg.a + reg.b * x0)); ctx.lineTo(x.getPixelForValue(x1), y.getPixelForValue(reg.a + reg.b * x1)); ctx.stroke();
+        ctx.restore();
+        const ly = y.getPixelForValue(reg.a + reg.b * x1);
+        if (ly > a.top + 8 && ly < a.bottom - 8) { ctx.setLineDash([]); ctx.font = '600 10.5px system-ui,sans-serif'; ctx.fillStyle = css('--s2'); ctx.textAlign = 'right'; ctx.textBaseline = 'bottom'; ctx.fillText('Tendance', a.right - 2, ly - 4); }
+      }
+      ctx.restore();
+    },
+    afterDraw(c) {
+      const {ctx, chartArea: a, scales: {x, y}} = c;
+      ctx.save();
+      if (mx != null) tag(ctx, 'Méd. ' + fx(mx), x.getPixelForValue(mx), a.bottom + 10, css('--s1'));
+      if (my != null) tag(ctx, 'Méd. ' + fy(my), a.left + 3, y.getPixelForValue(my), css('--s4'), 'left');
+      ctx.restore();
+    }
+  };
+}
+const nameAbove = {
+  id: 'nameAbove',
+  afterDatasetsDraw(c) {
+    const ctx = c.ctx; ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    const ds = c.data.datasets[0], meta = c.getDatasetMeta(0);
+    meta.data.forEach((pt, j) => {
+      const d = ds.data[j]; if (!d || !d.lab) return;
+      const r = (Array.isArray(ds.pointRadius) ? ds.pointRadius[j] : ds.pointRadius) || 5;
+      if (d.hl) { ctx.strokeStyle = css('--s2'); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(pt.x, pt.y, r + 4, 0, Math.PI * 2); ctx.stroke(); }
+      ctx.font = (d.hl ? '700 11.5px' : d.bold ? '700 10px' : '600 10px') + ' system-ui,sans-serif';
+      ctx.fillStyle = d.hl ? css('--s2') : d.bold ? css('--text') : css('--text-2');
+      ctx.globalAlpha = d.dim ? .45 : 1;
+      ctx.fillText(d.lab, pt.x, pt.y - r - (d.hl ? 6 : 2));
+      ctx.globalAlpha = 1;
+    });
+    ctx.restore();
+  }
+};
+function phyScatter(id, pts, kx, ky, lvl, onPick) {
+  const dX = scDec(kx, lvl), dY = scDec(ky, lvl), uX = scUnit(kx, lvl), uY = scUnit(ky, lvl);
+  const mx = median(pts.map(p => p.x)), my = median(pts.map(p => p.y)), reg = linreg(pts);
+  const s1 = css('--s1'), s2 = css('--s2');
+  const big = lvl === 'T' ? 15 : 11;
+  pts.forEach(p => { p.img = logoImg(p.tid, p.hl ? big * 2 + 6 : big * 2); });
+  chart(id, {type: 'scatter',
+    data: {datasets: [{label: '', data: pts, pointStyle: pts.map(p => p.img || 'circle'),
+      pointRadius: pts.map(p => p.img ? (p.hl ? big + 3 : big) : (p.hl ? 7 : 5)), pointHoverRadius: pts.map(p => p.img ? big + 3 : 7),
+      backgroundColor: pts.map(p => p.hl ? s2 : p.dim ? s1 + '55' : s1), borderColor: css('--surface'), borderWidth: 1.5}]},
+    options: {layout: {padding: {top: 26, right: 26, left: 8, bottom: 4}}, animation: false,
+      onClick: (e, els) => { if (els.length && onPick) onPick(pts[els[0].index]); },
+      onHover: (e, els) => { e.native && (e.native.target.style.cursor = els.length && onPick ? 'pointer' : 'default'); },
+      plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${c.raw.name}${c.raw.team ? ' (' + c.raw.team + ')' : ''} : ${fmt(c.raw.x, dX)} ${uX} · ${fmt(c.raw.y, dY)} ${uY}`}}},
+      scales: {x: {grace: '3%', title: {display: true, text: scAxis(kx, lvl), padding: {top: 14}}, grid: {color: css('--grid')}, ticks: {callback: v => fmt(v, dX)}},
+        y: {grace: '6%', title: {display: true, text: scAxis(ky, lvl)}, grid: {color: css('--grid')}, ticks: {callback: v => fmt(v, dY)}}}},
+    plugins: [medianTrend(mx, my, reg, v => fmt(v, dX), v => fmt(v, dY)), nameAbove]});
+}
+function rankPair(idX, idY, rows, kx, ky, lvl, hdX, hdY, onRow) {
+  const nm = lvl === 'T' ? 'Équipe' : 'Joueur';
+  $(hdX).textContent = scAxis(kx, lvl); $(hdY).textContent = scAxis(ky, lvl);
+  const col = (k, key) => ({k: key, l: SCM[k].l + (scUnit(k, lvl) ? ` (${scUnit(k, lvl)})` : ''), d: scDec(k, lvl), v: r => r[key]});
+  const name = {k: 'name', l: nm, txt: 1, v: r => r.name, html: r => logoHTML(r.tid) + esc(r.name) + (r.sub ? ` <span class="muted">${esc(r.sub)}</span>` : '')};
+  for (const [id, k, key] of [[idX, kx, 'x'], [idY, ky, 'y']]) {
+    const st = S.sort[id]; if (st && st.k !== 'name' && st.k !== key) S.sort[id] = {k: key, asc: false};
+    renderTable(id, [name, col(k, key)], rows.filter(r => r[key] != null).slice(), {defaultSort: key, hl: r => r.hl, onRow});
+  }
+}
+
+// Courbes « au fil du match » (bins de 5 min) et par quart d'heure
+const EVO_LBL = (() => { const L = []; for (let i = 0; i < 20; i++) L.push(i < 9 ? `${i * 5}'` : i === 9 ? "45+'" : i < 19 ? `${45 + (i - 10) * 5}'` : "90+'"); return L; })();
+const evoUnitOf = em => ({mpm: 'Distance (m/min)', himpm: 'HSR + sprint (m/min)', sprmpm: '>25 km/h (m/min)'}[em]);
+function binVal(b, em) { return em === 'mpm' ? b.v[1] : em === 'himpm' ? b.v[5] + b.v[6] : b.v[6]; }
+function evoSeries(ms, pred, em) {
+  const d = Array(20).fill(0), t = Array(20).fill(0);
+  for (const m of ms) if (m.phys && m.phys.bins) for (const b of m.phys.bins) {
+    if (!pred(b, m)) continue;
+    const i = (b.per - 1) * 10 + Math.min(9, b.s / 5);
+    d[i] += binVal(b, em); t[i] += b.v[0];
+  }
+  return d.map((x, i) => t[i] > 0 ? x / (t[i] / 60) : null);
+}
+function qSeries(ms, pred, em) {
+  const d = Array(6).fill(0), t = Array(6).fill(0);
+  for (const m of ms) if (m.phys && m.phys.bins) for (const b of m.phys.bins) { if (!pred(b, m)) continue; d[b.q] += binVal(b, em); t[b.q] += b.v[0]; }
+  return d.map((x, i) => t[i] > 0 ? x / (t[i] / 60) : null);
+}
+const qOfBin = i => i < 3 ? 0 : i < 6 ? 1 : i < 10 ? 2 : i < 13 ? 3 : i < 16 ? 4 : 5;
+function evoChart(id, sets, em) {
+  chart(id, {type: 'line', data: {labels: EVO_LBL, datasets: sets.map(s => ({label: s.l, data: s.d, borderColor: s.c, backgroundColor: s.c, borderWidth: 2, borderDash: s.dash || [], pointRadius: EVO_LBL.map((_, i) => S.f.qs.has(qOfBin(i)) ? 3 : 0), tension: .25, spanGaps: true}))},
+    options: {interaction: {mode: 'index', intersect: false}, plugins: {legend: {display: sets.length > 1, position: 'bottom'}, tooltip: {callbacks: {label: c => `${c.dataset.label} : ${fmt(c.raw, 1)} m/min`}}},
+      scales: {y: {title: {display: true, text: evoUnitOf(em)}, grid: {color: css('--grid')}}, x: {grid: {display: false}}}}});
+}
+function qChart(id, sets, em) {
+  chart(id, {type: 'bar', data: {labels: Q_LABELS, datasets: sets.map(s => ({label: s.l, data: s.d, backgroundColor: Q_LABELS.map((_, i) => S.f.qs.has(i) ? s.c : s.c + '55'), borderRadius: 4, borderSkipped: 'start'}))},
+    options: {plugins: {legend: {display: sets.length > 1, position: 'bottom'}, tooltip: {callbacks: {label: c => `${c.dataset.label} : ${fmt(c.raw, 1)} m/min`}}},
+      scales: {y: {beginAtZero: false, title: {display: true, text: evoUnitOf(em)}, grid: {color: css('--grid')}}, x: {grid: {display: false}}}}});
+}
+
 function renderPhysical() {
   const TN = teamNames(), PI = playerInfo();
   const ms = filteredMatches();
-  const has = ms.some(m => m.phys);
+  const has = Object.values(S.matches).some(m => m.phys);
   const needBins = S.f.qs.size < 6;
   const hasBins = ms.some(m => m.phys && m.phys.bins);
   $('#phyEmpty').hidden = has; $('#phyBody').hidden = !has;
   if (!has) return;
-  const {T, P} = aggPhys(ms);
-  const f = S.f;
-  $('#phyFocus').innerHTML = focusText(ms, TN, PI) + (needBins && !hasBins ? ' · <span style="color:var(--bad)">filtre quart d’heure indisponible : importez physical-splits ou physical-minute</span>' : '');
+  const sub = S.sub.phy;
+  const lg = leagueMatches();
+  $('#phyFocus').innerHTML = (sub === 'h2h' ? `<b>Face à face</b> · ${lg.length} match(s) · ${S.f.qs.size === 6 ? 'match entier' : [...S.f.qs].sort().map(q => Q_LABELS[q]).join(', ')}` : focusText(ms, TN, PI))
+    + (needBins && !hasBins ? ' · <span style="color:var(--bad)">filtre quart d’heure indisponible : importez physical-splits ou physical-minute</span>' : '');
+  if (sub === 'team') renderPhyTeam(ms, lg, TN, PI);
+  else if (sub === 'player') renderPhyPlayer(ms, lg, TN, PI);
+  else if (sub === 'h2h') renderPhyH2H(lg, TN, PI);
+  else renderPhyRank(ms, TN, PI);
+}
 
-  const F = f.player ? P[f.player] : f.team ? T[f.team] : null;
-  const s1 = css('--s1'), s2 = css('--s2');
-  let K = [];
+/* ---------- Sous-onglet Équipe ---------- */
+function renderPhyTeam(ms, lg, TN, PI) {
+  const f = S.f, s1 = css('--s1'), s2 = css('--s2');
+  const {T, P} = aggPhys(ms);
+  const F = f.team ? T[f.team] : null;
+  let K;
   if (F) {
-    const isPl = !!f.player;
-    const base = isPl ? 'p90' : 'pm', bl = isPl ? '/90' : '/match';
     K = [
-      {l: isPl ? 'Distance' : 'Distance / match', v: fmt(val(PHY, 'dist', F, isPl ? 'tot' : 'pm') / 1000, 2) + ' km', s: isPl ? `${fmt(val(PHY, 'dist', F, 'p90') / 1000, 2)} km /90` : `${fmt(F.mp)} match(s)`},
-      {l: 'm/min', v: fmt(val(PHY, 'mpm', F), 1), s: 'distance par minute jouée'},
-      {l: 'Haute intensité', v: fmt(val(PHY, 'hi', F, isPl ? 'tot' : 'pm')) + ' m', s: `${fmt(val(PHY, 'hiPct', F), 1)} % de la distance${isPl ? ` · ${fmt(val(PHY, 'hi', F, 'p90'))} m /90` : ' /match'}`},
-      {l: 'Sprint', v: fmt(val(PHY, 'spr', F, isPl ? 'tot' : 'pm')) + ' m', s: `${fmt(val(PHY, 'nspr', F, isPl ? 'tot' : 'pm'), isPl ? 0 : 1)} sprints${isPl ? '' : ' /match'}`},
-      {l: 'Vitesse max', v: fmt(F.vmax, 1) + ' km/h', s: ' '},
-      isPl ? {l: 'Minutes', v: fmt(F.time / 60), s: `${fmt(F.mp)} match(s)`} : {l: 'HI sans ballon', v: fmt(val(PHY, 'hOP', F, 'pm')) + ' m', s: `avec ballon ${fmt(val(PHY, 'hIP', F, 'pm'))} m /match`}
+      {l: 'Distance / match', v: fmt(val(PHY, 'dist', F, 'pm') / 1000, 1) + ' km', s: `${fmt(F.mp)} match(s)`},
+      {l: 'm/min', v: fmt(val(PHY, 'mpm', F), 1), s: 'par joueur sur le terrain'},
+      {l: 'Dist. >25 km/h / match', v: fmt(val(PHY, 'spr', F, 'pm') / 1000, 2) + ' km', s: `${fmt(val(PHY, 'nspr', F, 'pm'), 1)} sprints /match`},
+      {l: 'HSR + sprint / match', v: fmt(val(PHY, 'hi', F, 'pm') / 1000, 2) + ' km', s: `${fmt(val(PHY, 'hiPct', F), 1)} % de la distance`},
+      {l: 'HI sans ballon', v: fmt(val(PHY, 'hOP', F, 'pm')) + ' m', s: `avec ballon ${fmt(val(PHY, 'hIP', F, 'pm'))} m /match`}
     ];
   } else {
     const all = Object.values(T); const sm = k => all.reduce((a, o) => a + o[k], 0);
-    const nT = all.reduce((a, o) => a + o.mp, 0) || 1;
-    const time = sm('time');
+    const nT = all.reduce((a, o) => a + o.mp, 0) || 1, time = sm('time');
     K = [
       {l: 'Distance / équipe / match', v: fmt(sm('dist') / nT / 1000, 1) + ' km', s: `${fmt(nT / 2)} match(s)`},
       {l: 'm/min', v: fmt(time ? sm('dist') / (time / 60) : null, 1), s: 'moyenne par joueur'},
-      {l: 'HSR + sprint / équipe', v: fmt((sm('hsr') + sm('spr')) / nT) + ' m', s: 'par match'},
+      {l: '>25 km/h / équipe', v: fmt(sm('spr') / nT / 1000, 2) + ' km', s: 'par match'},
       {l: 'Sprints / équipe', v: fmt(sm('nspr') / nT, 1), s: 'par match'},
-      {l: 'Vitesse max', v: fmt(Math.max(0, ...Object.values(P).map(o => o.vmax)), 1) + ' km/h', s: (() => { const b = Object.entries(P).sort((a, b) => b[1].vmax - a[1].vmax)[0]; return b ? PI[b[0]].name : ''; })()}
+      {l: 'Vitesse max', v: fmt(Math.max(0, ...Object.values(P).map(o => o.vmax)), 1) + ' km/h', s: (() => { const b = Object.entries(P).sort((a, b) => b[1].vmax - a[1].vmax)[0]; return b && PI[b[0]] ? PI[b[0]].name : ''; })()}
     ];
   }
   $('#phyKpis').innerHTML = kpiHTML(K);
 
-  // Joueurs
-  const pm = $('#phyPlMode').value, minMin = +$('#phyMinMin').value || 0;
-  const plRows = Object.entries(P).filter(([id, o]) => PI[id] && (!f.team || PI[id].team === f.team) && o.time / 60 >= minMin && o.time > 0)
-    .map(([id, o]) => ({id, tid: o.tm || PI[id].team, name: PI[id].name, team: TN[o.tm || PI[id].team] || '', pos: PI[id].pos === 'SUB' ? '' : PI[id].pos, o}));
-  const cols = ['mp', 'min', 'dist', 'mpm', 'walk', 'jog', 'lsr', 'hsr', 'spr', 'hi', 'hiPct', 'nhsr', 'nspr', 'vmax', 'dIP', 'dOP', 'hIP', 'hOP'];
-  renderTable('tblPhyPlayers', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'team', l: 'Équipe', txt: 1, v: r => r.team, html: r => logoHTML(r.tid) + esc(r.team)}, {k: 'pos', l: 'Poste', txt: 1, v: r => r.pos},
-    ...cols.map(k => ({k, l: PHY[k].l, h: PHY[k].h, d: dec(PHY, k, pm), v: r => val(PHY, k, r.o, pm)}))],
-    plRows, {defaultSort: 'dist', hl: r => r.id === f.player, onRow: id => setFilter('player', id)});
+  // Nuage Dist. totale vs >25 km/h (toutes équipes des journées choisies)
+  const kx = $('#phyTX').value, ky = $('#phyTY').value;
+  const LT = aggPhys(lg).T;
+  const rows = Object.entries(LT).filter(([, o]) => o.mp).map(([id, o]) => ({id, tid: id, name: TN[id] || '?', lab: (TN[id] || '?').toUpperCase(), x: scVal(kx, o, 'T'), y: scVal(ky, o, 'T'), hl: id === f.team}))
+    .filter(r => r.x != null && r.y != null);
+  const jTxt = f.match ? 'match sélectionné' : (f.j0 != null || f.j1 != null) ? `J${f.j0 ?? 1} à J${f.j1 ?? '…'}` : 'toutes les journées';
+  $('#phyTScTitle').textContent = `${SCM[kx].l} vs ${SCM[ky].l}`;
+  $('#phyTScSub').innerHTML = `${rows.length} équipes · ${jTxt} · moyenne par match · <span style="color:var(--s1)">— médiane X</span> · <span style="color:var(--s4)">— médiane Y</span> · <span style="color:var(--s2)">— tendance (régression linéaire)</span>`;
+  phyScatter('chPhyTSc', rows, kx, ky, 'T', p => setFilter('team', p.id));
+  rankPair('tblPhyTX', 'tblPhyTY', rows, kx, ky, 'T', '#phyTRkXh', '#phyTRkYh', id => setFilter('team', id));
 
-  const mk = $('#phyMetric').value;
-  const top = plRows.map(r => ({id: r.id, tid: r.tid, name: r.name, sub: r.team, v: val(PHY, mk, r.o, pm)})).filter(x => x.v != null).sort((a, b) => b.v - a.v).slice(0, 15);
-  if (f.player && !top.some(x => x.id === f.player)) { const r = plRows.find(x => x.id === f.player); if (r) top.push({id: r.id, tid: r.tid, name: r.name, sub: r.team, v: val(PHY, mk, r.o, pm)}); }
-  $('#phyRankSub').textContent = `Top 15 · ${PHY[mk].l}${pm === 'p90' && PHY[mk].t === 'add' ? ' par 90 min' : ''}${minMin ? ` · ≥ ${minMin} min` : ''}`;
-  rankChart('chPhyRank', top, PHY[mk].l, dec(PHY, mk, pm), f.player);
-
-  // Zones de vitesse (top 15 distance)
-  const zr = plRows.slice().sort((a, b) => (val(PHY, 'dist', b.o, pm) || 0) - (val(PHY, 'dist', a.o, pm) || 0)).slice(0, 15);
-  if (f.player && !zr.some(r => r.id === f.player)) { const r = plRows.find(x => x.id === f.player); if (r) zr.push(r); }
-  $('#zoneSub').textContent = `15 plus grandes distances · ${pm === 'p90' ? 'par 90 min' : 'total'} (m)`;
-  const Z = [['walk', 'Marche', '--z1'], ['jog', 'Footing', '--z2'], ['lsr', 'Course lente', '--z3'], ['hsr', 'Haute vitesse', '--z4'], ['spr', 'Sprint', '--z5']];
-  chart('chZones', {type: 'bar', data: {labels: zr.map(r => r.name), datasets: Z.map(([k, l, c]) => ({label: l, data: zr.map(r => val(PHY, k, r.o, pm)), backgroundColor: css(c), borderColor: css('--surface'), borderWidth: {right: 1}, borderSkipped: false}))},
-    options: {indexAxis: 'y', plugins: {legend: {position: 'bottom'}, tooltip: {mode: 'index', callbacks: {label: c => `${c.dataset.label} : ${fmt(c.raw)} m`}}},
-      scales: {x: {stacked: true, grid: {color: css('--grid')}}, y: {stacked: true, grid: {display: false}, ticks: {autoSkip: false}}}, layout: {padding: {right: 26}}},
-    plugins: [barLogos(zr.map(r => r.tid))]});
-
-  // Évolution par 5 min
+  // Au fil du match
   const em = $('#phyEvoMetric').value;
-  const LBL = []; for (let i = 0; i < 20; i++) LBL.push(i < 9 ? `${i * 5}'` : i === 9 ? "45+'" : i < 19 ? `${45 + (i - 10) * 5}'` : "90+'");
-  const evo = (pred) => {
-    const d = Array(20).fill(0), t = Array(20).fill(0);
-    for (const m of ms) if (m.phys && m.phys.bins) for (const b of m.phys.bins) {
-      if (!pred(b, m)) continue;
-      const i = (b.per - 1) * 10 + Math.min(9, b.s / 5);
-      const v = em === 'mpm' ? b.v[1] : em === 'himpm' ? b.v[5] + b.v[6] : b.v[6];
-      d[i] += v; t[i] += b.v[0];
-    }
-    return d.map((x, i) => t[i] > 0 ? x / (t[i] / 60) : null);
-  };
-  const qOf = i => i < 3 ? 0 : i < 6 ? 1 : i < 10 ? 2 : i < 13 ? 3 : i < 16 ? 4 : 5;
-  let evoSets;
-  if (f.player) evoSets = [{l: PI[f.player].name, d: evo(b => b.p === f.player), c: s1}];
-  else if (f.team) evoSets = [{l: TN[f.team], d: evo(b => b.tm === f.team), c: s1}, {l: 'Adversaires', d: evo((b, m) => b.tm !== f.team), c: s2}];
-  else evoSets = [{l: 'Toutes équipes', d: evo(() => true), c: s1}];
-  const evoUnit = {mpm: 'Distance (m/min)', himpm: 'HSR + sprint (m/min)', sprmpm: 'Sprint (m/min)'}[em];
-  chart('chEvo', {type: 'line', data: {labels: LBL, datasets: evoSets.map(s => ({label: s.l, data: s.d, borderColor: s.c, backgroundColor: s.c, borderWidth: 2, pointRadius: LBL.map((_, i) => f.qs.has(qOf(i)) ? 3 : 0), tension: .25, spanGaps: true}))},
-    options: {interaction: {mode: 'index', intersect: false}, plugins: {legend: {display: evoSets.length > 1}, tooltip: {callbacks: {label: c => `${c.dataset.label} : ${fmt(c.raw, 1)} m/min`}}},
-      scales: {y: {title: {display: true, text: evoUnit}, grid: {color: css('--grid')}}, x: {grid: {display: false}}}}});
+  const sets = f.team ? [{l: TN[f.team], d: evoSeries(ms, b => b.tm === f.team, em), c: s1}, {l: 'Adversaires', d: evoSeries(ms, b => b.tm !== f.team, em), c: s2}]
+    : [{l: 'Toutes équipes', d: evoSeries(ms, () => true, em), c: s1}];
+  evoChart('chEvo', sets, em);
+  const qs = f.team ? [{l: TN[f.team], d: qSeries(ms, b => b.tm === f.team, em), c: s1}, {l: 'Adversaires', d: qSeries(ms, b => b.tm !== f.team, em), c: s2}]
+    : [{l: 'Toutes équipes', d: qSeries(ms, () => true, em), c: s1}];
+  qChart('chPhyQ', qs, em);
 
-  // Par quart d'heure
-  const qv = (pred) => {
-    const d = Array(6).fill(0), t = Array(6).fill(0);
-    for (const m of ms) if (m.phys && m.phys.bins) for (const b of m.phys.bins) {
-      if (!pred(b, m)) continue;
-      const v = em === 'mpm' ? b.v[1] : em === 'himpm' ? b.v[5] + b.v[6] : b.v[6];
-      d[b.q] += v; t[b.q] += b.v[0];
-    }
-    return d.map((x, i) => t[i] > 0 ? x / (t[i] / 60) : null);
-  };
-  const qSets = f.player ? [{l: PI[f.player].name, d: qv(b => b.p === f.player), c: s1}] : f.team ? [{l: TN[f.team], d: qv(b => b.tm === f.team), c: s1}, {l: 'Adversaires', d: qv(b => b.tm !== f.team), c: s2}] : [{l: 'Toutes équipes', d: qv(() => true), c: s1}];
-  chart('chPhyQ', {type: 'bar', data: {labels: Q_LABELS, datasets: qSets.map(s => ({label: s.l, data: s.d, backgroundColor: Q_LABELS.map((_, i) => f.qs.has(i) ? s.c : s.c + '55'), borderRadius: 4, borderSkipped: 'start'}))},
-    options: {plugins: {legend: {display: qSets.length > 1, position: 'bottom'}, tooltip: {callbacks: {label: c => `${c.dataset.label} : ${fmt(c.raw, 1)} m/min`}}},
-      scales: {y: {beginAtZero: false, title: {display: true, text: evoUnit}, grid: {color: css('--grid')}}, x: {grid: {display: false}}}}});
-
-  // Scatter volume / intensité
-  const scMin = Math.max(minMin, 45);
-  const sc = plRows.filter(r => r.o.time / 60 >= scMin && (PI[r.id].pos || '') !== 'GK').map(r => ({x: val(PHY, 'dist', r.o, 'p90'), y: val(PHY, 'hi', r.o, 'p90'), id: r.id, name: r.name, team: r.team}));
-  const topIds = new Set(sc.slice().sort((a, b) => b.y - a.y).slice(0, 5).map(x => x.id));
-  sc.forEach(p => { if (topIds.has(p.id) || p.id === f.player) p.lab = p.name; });
-  chart('chPhyScatter', {type: 'scatter', data: {datasets: [{label: 'Joueurs', data: sc, backgroundColor: sc.map(p => p.id === f.player ? s2 : s1 + 'cc'), pointRadius: sc.map(p => p.id === f.player ? 7 : 4.5), borderColor: css('--surface'), borderWidth: 1.5, pointHoverRadius: 7}]},
-    options: {layout: {padding: {right: 90}}, plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${c.raw.name} (${c.raw.team}) : ${fmt(c.raw.x)} m · HI ${fmt(c.raw.y)} m /90`}}},
-      scales: {x: {title: {display: true, text: 'Distance / 90 min (m)'}, grid: {color: css('--grid')}}, y: {title: {display: true, text: 'HSR + sprint / 90 min (m)'}, grid: {color: css('--grid')}}}},
-    plugins: [pointLabels, avgLines(mean(sc.map(p => p.x)), mean(sc.map(p => p.y)),
-      {tl: 'Intense, peu de volume', tr: 'Volume + intensité', bl: 'Sous la moyenne', br: 'Volume, peu intense'}, v => fmt(v) + ' m', v => fmt(v) + ' m')]});
-
-  // HI avec / sans ballon par équipe
-  const tr = Object.entries(T).map(([id, o]) => ({id, name: TN[id], o})).sort((a, b) => (val(PHY, 'hOP', b.o, 'pm') || 0) - (val(PHY, 'hOP', a.o, 'pm') || 0));
+  // HI avec / sans ballon (toutes équipes)
+  const tr = Object.entries(LT).map(([id, o]) => ({id, name: TN[id], o})).sort((a, b) => (val(PHY, 'hOP', b.o, 'pm') || 0) - (val(PHY, 'hOP', a.o, 'pm') || 0));
   chart('chPoss', {type: 'bar', data: {labels: tr.map(r => r.name), datasets: [
       {label: 'Avec ballon', data: tr.map(r => val(PHY, 'hIP', r.o, 'pm')), backgroundColor: tr.map(r => !f.team || r.id === f.team ? s1 : s1 + '55'), borderRadius: 4, borderSkipped: 'start'},
       {label: 'Sans ballon', data: tr.map(r => val(PHY, 'hOP', r.o, 'pm')), backgroundColor: tr.map(r => !f.team || r.id === f.team ? s2 : s2 + '55'), borderRadius: 4, borderSkipped: 'start'}]},
@@ -1966,6 +2265,197 @@ function renderPhysical() {
   const tcols = ['mp', 'dist', 'mpm', 'walk', 'jog', 'lsr', 'hsr', 'spr', 'hi', 'hiPct', 'nhsr', 'nspr', 'vmax', 'dIP', 'dOP', 'hIP', 'hOP'];
   renderTable('tblPhyTeams', [{k: 'name', l: 'Équipe', txt: 1, v: r => r.name, html: r => logoHTML(r.id) + esc(r.name)}, ...tcols.map(k => ({k, l: PHY[k].l, h: PHY[k].h, d: dec(PHY, k, tm), v: r => val(PHY, k, r.o, tm)}))],
     tr, {defaultSort: 'dist', hl: r => r.id === f.team, onRow: id => setFilter('team', id)});
+}
+
+/* ---------- Sous-onglet Joueur ---------- */
+const PROFILE_KEYS = ['dist', 'mpm', 'hsr', 'spr', 'hi', 'hiPct', 'nhsr', 'nspr', 'vmax', 'hIP', 'hOP'];
+function renderPhyPlayer(ms, lg, TN, PI) {
+  const f = S.f, SR = seasonRoles();
+  // poste affiché : celui du joueur sélectionné, sinon le dernier choisi
+  if (f.player && SR[f.player] && SR[f.player] !== 'GK' && S._rolePlayer !== f.player) { S.role = SR[f.player]; S._rolePlayer = f.player; }
+  const role = S.role || 'CB';
+  $('#phyRole').innerHTML = [...ROLE_ORDER, 'all'].map(r => `<button class="chip" data-role="${r}" aria-pressed="${r === role}" title="${r === 'all' ? 'Tous les joueurs de champ' : ROLE_L[r]}">${r === 'all' ? 'Tous' : r}</button>`).join('');
+  const minMin = S.roleMin[role] ?? ROLE_MIN[role];
+  $('#phyRoleMin').value = minMin;
+  const kx = $('#phyPX').value, ky = $('#phyPY').value;
+  const PP = phyByPlayer(lg, minMin * 60);
+  const ok = id => SR[id] && SR[id] !== 'GK' && (role === 'all' || SR[id] === role);
+  const rows = Object.entries(PP).filter(([id, o]) => PI[id] && ok(id) && o.time > 0).map(([id, o]) => {
+    const tid = o.tm || PI[id].team;
+    return {id, tid, name: PI[id].name, lab: PI[id].name, sub: role === 'all' ? SR[id] : '', team: TN[tid] || '', x: scVal(kx, o, 'P'), y: scVal(ky, o, 'P'),
+      hl: id === f.player, bold: !!f.team && tid === f.team, o};
+  }).filter(r => r.x != null && r.y != null);
+  const jTxt = f.match ? 'match sélectionné' : (f.j0 != null || f.j1 != null) ? `J${f.j0 ?? 1} à J${f.j1 ?? '…'}` : 'toutes les journées';
+  $('#phyPScTitle').textContent = `${role === 'all' ? 'Joueurs de champ' : role + ' — ' + ROLE_L[role]} · ${SCM[kx].l} vs ${SCM[ky].l}`;
+  $('#phyPScSub').innerHTML = `${rows.length} joueurs · ${jTxt} · valeurs par 90 min sur les matchs d’au moins ${minMin} min${f.team ? ` · joueurs de ${esc(TN[f.team])} en gras` : ''} · <span style="color:var(--s1)">— médiane X</span> · <span style="color:var(--s4)">— médiane Y</span> · <span style="color:var(--s2)">— tendance</span>`;
+  phyScatter('chPhyPSc', rows, kx, ky, 'P', p => setFilter('player', p.id));
+  rankPair('tblPhyPX', 'tblPhyPY', rows.map(r => ({...r, sub: r.team})), kx, ky, 'P', '#phyPRkXh', '#phyPRkYh', id => setFilter('player', id));
+
+  // Fiche du joueur
+  const pid = f.player;
+  $('#phyPHint').hidden = !!pid;
+  $('#phyProfileCard').hidden = !pid; $('#phyPEvoCard').hidden = !pid;
+  if (!pid) { $('#phyPKpis').innerHTML = ''; return; }
+  const {P} = aggPhys(ms);
+  const F = P[pid];
+  const pRole = SR[pid];
+  if (F) {
+    $('#phyPKpis').innerHTML = kpiHTML([
+      {l: 'Distance /90', v: fmt(val(PHY, 'dist', F, 'p90') / 1000, 2) + ' km', s: `${fmt(F.dist / 1000, 1)} km au total`},
+      {l: 'm/min', v: fmt(val(PHY, 'mpm', F), 1), s: 'distance par minute jouée'},
+      {l: '>25 km/h /90', v: fmt(val(PHY, 'spr', F, 'p90')) + ' m', s: `${fmt(val(PHY, 'nspr', F, 'p90'), 1)} sprints /90`},
+      {l: 'HSR + sprint /90', v: fmt(val(PHY, 'hi', F, 'p90')) + ' m', s: `${fmt(val(PHY, 'hiPct', F), 1)} % de la distance`},
+      {l: 'Vitesse max', v: fmt(F.vmax, 1) + ' km/h', s: ' '},
+      {l: 'Minutes', v: fmt(F.time / 60), s: `${fmt(F.mp)} match(s) · ${pRole && ROLE_L[pRole] ? pRole + ' ' + ROLE_L[pRole] : ''}`}
+    ]);
+  } else $('#phyPKpis').innerHTML = '';
+  // Percentiles parmi les joueurs du même poste
+  if (pRole && ROLE_L[pRole]) {
+    const pMin = S.roleMin[pRole] ?? ROLE_MIN[pRole];
+    const PR = phyByPlayer(lg, pMin * 60);
+    const peers = Object.entries(PR).filter(([id]) => SR[id] === pRole);
+    let me = PR[pid], note = '';
+    if (!me) { me = phyByPlayer(lg, 0)[pid]; note = ` · ${PI[pid].name} n’a aucun match ≥ ${pMin} min : valeurs sur tous ses matchs`; }
+    $('#phyProfileSub').textContent = `Percentile parmi ${peers.length} ${ROLE_L[pRole].toLowerCase()}s (${pRole}) · par 90 min, matchs ≥ ${pMin} min${note}`;
+    $('#phyProfile').innerHTML = me ? PROFILE_KEYS.map(k => {
+      const v = scVal(k, me, 'P'), pc = percentile(peers.map(([, o]) => scVal(k, o, 'P')), v);
+      const col = pc == null ? 'var(--text-3)' : pc >= 75 ? 'var(--s3)' : pc <= 25 ? 'var(--s2)' : 'var(--s1)';
+      return `<div class="pct-row"><span class="nm">${esc(SCM[k].l)}</span><span class="bar"><i style="width:${pc ?? 0}%;background:${col}"></i><b></b></span><span class="vl">${fmt(v, scDec(k, 'P'))} ${esc(scUnit(k, 'P'))}<small>${pc == null ? '—' : 'P' + pc}</small></span></div>`;
+    }).join('') : '<div class="empty">Pas de données physiques</div>';
+  } else { $('#phyProfileSub').textContent = 'Poste inconnu'; $('#phyProfile').innerHTML = '<div class="empty">Poste du joueur non identifié</div>'; }
+  // Au fil du match : joueur vs moyenne du poste
+  const em = $('#phyPEvoMetric').value;
+  const sets = [{l: PI[pid].name, d: evoSeries(ms, b => b.p === pid, em), c: css('--s2')}];
+  if (pRole && ROLE_L[pRole]) sets.push({l: `Moyenne ${pRole}`, d: evoSeries(lg, b => SR[b.p] === pRole, em), c: css('--s1'), dash: [5, 4]});
+  $('#phyPEvoSub').textContent = `Par tranche de 5 minutes · comparé à la moyenne des ${pRole && ROLE_L[pRole] ? ROLE_L[pRole].toLowerCase() + 's' : 'joueurs'}`;
+  evoChart('chPhyPEvo', sets, em);
+}
+
+/* ---------- Sous-onglet Face à face ---------- */
+const H2H_KEYS = ['dist', 'mpm', 'hsr', 'spr', 'hi', 'hiPct', 'nhsr', 'nspr', 'vmax', 'hIP', 'hOP'];
+function renderPhyH2H(lg, TN, PI) {
+  const H = S.h2h, mode = H.mode, lvl = mode === 'team' ? 'T' : 'P';
+  const SR = seasonRoles();
+  document.querySelectorAll('#h2hMode .chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.m === mode));
+  const {T, P} = aggPhys(lg);
+  let opts, data;
+  if (mode === 'team') {
+    data = T;
+    opts = Object.keys(T).filter(id => T[id].mp).sort((a, b) => (TN[a] || '').localeCompare(TN[b] || '')).map(id => [id, TN[id] || id]);
+  } else {
+    data = P;
+    const byTeam = {};
+    for (const [id, o] of Object.entries(P)) if (PI[id] && o.time > 0 && SR[id] !== 'GK') (byTeam[o.tm || PI[id].team] = byTeam[o.tm || PI[id].team] || []).push(id);
+    opts = [];
+    for (const tid of Object.keys(byTeam).sort((a, b) => (TN[a] || '').localeCompare(TN[b] || ''))) {
+      opts.push(['__g', TN[tid] || '?']);
+      byTeam[tid].sort((a, b) => PI[a].name.localeCompare(PI[b].name)).forEach(id => opts.push([id, `${PI[id].name}${SR[id] ? ' · ' + SR[id] : ''} · ${fmt(P[id].time / 60)}'`]));
+    }
+  }
+  const ids = opts.filter(o => o[0] !== '__g').map(o => o[0]);
+  const sel = H[mode];
+  const pref = mode === 'team' ? S.f.team : S.f.player;
+  if (!ids.includes(sel[0])) sel[0] = ids.includes(pref) ? pref : ids[0] || '';
+  if (!ids.includes(sel[1]) || sel[1] === sel[0]) {
+    let cand = ids.filter(id => id !== sel[0]);
+    if (mode === 'player') { const same = cand.filter(id => SR[id] === SR[sel[0]]); if (same.length) cand = same.sort((a, b) => P[b].time - P[a].time); }
+    sel[1] = cand[0] || '';
+  }
+  const fillSel = (el, v) => {
+    let html = '', open = false;
+    for (const [id, l] of opts) {
+      if (id === '__g') { html += (open ? '</optgroup>' : '') + `<optgroup label="${esc(l)}">`; open = true; }
+      else html += `<option value="${esc(id)}"${id === v ? ' selected' : ''}>${esc(l)}</option>`;
+    }
+    el.innerHTML = html + (open ? '</optgroup>' : '');
+  };
+  fillSel($('#h2hA'), sel[0]); fillSel($('#h2hB'), sel[1]);
+  $('#h2hNote').textContent = 'Journées et quarts d’heure du filtre appliqués · ' + (mode === 'team' ? 'moyennes par match' : 'valeurs par 90 min');
+  const A = data[sel[0]], B = data[sel[1]];
+  if (!A || !B) { $('#h2hHead').innerHTML = ''; $('#h2hCmp').innerHTML = '<div class="empty">Choisissez deux ' + (mode === 'team' ? 'équipes' : 'joueurs') + '</div>'; return; }
+  const who = id => mode === 'team' ? {tid: id, name: TN[id], meta: `${fmt(T[id].mp)} match(s)`}
+    : {tid: P[id].tm || PI[id].team, name: PI[id].name, meta: `${esc(TN[P[id].tm || PI[id].team] || '')}${SR[id] && ROLE_L[SR[id]] ? ' · ' + ROLE_L[SR[id]] : ''} · ${fmt(P[id].time / 60)} min · ${fmt(P[id].mp)} match(s)`};
+  const wa = who(sel[0]), wb = who(sel[1]);
+  const logoBig = tid => { const d = tid && LOGO.data[tid]; return d ? `<img src="${d}" alt="">` : ''; };
+  $('#h2hHead').innerHTML = `<div class="h2h-side a">${logoBig(wa.tid)}<div><div class="nm">${esc(wa.name)}</div><div class="meta">${wa.meta}</div></div></div><div class="h2h-vs">VS</div>`
+    + `<div class="h2h-side b">${logoBig(wb.tid)}<div><div class="nm">${esc(wb.name)}</div><div class="meta">${wb.meta}</div></div></div>`;
+  $('#h2hCmpSub').textContent = mode === 'team' ? 'Moyenne par match · la barre la plus longue l’emporte' : 'Par 90 minutes · la barre la plus longue l’emporte';
+  $('#h2hCmp').innerHTML = H2H_KEYS.map(k => {
+    const a = scVal(k, A, lvl), b = scVal(k, B, lvl), mx = Math.max(a || 0, b || 0) || 1, d = scDec(k, lvl), u = scUnit(k, lvl);
+    const wA = a != null && b != null && a > b, wB = a != null && b != null && b > a;
+    return `<div class="h2h-row"><span class="v a${wA ? ' win' : ''}">${fmt(a, d)}</span><span class="bar a"><i class="${wB ? 'lose' : ''}" style="width:${(a || 0) / mx * 100}%"></i></span>`
+      + `<span class="m">${esc(SCM[k].l)}<small>${esc(u || 'nombre')}${SCM[k].rate ? '' : lvl === 'T' ? ' /match' : ' /90'}</small></span>`
+      + `<span class="bar b"><i class="${wA ? 'lose' : ''}" style="width:${(b || 0) / mx * 100}%"></i></span><span class="v b${wB ? ' win' : ''}">${fmt(b, d)}</span></div>`;
+  }).join('');
+  // Radar en percentiles
+  let peers, peerTxt;
+  if (mode === 'team') { peers = Object.values(T).filter(o => o.mp); peerTxt = `parmi les ${peers.length} équipes`; }
+  else {
+    const rA = SR[sel[0]], rB = SR[sel[1]], same = rA && rA === rB && ROLE_L[rA];
+    peers = Object.entries(P).filter(([id, o]) => (o.time >= 5400 || id === sel[0] || id === sel[1]) && SR[id] !== 'GK' && (!same || SR[id] === rA)).map(([, o]) => o);
+    peerTxt = same ? `parmi les ${peers.length} ${ROLE_L[rA].toLowerCase()}s (≥ 90 min)` : `parmi les ${peers.length} joueurs de champ (≥ 90 min)`;
+  }
+  $('#h2hRadarSub').textContent = '0 = le plus bas, 100 = le plus haut, ' + peerTxt;
+  const pcs = o => H2H_KEYS.map(k => percentile(peers.map(p => scVal(k, p, lvl)), scVal(k, o, lvl)));
+  const s1 = css('--s1'), s2 = css('--s2');
+  chart('chH2hRadar', {type: 'radar', data: {labels: H2H_KEYS.map(k => SCM[k].l), datasets: [
+      {label: wa.name, data: pcs(A), borderColor: s1, backgroundColor: s1 + '33', borderWidth: 2, pointRadius: 3, pointBackgroundColor: s1},
+      {label: wb.name, data: pcs(B), borderColor: s2, backgroundColor: s2 + '33', borderWidth: 2, pointRadius: 3, pointBackgroundColor: s2}]},
+    options: {plugins: {legend: {position: 'bottom'}, tooltip: {callbacks: {label: c => `${c.dataset.label} : P${c.raw}`}}},
+      scales: {r: {min: 0, max: 100, ticks: {stepSize: 25, backdropColor: 'transparent', color: css('--text-3')}, grid: {color: css('--grid')}, angleLines: {color: css('--grid')}, pointLabels: {font: {size: 11}, color: css('--text-2')}}}}});
+  // Au fil du match
+  const em = $('#h2hEvoMetric').value;
+  const pred = id => mode === 'team' ? (b => b.tm === id) : (b => b.p === id);
+  evoChart('chH2hEvo', [{l: wa.name, d: evoSeries(lg, pred(sel[0]), em), c: s1}, {l: wb.name, d: evoSeries(lg, pred(sel[1]), em), c: s2}], em);
+  qChart('chH2hQ', [{l: wa.name, d: qSeries(lg, pred(sel[0]), em), c: s1}, {l: wb.name, d: qSeries(lg, pred(sel[1]), em), c: s2}], em);
+}
+function saveH2H() { try { localStorage.setItem('dash-h2h', JSON.stringify(S.h2h)); } catch (e) {} }
+function bindPhyUI() {
+  try { const sv = JSON.parse(localStorage.getItem('dash-h2h') || 'null'); if (sv && sv.mode) Object.assign(S.h2h, sv); } catch (e) {}
+  try { const r = localStorage.getItem('dash-role'); if (r) S.role = r; const rm = JSON.parse(localStorage.getItem('dash-rolemin') || 'null'); if (rm) S.roleMin = rm; } catch (e) {}
+  $('#phyRole').onclick = e => {
+    const b = e.target.closest('[data-role]'); if (!b) return;
+    S.role = b.dataset.role; S._rolePlayer = S.f.player;
+    try { localStorage.setItem('dash-role', S.role); } catch (err) {}
+    scheduleRender();
+  };
+  $('#phyRoleMin').onchange = e => {
+    const v = Math.max(0, Math.min(120, +e.target.value || 0)); S.roleMin[S.role || 'CB'] = v;
+    try { localStorage.setItem('dash-rolemin', JSON.stringify(S.roleMin)); } catch (err) {}
+    scheduleRender();
+  };
+  $('#h2hMode').onclick = e => { const b = e.target.closest('[data-m]'); if (!b) return; S.h2h.mode = b.dataset.m; saveH2H(); scheduleRender(); };
+  $('#h2hA').onchange = e => { S.h2h[S.h2h.mode][0] = e.target.value; saveH2H(); scheduleRender(); };
+  $('#h2hB').onchange = e => { S.h2h[S.h2h.mode][1] = e.target.value; saveH2H(); scheduleRender(); };
+  $('#h2hSwap').onclick = () => { const s = S.h2h[S.h2h.mode]; S.h2h[S.h2h.mode] = [s[1], s[0]]; saveH2H(); scheduleRender(); };
+}
+
+/* ---------- Sous-onglet Classements ---------- */
+function renderPhyRank(ms, TN, PI) {
+  const f = S.f, SR = seasonRoles();
+  const {P} = aggPhys(ms);
+  const pm = $('#phyPlMode').value, minMin = +$('#phyMinMin').value || 0;
+  const plRows = Object.entries(P).filter(([id, o]) => PI[id] && (!f.team || PI[id].team === f.team) && o.time / 60 >= minMin && o.time > 0)
+    .map(([id, o]) => ({id, tid: o.tm || PI[id].team, name: PI[id].name, team: TN[o.tm || PI[id].team] || '', pos: SR[id] && SR[id] !== 'GK' ? SR[id] : (SR[id] === 'GK' ? 'GB' : ''), o}));
+  const cols = ['mp', 'min', 'dist', 'mpm', 'walk', 'jog', 'lsr', 'hsr', 'spr', 'hi', 'hiPct', 'nhsr', 'nspr', 'vmax', 'dIP', 'dOP', 'hIP', 'hOP'];
+  renderTable('tblPhyPlayers', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'team', l: 'Équipe', txt: 1, v: r => r.team, html: r => logoHTML(r.tid) + esc(r.team)}, {k: 'pos', l: 'Poste', txt: 1, v: r => r.pos, h: 'CB défenseur central · FB latéral · CM milieu central · WM milieu excentré · FW attaquant'},
+    ...cols.map(k => ({k, l: PHY[k].l, h: PHY[k].h, d: dec(PHY, k, pm), v: r => val(PHY, k, r.o, pm)}))],
+    plRows, {defaultSort: 'dist', hl: r => r.id === f.player, onRow: id => setFilter('player', id)});
+
+  const mk = $('#phyMetric').value;
+  const top = plRows.map(r => ({id: r.id, tid: r.tid, name: r.name, sub: r.team, v: val(PHY, mk, r.o, pm)})).filter(x => x.v != null).sort((a, b) => b.v - a.v).slice(0, 15);
+  if (f.player && !top.some(x => x.id === f.player)) { const r = plRows.find(x => x.id === f.player); if (r) top.push({id: r.id, tid: r.tid, name: r.name, sub: r.team, v: val(PHY, mk, r.o, pm)}); }
+  $('#phyRankSub').textContent = `Top 15 · ${PHY[mk].l}${pm === 'p90' && PHY[mk].t === 'add' ? ' par 90 min' : ''}${minMin ? ` · ≥ ${minMin} min` : ''}`;
+  rankChart('chPhyRank', top, PHY[mk].l, dec(PHY, mk, pm), f.player);
+
+  const zr = plRows.slice().sort((a, b) => (val(PHY, 'dist', b.o, pm) || 0) - (val(PHY, 'dist', a.o, pm) || 0)).slice(0, 15);
+  if (f.player && !zr.some(r => r.id === f.player)) { const r = plRows.find(x => x.id === f.player); if (r) zr.push(r); }
+  $('#zoneSub').textContent = `15 plus grandes distances · ${pm === 'p90' ? 'par 90 min' : 'total'} (m)`;
+  const Z = [['walk', 'Marche', '--z1'], ['jog', 'Footing', '--z2'], ['lsr', 'Course lente', '--z3'], ['hsr', 'Haute vitesse', '--z4'], ['spr', 'Sprint >25 km/h', '--z5']];
+  chart('chZones', {type: 'bar', data: {labels: zr.map(r => r.name), datasets: Z.map(([k, l, c]) => ({label: l, data: zr.map(r => val(PHY, k, r.o, pm)), backgroundColor: css(c), borderColor: css('--surface'), borderWidth: {right: 1}, borderSkipped: false}))},
+    options: {indexAxis: 'y', plugins: {legend: {position: 'bottom'}, tooltip: {mode: 'index', callbacks: {label: c => `${c.dataset.label} : ${fmt(c.raw)} m`}}},
+      scales: {x: {stacked: true, grid: {color: css('--grid')}}, y: {stacked: true, grid: {display: false}, ticks: {autoSkip: false}}}, layout: {padding: {right: 26}}},
+    plugins: [barLogos(zr.map(r => r.tid))]});
 }
 
 /* =====================================================================
@@ -2031,11 +2521,15 @@ function fillMetricSelects() {
   $('#defMetric').innerHTML = defOpts.map(k => `<option value="${k}">${TAC[k].l}</option>`).join('');
   const phyOpts = ['dist', 'mpm', 'hi', 'hsr', 'spr', 'nspr', 'nhsr', 'vmax', 'hiPct', 'hOP', 'hIP'];
   $('#phyMetric').innerHTML = phyOpts.map(k => `<option value="${k}">${PHY[k].l}</option>`).join('');
+  const scOpts = Object.keys(SCM).map(k => `<option value="${k}">${SCM[k].l}</option>`).join('');
+  for (const [id, v] of [['#phyTX', 'dist'], ['#phyTY', 'spr'], ['#phyPX', 'dist'], ['#phyPY', 'spr']]) { $(id).innerHTML = scOpts; $(id).value = v; }
 }
 
 function applySubtabs() {
   document.querySelectorAll('.subtabs').forEach(nav => {
-    const tab = nav.dataset.for, cur = S.sub[tab];
+    const tab = nav.dataset.for;
+    if (!nav.querySelector(`button[data-sub="${S.sub[tab]}"]`)) S.sub[tab] = nav.querySelector('button[data-sub]').dataset.sub;
+    const cur = S.sub[tab];
     nav.querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', b.dataset.sub === cur));
     nav.parentElement.querySelectorAll(':scope > .subpanel').forEach(p => p.classList.toggle('active', p.dataset.sub === cur));
   });
@@ -2052,6 +2546,7 @@ function bindSubtabs() {
 }
 function bindUI() {
   bindSubtabs();
+  bindPhyUI();
   document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => {
     S.tab = b.dataset.tab;
     document.querySelectorAll('nav.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
@@ -2080,7 +2575,7 @@ function bindUI() {
     refreshAll();
   };
   $('#fReset').onclick = () => { S.f = {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0, 1, 2, 3, 4, 5])}; refreshAll(); };
-  ['#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#passMapType', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyEvoMetric', '#phyTeamMode',
+  ['#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#passMapType', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyEvoMetric', '#phyTeamMode', '#phyTX', '#phyTY', '#phyPX', '#phyPY', '#phyPEvoMetric', '#h2hEvoMetric',
    '#shotType', '#offMetric', '#offTeamMode', '#recType', '#defMetric', '#defTeamMode', '#cpaTeamMode']
     .forEach(s => $(s).onchange = render);
   document.querySelectorAll('[data-csv]').forEach(b => b.onclick = () => exportCSV(b.dataset.csv));
