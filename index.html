@@ -40,7 +40,7 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
-header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;position:sticky;top:0;z-index:20}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:20}
 header h1{font-size:17px;margin:0;font-weight:700;letter-spacing:-.02em}
 header h1 span{color:var(--accent)}
 header h1 small{font-weight:400;color:var(--text-3);margin-left:6px;font-size:13px}
@@ -148,16 +148,25 @@ input.j{width:64px}
 #accList select{padding:4px 6px;font-size:13px}
 #accList .btn{padding:3px 9px;font-size:12.5px}
 .you{font-size:11px;color:var(--text-3);margin-left:6px}
-@media (max-width:700px){.userbox .email{display:none}}
+.tlogo{width:18px;height:18px;object-fit:contain;vertical-align:-4px;margin-right:7px}
+.logo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.logo-tile{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:var(--surface)}
+.logo-tile .lg{width:40px;height:40px;flex:none;border-radius:8px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text-3);overflow:hidden}
+.logo-tile .lg img{width:100%;height:100%;object-fit:contain}
+.logo-tile .nm{flex:1;min-width:0;font-size:13px;font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.logo-tile .acts{display:flex;flex-direction:column;gap:4px}
+.logo-tile .btn{padding:3px 8px;font-size:12px}
+@media (max-width:1450px){.userbox .email{display:none}}
+.userbox{flex-wrap:nowrap}
 </style>
 </head>
 <body>
 <header>
   <h1>OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <nav class="tabs" role="tablist">
-    <button role="tab" data-tab="data" aria-selected="true">Données</button>
     <button role="tab" data-tab="tac" aria-selected="false">Analyse tactique</button>
     <button role="tab" data-tab="phy" aria-selected="false">Physique</button>
+    <button role="tab" data-tab="data" aria-selected="true">Données</button>
     <button role="tab" data-tab="acc" aria-selected="false" hidden>Comptes</button>
   </nav>
   <div class="userbox" id="userBox">
@@ -167,7 +176,7 @@ input.j{width:64px}
     <button class="btn" id="pwdBtn" hidden>Mot de passe</button>
     <button class="btn" id="logoutBtn" hidden>Déconnexion</button>
   </div>
-  <button class="theme-btn" id="themeBtn" title="Thème clair / sombre">◐ Thème</button>
+  <button class="theme-btn" id="themeBtn" title="Thème clair / sombre" aria-label="Thème clair / sombre">◐</button>
 </header>
 
 <div class="auth" id="auth" hidden>
@@ -235,6 +244,11 @@ input.j{width:64px}
         </div>
       </div>
       <div id="matchList"></div>
+    </div>
+    <div class="card c12" id="logoCard">
+      <div class="card-head"><div><h2>Logos des équipes</h2><p class="sub">Importez l'image de chaque club (PNG, JPG ou SVG). Elle s'affiche dans les graphiques et les tableaux, pour tous les utilisateurs.</p></div></div>
+      <div id="logoGrid" class="logo-grid"></div>
+      <input type="file" id="logoInput" accept="image/*" hidden>
     </div>
     <div class="card c12 help" id="helpCard">
       <h2>Fichiers reconnus</h2>
@@ -1184,7 +1198,7 @@ function renderTable(id, cols, rows, opts = {}) {
   const head = cols.map(c => `<th class="${c.txt ? 'txt' : ''} ${c.k === st.k ? 'sorted' + (st.asc ? ' asc' : '') : ''}" data-k="${c.k}" title="${esc(c.h || '')}">${esc(c.l)}</th>`).join('');
   const body = rows.map((r, i) => `<tr data-id="${esc(r.id)}" class="${opts.hl && opts.hl(r) ? 'hl' : ''}">` + cols.map((c, j) => {
     const v = getV(r, c);
-    const txt = c.disp ? esc(c.disp(r)) : c.txt ? esc(v) : fmt(v, c.d || 0);
+    const txt = c.html ? c.html(r) : c.disp ? esc(c.disp(r)) : c.txt ? esc(v) : fmt(v, c.d || 0);
     return `<td class="${c.txt ? 'txt' : ''}">${j === 0 ? `<span class="rank">${i + 1}</span>` : ''}${txt}</td>`;
   }).join('') + '</tr>').join('');
   const el = document.getElementById(id);
@@ -1264,6 +1278,69 @@ function avgLines(mx, my, labels, fx, fy) {
     }
   };
 }
+/* ---------- Logos d'équipes (importés par les Masters) ---------- */
+const LOGO = {data: {}, img: {}, pending: null};
+function logoImg(tid, size) {
+  const d = tid && LOGO.data[tid]; if (!d) return null;
+  const k = tid + '@' + size; let im = LOGO.img[k];
+  if (!im) { im = new Image(size, size); im.onload = () => Object.values(S.charts).forEach(c => { try { c.draw(); } catch (e) {} }); im.src = d; LOGO.img[k] = im; }
+  return im;
+}
+function logoHTML(tid) { const d = tid && LOGO.data[tid]; return d ? `<img class="tlogo" src="${d}" alt="">` : ''; }
+function barLogos(tids) {
+  return {id: 'barLogos', afterDatasetsDraw(c) {
+    const ctx = c.ctx, yS = c.scales.y;
+    (c.data.labels || []).forEach((_, i) => {
+      const im = logoImg(tids[i], 40); if (!im || !im.complete || !im.naturalWidth) return;
+      let xmax = -Infinity;
+      c.data.datasets.forEach((ds, di) => { const m = c.getDatasetMeta(di); if (m.hidden) return; const el = m.data[i]; if (el && isFinite(el.x)) xmax = Math.max(xmax, el.x); });
+      if (!isFinite(xmax)) return;
+      const y = yS.getPixelForValue(i), sz = Math.max(12, Math.min(20, (yS.height / Math.max(1, c.data.labels.length)) * 0.8));
+      ctx.drawImage(im, xmax + 4, y - sz / 2, sz, sz);
+    });
+  }};
+}
+async function loadLogos() {
+  LOGO.data = {}; LOGO.img = {};
+  if (CLOUD && Cloud.user) {
+    try { const {data, error} = await Cloud.bucket().download('assets/logos.json'); if (!error && data) LOGO.data = JSON.parse(await data.text()) || {}; } catch (e) {}
+  } else { try { LOGO.data = JSON.parse(localStorage.getItem('or-logos') || '{}'); } catch (e) {} }
+}
+async function saveLogos() {
+  LOGO.img = {};
+  if (CLOUD && Cloud.user) {
+    const {error} = await Cloud.bucket().upload('assets/logos.json', new Blob([JSON.stringify(LOGO.data)], {type: 'application/json'}), {upsert: true, contentType: 'application/json', cacheControl: '0'});
+    if (error) throw error;
+  } else { try { localStorage.setItem('or-logos', JSON.stringify(LOGO.data)); } catch (e) { throw new Error('Stockage local plein'); } }
+}
+function resizeImage(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => { const im = new Image(); im.onload = () => {
+      const S2 = 96, c = document.createElement('canvas'); c.width = c.height = S2; const x = c.getContext('2d');
+      const w0 = im.naturalWidth || S2, h0 = im.naturalHeight || S2, k = Math.min(S2 / w0, S2 / h0), w = w0 * k, h = h0 * k;
+      x.drawImage(im, (S2 - w) / 2, (S2 - h) / 2, w, h); res(c.toDataURL('image/png'));
+    }; im.onerror = () => rej(new Error('Image illisible')); im.src = r.result; };
+    r.onerror = () => rej(r.error); r.readAsDataURL(file);
+  });
+}
+function renderLogos() {
+  const el = $('#logoGrid'); if (!el) return;
+  const TN = teamNames(); const teams = Object.entries(TN).sort((a, b) => a[1].localeCompare(b[1]));
+  if (!teams.length) { el.innerHTML = '<div class="muted">Les équipes apparaîtront ici après l’import d’un premier match.</div>'; return; }
+  el.innerHTML = teams.map(([id, name]) => `<div class="logo-tile"><div class="lg">${LOGO.data[id] ? `<img src="${LOGO.data[id]}" alt="">` : esc(name.split(/\s+/).map(w => w[0]).join('').slice(0, 3).toUpperCase())}</div>
+    <div class="nm" title="${esc(name)}">${esc(name)}</div><div class="acts"><button class="btn" data-logo="${id}">${LOGO.data[id] ? 'Changer' : 'Importer'}</button>${LOGO.data[id] ? `<button class="btn danger" data-unlogo="${id}">Retirer</button>` : ''}</div></div>`).join('');
+  el.querySelectorAll('[data-logo]').forEach(b => b.onclick = () => { LOGO.pending = b.dataset.logo; $('#logoInput').value = ''; $('#logoInput').click(); });
+  el.querySelectorAll('[data-unlogo]').forEach(b => b.onclick = async () => { delete LOGO.data[b.dataset.unlogo]; try { await saveLogos(); } catch (e) { alert(e.message); } renderLogos(); render(); });
+}
+function bindLogos() {
+  $('#logoInput').onchange = async e => {
+    const f = e.target.files[0]; if (!f || !LOGO.pending) return;
+    try { LOGO.data[LOGO.pending] = await resizeImage(f); await saveLogos(); }
+    catch (err) { alert('Logo non enregistré : ' + err.message); }
+    LOGO.pending = null; renderLogos(); render();
+  };
+}
 const mean = arr => { const v = arr.filter(x => x != null && isFinite(x)); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
 const pointLabels = {
   id: 'pointLabels',
@@ -1271,7 +1348,7 @@ const pointLabels = {
     const ctx = c.ctx; ctx.save(); ctx.font = '11px system-ui,sans-serif'; ctx.fillStyle = css('--text-2');
     c.data.datasets.forEach((ds, i) => {
       if (c.getDatasetMeta(i).hidden) return;
-      c.getDatasetMeta(i).data.forEach((pt, j) => { const d = ds.data[j]; if (d && d.lab) ctx.fillText(d.lab, pt.x + 8, pt.y + 4); });
+      c.getDatasetMeta(i).data.forEach((pt, j) => { const d = ds.data[j]; if (d && d.lab) ctx.fillText(d.lab, pt.x + (d.off || 8), pt.y + 4); });
     });
     ctx.restore();
   }
@@ -1282,8 +1359,9 @@ function rankChart(id, items, label, decimals, hlId) {
     type: 'bar',
     data: {labels: items.map(x => x.name), datasets: [{label, data: items.map(x => x.v),
       backgroundColor: items.map(x => x.id === hlId ? s2 : s1), borderRadius: 4, borderSkipped: 'start', barPercentage: .78, categoryPercentage: .9}]},
-    options: {indexAxis: 'y', plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${label} : ${fmt(c.raw, decimals)}`, afterLabel: c => items[c.dataIndex].sub || ''}}},
-      scales: {x: {grid: {color: css('--grid')}, ticks: {callback: v => Number(v).toLocaleString('fr-FR', {maximumFractionDigits: 2})}}, y: {grid: {display: false}, ticks: {autoSkip: false}}}}
+    options: {layout: {padding: {right: 26}}, indexAxis: 'y', plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${label} : ${fmt(c.raw, decimals)}`, afterLabel: c => items[c.dataIndex].sub || ''}}},
+      scales: {x: {grid: {color: css('--grid')}, ticks: {callback: v => Number(v).toLocaleString('fr-FR', {maximumFractionDigits: 2})}}, y: {grid: {display: false}, ticks: {autoSkip: false}}}},
+    plugins: [barLogos(items.map(x => x.tid))]
   });
 }
 
@@ -1384,7 +1462,7 @@ function renderTactical() {
   $('#stdSub').textContent = allQ ? 'Sur les scores finaux des matchs chargés (filtres équipe/journée/match)' : 'Points recalculés uniquement sur les buts des quarts d’heure sélectionnés';
   if (!S.sort.tblStand) S.sort.tblStand = {k: '_s', asc: false};
   renderTable('tblStand', [
-    {k: 'name', l: 'Équipe', txt: 1, v: r => r.name}, {k: '_s', l: 'Pts', v: r => r._sortKey, disp: r => r.pts},
+    {k: 'name', l: 'Équipe', txt: 1, v: r => r.name, html: r => logoHTML(r.id) + esc(r.name)}, {k: '_s', l: 'Pts', v: r => r._sortKey, disp: r => r.pts},
     {k: 'mj', l: 'MJ', v: r => r.mj}, {k: 'v', l: 'V', v: r => r.v}, {k: 'n', l: 'N', v: r => r.n}, {k: 'd', l: 'D', v: r => r.d},
     {k: 'bp', l: 'BP', v: r => r.bp}, {k: 'bc', l: 'BC', v: r => r.bc}, {k: 'diff', l: 'Diff', v: r => r.diff}
   ], standRows, {hl: r => r.id === f.team, onRow: id => setFilter('team', id)});
@@ -1393,22 +1471,22 @@ function renderTactical() {
   const tm = $('#tacTeamMode').value;
   const teamCols = ['mp', 'gf', 'ga', 'xg', 'xga', 'xgd', 'sh', 'sot', 'sha', 'possPct', 'pass', 'passPct', 'xpd', 'lb', 'prog', 'f3', 'box', 'kp', 'carryProg', 'ppda', 'recov', 'int', 'tkW', 'aerPct', 'foul', 'yc', 'rc', 'corners', 'vert', 'xgPoss'];
   const teamRows = Object.entries(T).map(([id, o]) => ({id, name: TN[id], o}));
-  renderTable('tblTacTeams', [{k: 'name', l: 'Équipe', txt: 1, v: r => r.name}, ...teamCols.map(k => ({k, l: TAC[k].l, h: TAC[k].h, d: dec(TAC, k, tm), v: r => val(TAC, k, r.o, tm)}))],
+  renderTable('tblTacTeams', [{k: 'name', l: 'Équipe', txt: 1, v: r => r.name, html: r => logoHTML(r.id) + esc(r.name)}, ...teamCols.map(k => ({k, l: TAC[k].l, h: TAC[k].h, d: dec(TAC, k, tm), v: r => val(TAC, k, r.o, tm)}))],
     teamRows, {defaultSort: 'xgd', hl: r => r.id === f.team, onRow: id => setFilter('team', id)});
 
   // Joueurs
   const pm = $('#tacPlMode').value, minMin = +$('#tacMinMin').value || 0;
   const plRows = Object.entries(P).filter(([id, o]) => PI[id] && (!f.team || PI[id].team === f.team) && o.secs / 60 >= minMin && (o.secs > 0 || o.pass || o.sh))
-    .map(([id, o]) => ({id, name: PI[id].name, team: TN[PI[id].team] || '', pos: PI[id].pos === 'SUB' ? '' : PI[id].pos, o}));
+    .map(([id, o]) => ({id, tid: PI[id].team, name: PI[id].name, team: TN[PI[id].team] || '', pos: PI[id].pos === 'SUB' ? '' : PI[id].pos, o}));
   const plCols = ['mp', 'min', 'gf', 'ast', 'xg', 'gmx', 'sh', 'sot', 'pass', 'passPct', 'xpd', 'lb', 'byp', 'prog', 'kp', 'f3', 'box', 'cross', 'carryProg', 'drbOk', 'recov', 'int', 'tkW', 'aerW', 'aerPct', 'lost', 'foul', 'fouled', 'yc', 'saves'];
-  renderTable('tblTacPlayers', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'team', l: 'Équipe', txt: 1, v: r => r.team}, {k: 'pos', l: 'Poste', txt: 1, v: r => r.pos},
+  renderTable('tblTacPlayers', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'team', l: 'Équipe', txt: 1, v: r => r.team, html: r => logoHTML(r.tid) + esc(r.team)}, {k: 'pos', l: 'Poste', txt: 1, v: r => r.pos},
     ...plCols.map(k => ({k, l: TAC[k].l, h: TAC[k].h, d: dec(TAC, k, pm), v: r => val(TAC, k, r.o, pm)}))],
     plRows, {defaultSort: 'xg', hl: r => r.id === f.player, onRow: id => setFilter('player', id)});
 
   // Classement joueurs (graphique)
   const mk = $('#tacMetric').value;
-  const top = plRows.map(r => ({id: r.id, name: r.name, sub: r.team, v: val(TAC, mk, r.o, pm)})).filter(x => x.v != null && x.v !== 0).sort((a, b) => b.v - a.v).slice(0, 15);
-  if (f.player && !top.some(x => x.id === f.player)) { const r = plRows.find(x => x.id === f.player); if (r) top.push({id: r.id, name: r.name, sub: r.team, v: val(TAC, mk, r.o, pm)}); }
+  const top = plRows.map(r => ({id: r.id, tid: r.tid, name: r.name, sub: r.team, v: val(TAC, mk, r.o, pm)})).filter(x => x.v != null && x.v !== 0).sort((a, b) => b.v - a.v).slice(0, 15);
+  if (f.player && !top.some(x => x.id === f.player)) { const r = plRows.find(x => x.id === f.player); if (r) top.push({id: r.id, tid: r.tid, name: r.name, sub: r.team, v: val(TAC, mk, r.o, pm)}); }
   $('#tacRankSub').textContent = `Top 15 · ${TAC[mk].l}${pm === 'p90' && TAC[mk].t === 'add' ? ' par 90 min' : ''}${minMin ? ` · ≥ ${minMin} min` : ''}`;
   rankChart('chTacRank', top, TAC[mk].l, dec(TAC, mk, pm), f.player);
 
@@ -1422,7 +1500,8 @@ function renderTactical() {
   // xG scatter
   const s1 = css('--s1'), s2 = css('--s2'), s3 = css('--text-3');
   const pts = teamRows.filter(r => r.o.mp).map(r => ({x: r.o.xg / r.o.mp, y: r.o.xga / r.o.mp, lab: r.name, id: r.id}));
-  chart('chXgScatter', {type: 'scatter', data: {datasets: [{label: 'Équipes', data: pts, pointRadius: pts.map(p => p.id === f.team ? 7 : 5),
+  pts.forEach(p => { p.img = logoImg(p.id, p.id === f.team ? 34 : 26); if (p.img) p.off = p.id === f.team ? 20 : 16; });
+  chart('chXgScatter', {type: 'scatter', data: {datasets: [{label: 'Équipes', data: pts, pointStyle: pts.map(p => p.img || 'circle'), pointRadius: pts.map(p => p.img ? 13 : (p.id === f.team ? 7 : 5)),
       backgroundColor: pts.map(p => p.id === f.team ? s2 : s1), borderColor: css('--surface'), borderWidth: 2, pointHoverRadius: 8}]},
     options: {layout: {padding: {right: 90}}, plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${c.raw.lab} : xG ${fmt(c.raw.x, 2)} / xG contre ${fmt(c.raw.y, 2)}`}}},
       scales: {x: {grace: '15%', title: {display: true, text: 'xG produits / match'}, grid: {color: css('--grid')}}, y: {grace: '15%', reverse: true, title: {display: true, text: 'xG concédés / match (inversé)'}, grid: {color: css('--grid')}}}},
@@ -1542,15 +1621,15 @@ function renderPhysical() {
   // Joueurs
   const pm = $('#phyPlMode').value, minMin = +$('#phyMinMin').value || 0;
   const plRows = Object.entries(P).filter(([id, o]) => PI[id] && (!f.team || PI[id].team === f.team) && o.time / 60 >= minMin && o.time > 0)
-    .map(([id, o]) => ({id, name: PI[id].name, team: TN[o.tm || PI[id].team] || '', pos: PI[id].pos === 'SUB' ? '' : PI[id].pos, o}));
+    .map(([id, o]) => ({id, tid: o.tm || PI[id].team, name: PI[id].name, team: TN[o.tm || PI[id].team] || '', pos: PI[id].pos === 'SUB' ? '' : PI[id].pos, o}));
   const cols = ['mp', 'min', 'dist', 'mpm', 'walk', 'jog', 'lsr', 'hsr', 'spr', 'hi', 'hiPct', 'nhsr', 'nspr', 'vmax', 'dIP', 'dOP', 'hIP', 'hOP'];
-  renderTable('tblPhyPlayers', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'team', l: 'Équipe', txt: 1, v: r => r.team}, {k: 'pos', l: 'Poste', txt: 1, v: r => r.pos},
+  renderTable('tblPhyPlayers', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'team', l: 'Équipe', txt: 1, v: r => r.team, html: r => logoHTML(r.tid) + esc(r.team)}, {k: 'pos', l: 'Poste', txt: 1, v: r => r.pos},
     ...cols.map(k => ({k, l: PHY[k].l, h: PHY[k].h, d: dec(PHY, k, pm), v: r => val(PHY, k, r.o, pm)}))],
     plRows, {defaultSort: 'dist', hl: r => r.id === f.player, onRow: id => setFilter('player', id)});
 
   const mk = $('#phyMetric').value;
-  const top = plRows.map(r => ({id: r.id, name: r.name, sub: r.team, v: val(PHY, mk, r.o, pm)})).filter(x => x.v != null).sort((a, b) => b.v - a.v).slice(0, 15);
-  if (f.player && !top.some(x => x.id === f.player)) { const r = plRows.find(x => x.id === f.player); if (r) top.push({id: r.id, name: r.name, sub: r.team, v: val(PHY, mk, r.o, pm)}); }
+  const top = plRows.map(r => ({id: r.id, tid: r.tid, name: r.name, sub: r.team, v: val(PHY, mk, r.o, pm)})).filter(x => x.v != null).sort((a, b) => b.v - a.v).slice(0, 15);
+  if (f.player && !top.some(x => x.id === f.player)) { const r = plRows.find(x => x.id === f.player); if (r) top.push({id: r.id, tid: r.tid, name: r.name, sub: r.team, v: val(PHY, mk, r.o, pm)}); }
   $('#phyRankSub').textContent = `Top 15 · ${PHY[mk].l}${pm === 'p90' && PHY[mk].t === 'add' ? ' par 90 min' : ''}${minMin ? ` · ≥ ${minMin} min` : ''}`;
   rankChart('chPhyRank', top, PHY[mk].l, dec(PHY, mk, pm), f.player);
 
@@ -1561,7 +1640,8 @@ function renderPhysical() {
   const Z = [['walk', 'Marche', '--z1'], ['jog', 'Footing', '--z2'], ['lsr', 'Course lente', '--z3'], ['hsr', 'Haute vitesse', '--z4'], ['spr', 'Sprint', '--z5']];
   chart('chZones', {type: 'bar', data: {labels: zr.map(r => r.name), datasets: Z.map(([k, l, c]) => ({label: l, data: zr.map(r => val(PHY, k, r.o, pm)), backgroundColor: css(c), borderColor: css('--surface'), borderWidth: {right: 1}, borderSkipped: false}))},
     options: {indexAxis: 'y', plugins: {legend: {position: 'bottom'}, tooltip: {mode: 'index', callbacks: {label: c => `${c.dataset.label} : ${fmt(c.raw)} m`}}},
-      scales: {x: {stacked: true, grid: {color: css('--grid')}}, y: {stacked: true, grid: {display: false}, ticks: {autoSkip: false}}}}});
+      scales: {x: {stacked: true, grid: {color: css('--grid')}}, y: {stacked: true, grid: {display: false}, ticks: {autoSkip: false}}}, layout: {padding: {right: 26}}},
+    plugins: [barLogos(zr.map(r => r.tid))]});
 
   // Évolution par 5 min
   const em = $('#phyEvoMetric').value;
@@ -1617,12 +1697,13 @@ function renderPhysical() {
   chart('chPoss', {type: 'bar', data: {labels: tr.map(r => r.name), datasets: [
       {label: 'Avec ballon', data: tr.map(r => val(PHY, 'hIP', r.o, 'pm')), backgroundColor: tr.map(r => !f.team || r.id === f.team ? s1 : s1 + '55'), borderRadius: 4, borderSkipped: 'start'},
       {label: 'Sans ballon', data: tr.map(r => val(PHY, 'hOP', r.o, 'pm')), backgroundColor: tr.map(r => !f.team || r.id === f.team ? s2 : s2 + '55'), borderRadius: 4, borderSkipped: 'start'}]},
-    options: {indexAxis: 'y', plugins: {legend: {position: 'bottom'}, tooltip: {callbacks: {label: c => `${c.dataset.label} : ${fmt(c.raw)} m /match`}}}, scales: {x: {grid: {color: css('--grid')}}, y: {grid: {display: false}, ticks: {autoSkip: false}}}}});
+    options: {layout: {padding: {right: 26}}, indexAxis: 'y', plugins: {legend: {position: 'bottom'}, tooltip: {callbacks: {label: c => `${c.dataset.label} : ${fmt(c.raw)} m /match`}}}, scales: {x: {grid: {color: css('--grid')}}, y: {grid: {display: false}, ticks: {autoSkip: false}}}},
+    plugins: [barLogos(tr.map(r => r.id))]});
 
   // Tableau équipes
   const tm = $('#phyTeamMode').value;
   const tcols = ['mp', 'dist', 'mpm', 'walk', 'jog', 'lsr', 'hsr', 'spr', 'hi', 'hiPct', 'nhsr', 'nspr', 'vmax', 'dIP', 'dOP', 'hIP', 'hOP'];
-  renderTable('tblPhyTeams', [{k: 'name', l: 'Équipe', txt: 1, v: r => r.name}, ...tcols.map(k => ({k, l: PHY[k].l, h: PHY[k].h, d: dec(PHY, k, tm), v: r => val(PHY, k, r.o, tm)}))],
+  renderTable('tblPhyTeams', [{k: 'name', l: 'Équipe', txt: 1, v: r => r.name, html: r => logoHTML(r.id) + esc(r.name)}, ...tcols.map(k => ({k, l: PHY[k].l, h: PHY[k].h, d: dec(PHY, k, tm), v: r => val(PHY, k, r.o, tm)}))],
     tr, {defaultSort: 'dist', hl: r => r.id === f.team, onRow: id => setFilter('team', id)});
 }
 
@@ -1630,6 +1711,7 @@ function renderPhysical() {
    Onglet données
    ===================================================================== */
 function renderData() {
+  renderLogos();
   const TN = teamNames();
   const list = Object.values(S.matches).sort((a, b) => a.date - b.date);
   $('#hdrCount').textContent = list.length ? `${list.length} match(s)` : '';
@@ -1758,7 +1840,7 @@ function bindUI() {
 /* ---------- Rôles ---------- */
 function applyRole() {
   const ed = canEdit();
-  $('#importCard').hidden = !ed; $('#dbCtrl').hidden = !ed; $('#helpCard').hidden = !ed;
+  $('#importCard').hidden = !ed; $('#dbCtrl').hidden = !ed; $('#helpCard').hidden = !ed; $('#logoCard').hidden = !ed;
   $('#matchListSub').textContent = ed ? 'Les journées sont déduites de l’ordre chronologique de chaque équipe ; corrigez-les si besoin, elles sont mémorisées.' : 'Matchs disponibles (consultation uniquement).';
   document.querySelector('nav.tabs button[data-tab="data"]').textContent = ed ? 'Données' : 'Matchs';
   const accTab = document.querySelector('nav.tabs button[data-tab="acc"]');
@@ -1802,6 +1884,7 @@ async function onLogin(user) {
   $('#auth').hidden = true;
   startApp();
   await syncFromCloud();
+  await loadLogos();
   if (S.role !== 'master' && S.tab === 'data' && Object.keys(S.matches).length) document.querySelector('nav.tabs button[data-tab="tac"]').click();
   else refreshAll();
 }
@@ -1932,7 +2015,7 @@ function bindAuth() {
     if (Cloud.pending && !confirm('Des modifications sont encore en cours d’envoi. Se déconnecter quand même ?')) return;
     try { await Cloud.sb.auth.signOut(); } catch (e) {}
     DB.drop();                       // efface le cache local de ce navigateur
-    Cloud.user = null; S.role = 'reader'; applyRole(); S.matches = {}; S.f = {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0, 1, 2, 3, 4, 5])};
+    Cloud.user = null; S.role = 'reader'; applyRole(); S.matches = {}; LOGO.data = {}; LOGO.img = {}; S.f = {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0, 1, 2, 3, 4, 5])};
     Object.values(S.charts).forEach(c => c.destroy()); S.charts = {};
     $('#userEmail').textContent = ''; $('#pwdBtn').hidden = true; $('#logoutBtn').hidden = true; logEl.textContent = ''; logEl.style.display = 'none';
     refreshAll();
@@ -1944,10 +2027,12 @@ function bindAuth() {
   try { const th = localStorage.getItem('dash-theme'); if (th) document.documentElement.setAttribute('data-theme', th); } catch (e) {}
   fillMetricSelects();
   bindUI();
+  bindLogos();
   setSync();
   if (!CLOUD) {                      // mode local (aucune configuration Supabase)
     await DB.open('dashboard-matchs');
     for (const m of await DB.all()) S.matches[m.id] = m;
+    await loadLogos();
     startApp();
     return;
   }
