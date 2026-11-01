@@ -148,6 +148,11 @@ input.j{width:64px}
 #accList select{padding:4px 6px;font-size:13px}
 #accList .btn{padding:3px 9px;font-size:12.5px}
 .you{font-size:11px;color:var(--text-3);margin-left:6px}
+.subtabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin:0 0 12px;flex-wrap:wrap}
+.subtabs button{border:0;background:transparent;color:var(--text-2);font:inherit;font-size:13.5px;font-weight:600;padding:9px 14px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.subtabs button:hover{color:var(--text)}
+.subtabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.subpanel{display:none}.subpanel.active{display:block}
 .tlogo{width:18px;height:18px;object-fit:contain;vertical-align:-4px;margin-right:7px}
 .logo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
 .logo-tile{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:var(--surface)}
@@ -266,67 +271,158 @@ input.j{width:64px}
 <section class="panel" id="panel-tac">
   <div id="tacEmpty" class="empty" hidden><b>Aucune donnée d'événements</b>Importez des fichiers <code>insight.jsonl</code> dans l'onglet Données.</div>
   <div id="tacBody">
+    <nav class="subtabs" data-for="tac">
+      <button data-sub="res">Résumé</button><button data-sub="off">Offensif</button><button data-sub="def">Défensif</button><button data-sub="cpa">CPA</button><button data-sub="cls">Classements</button>
+    </nav>
     <p class="focus-line" id="tacFocus"></p>
-    <div class="kpis" id="tacKpis"></div>
-    <div class="grid" style="margin-top:14px">
-      <div class="card c5">
-        <div class="card-head"><div><h2>Classement</h2><p class="sub" id="stdSub">Points calculés sur les buts des quarts d'heure sélectionnés</p></div></div>
-        <div class="tbl-wrap" id="tblStand"></div>
-      </div>
-      <div class="card c7">
-        <div class="card-head"><div><h2>xG produits vs xG concédés</h2><p class="sub">Par match, en haut à droite = domine les occasions</p></div></div>
-        <div class="chart-box"><canvas id="chXgScatter"></canvas></div>
-      </div>
 
-      <div class="card c12">
-        <div class="card-head">
-          <div><h2>Statistiques par équipe</h2><p class="sub">Cliquez sur une équipe pour filtrer · cliquez un en-tête pour trier</p></div>
-          <div class="ctrl"><select id="tacTeamMode"><option value="pm">Moyenne par match</option><option value="tot">Total</option></select><button class="btn" data-csv="tblTacTeams">CSV</button></div>
+    <!-- Résumé -->
+    <div class="subpanel" data-sub="res">
+      <div class="kpis" id="tacKpis"></div>
+      <div class="grid" style="margin-top:14px">
+        <div class="card c5">
+          <div class="card-head"><div><h2>Classement</h2><p class="sub" id="stdSub"></p></div></div>
+          <div class="tbl-wrap" id="tblStand"></div>
         </div>
-        <div class="tbl-wrap" id="tblTacTeams"></div>
-      </div>
-
-      <div class="card c7">
-        <div class="card-head">
-          <div><h2>Classement joueurs</h2><p class="sub" id="tacRankSub"></p></div>
-          <div class="ctrl"><select id="tacMetric"></select></div>
+        <div class="card c7">
+          <div class="card-head"><div><h2>xG produits vs xG concédés</h2><p class="sub">Par match · lignes pointillées = moyennes</p></div></div>
+          <div class="chart-box tall"><canvas id="chXgScatter"></canvas></div>
         </div>
-        <div class="chart-box tall"><canvas id="chTacRank"></canvas></div>
+        <div class="card c12">
+          <div class="card-head"><div><h2>Production par quart d'heure</h2><p class="sub" id="tacQSub"></p></div>
+          <div class="ctrl"><select id="tacQMetric"><option value="xg">xG</option><option value="gf">Buts</option><option value="sh">Tirs</option><option value="lb">Passes cassant la ligne</option><option value="pass">Passes</option><option value="possPct">Possession %</option></select></div></div>
+          <div class="chart-box short"><canvas id="chTacQ"></canvas></div>
+          <p class="note">Les 6 quarts d'heure sont toujours affichés ; ceux non sélectionnés sont grisés.</p>
+        </div>
       </div>
-      <div class="card c5">
-        <div class="card-head"><div><h2>Carte des tirs</h2><p class="sub" id="shotSub"></p></div></div>
-        <div id="shotMap"></div>
-        <div class="legend"><span><i style="background:var(--s1)"></i>But</span><span><i style="border:2px solid var(--s1);background:transparent"></i>Tir (taille = xG)</span></div>
-      </div>
+    </div>
 
-      <div class="card c12">
-        <div class="card-head">
-          <div><h2>Statistiques par joueur</h2><p class="sub">Cliquez sur un joueur pour le sélectionner</p></div>
-          <div class="ctrl">
-            <select id="tacPlMode"><option value="tot">Total</option><option value="p90">Par 90 min</option></select>
-            <span>Min. joué ≥ <input type="number" id="tacMinMin" value="0" min="0" step="15" style="width:70px"> min</span>
-            <button class="btn" data-csv="tblTacPlayers">CSV</button>
+    <!-- Offensif -->
+    <div class="subpanel" data-sub="off">
+      <div class="kpis" id="offKpis"></div>
+      <div class="grid" style="margin-top:14px">
+        <div class="card c5">
+          <div class="card-head"><div><h2>Carte des tirs</h2><p class="sub" id="shotSub"></p></div>
+          <div class="ctrl"><select id="shotType"><option value="all">Tous les tirs</option><option value="jeu">Jeu placé</option><option value="ctr">Contre-attaque</option><option value="cpa">CPA</option></select></div></div>
+          <div id="shotMap"></div>
+          <div class="legend"><span><i style="background:var(--s1)"></i>But</span><span><i style="border:2px solid var(--s1);background:transparent"></i>Tir (taille = xG)</span></div>
+        </div>
+        <div class="card c7">
+          <div class="card-head">
+            <div><h2>Classement joueurs offensif</h2><p class="sub" id="offRankSub"></p></div>
+            <div class="ctrl"><select id="offMetric"></select></div>
           </div>
+          <div class="chart-box tall"><canvas id="chOffRank"></canvas></div>
         </div>
-        <div class="tbl-wrap" id="tblTacPlayers"></div>
+        <div class="card c12">
+          <div class="card-head"><div><h2>Carte des passes</h2><p class="sub" id="lbSub"></p></div>
+          <div class="ctrl"><select id="passMapType"><option value="lb">Cassent la ligne (réussies)</option><option value="prog">Progressives (réussies)</option><option value="box">Entrées dans la surface (réussies)</option><option value="kp">Passes clés</option></select></div></div>
+          <div id="passMap" style="max-width:900px;margin:0 auto"></div>
+          <p class="note">Sens d'attaque de gauche à droite. Maximum 600 passes affichées.</p>
+        </div>
+        <div class="card c5">
+          <div class="card-head"><div><h2>Début des possessions</h2><p class="sub">Comment l'équipe démarre ses possessions</p></div></div>
+          <div class="chart-box"><canvas id="chPossStart"></canvas></div>
+        </div>
+        <div class="card c7">
+          <div class="card-head">
+            <div><h2>Statistiques offensives par équipe</h2><p class="sub">Cliquez sur une équipe pour filtrer</p></div>
+            <div class="ctrl"><select id="offTeamMode"><option value="pm">Moyenne par match</option><option value="tot">Total</option></select><button class="btn" data-csv="tblOffTeams">CSV</button></div>
+          </div>
+          <div class="tbl-wrap" id="tblOffTeams"></div>
+        </div>
       </div>
+    </div>
 
-      <div class="card c6">
-        <div class="card-head"><div><h2>Production par quart d'heure</h2><p class="sub" id="tacQSub"></p></div>
-        <div class="ctrl"><select id="tacQMetric"><option value="xg">xG</option><option value="gf">Buts</option><option value="sh">Tirs</option><option value="lb">Passes cassant la ligne</option><option value="pass">Passes</option><option value="possPct">Possession %</option></select></div></div>
-        <div class="chart-box"><canvas id="chTacQ"></canvas></div>
-        <p class="note">Ce graphique montre toujours les 6 quarts d'heure ; ceux non sélectionnés sont grisés.</p>
+    <!-- Défensif -->
+    <div class="subpanel" data-sub="def">
+      <div class="kpis" id="defKpis"></div>
+      <div class="grid" style="margin-top:14px">
+        <div class="card c7">
+          <div class="card-head"><div><h2>Zones de récupération</h2><p class="sub" id="recSub"></p></div>
+          <div class="ctrl"><select id="recType"><option value="all">Toutes les actions</option><option value="49">Récupérations</option><option value="8">Interceptions</option><option value="7">Tacles gagnés</option></select></div></div>
+          <div id="recMap"></div>
+          <div class="legend"><span><i style="background:var(--s1)"></i>Récupération</span><span><i style="background:var(--s2)"></i>Interception</span><span><i style="background:var(--s3)"></i>Tacle gagné</span></div>
+          <p class="note">Sens d'attaque de l'équipe de gauche à droite (à droite = camp adverse).</p>
+        </div>
+        <div class="card c5">
+          <div class="card-head"><div><h2>Tirs concédés</h2><p class="sub" id="shotAgSub"></p></div></div>
+          <div id="shotMapAg"></div>
+          <div class="legend"><span><i style="background:var(--s2)"></i>But encaissé</span><span><i style="border:2px solid var(--s2);background:transparent"></i>Tir concédé (taille = xG)</span></div>
+        </div>
+        <div class="card c7">
+          <div class="card-head">
+            <div><h2>Classement joueurs défensif</h2><p class="sub" id="defRankSub"></p></div>
+            <div class="ctrl"><select id="defMetric"></select></div>
+          </div>
+          <div class="chart-box tall"><canvas id="chDefRank"></canvas></div>
+        </div>
+        <div class="card c5">
+          <div class="card-head"><div><h2>Pressing vs xG concédés</h2><p class="sub">PPDA (bas = pressing intense) · lignes = moyennes</p></div></div>
+          <div class="chart-box tall"><canvas id="chPpda"></canvas></div>
+        </div>
+        <div class="card c12">
+          <div class="card-head">
+            <div><h2>Statistiques défensives par équipe</h2><p class="sub">Cliquez sur une équipe pour filtrer</p></div>
+            <div class="ctrl"><select id="defTeamMode"><option value="pm">Moyenne par match</option><option value="tot">Total</option></select><button class="btn" data-csv="tblDefTeams">CSV</button></div>
+          </div>
+          <div class="tbl-wrap" id="tblDefTeams"></div>
+        </div>
       </div>
-      <div class="card c6">
-        <div class="card-head"><div><h2>Début des possessions</h2><p class="sub">Comment l'équipe récupère / démarre ses possessions</p></div></div>
-        <div class="chart-box"><canvas id="chPossStart"></canvas></div>
-      </div>
+    </div>
 
-      <div class="card c12">
-        <div class="card-head"><div><h2>Passes qui cassent la ligne</h2><p class="sub" id="lbSub"></p></div>
-        <div class="ctrl"><select id="passMapType"><option value="lb">Cassent la ligne (réussies)</option><option value="prog">Progressives (réussies)</option><option value="box">Entrées dans la surface (réussies)</option><option value="kp">Passes clés</option></select></div></div>
-        <div id="passMap" style="max-width:900px;margin:0 auto"></div>
-        <p class="note">Sens d'attaque de gauche à droite. Maximum 600 passes affichées.</p>
+    <!-- CPA -->
+    <div class="subpanel" data-sub="cpa">
+      <p class="note" id="cpaNote" hidden></p>
+      <div class="kpis" id="cpaKpis"></div>
+      <div class="grid" style="margin-top:14px">
+        <div class="card c7">
+          <div class="card-head"><div><h2>xG par type de CPA</h2><p class="sub" id="cpaTypeSub">Possessions démarrées sur coup de pied arrêté</p></div></div>
+          <div class="chart-box"><canvas id="chCpaType"></canvas></div>
+        </div>
+        <div class="card c5">
+          <div class="card-head"><div><h2>Tirs sur CPA</h2><p class="sub" id="shotCpaSub"></p></div></div>
+          <div id="shotMapCpa"></div>
+          <div class="legend"><span><i style="background:var(--s1)"></i>But</span><span><i style="border:2px solid var(--s1);background:transparent"></i>Tir (taille = xG)</span></div>
+        </div>
+        <div class="card c12">
+          <div class="card-head">
+            <div><h2>CPA par équipe</h2><p class="sub">Corners, coups francs, touches et penaltys</p></div>
+            <div class="ctrl"><select id="cpaTeamMode"><option value="pm">Moyenne par match</option><option value="tot">Total</option></select><button class="btn" data-csv="tblCpaTeams">CSV</button></div>
+          </div>
+          <div class="tbl-wrap" id="tblCpaTeams"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Classements -->
+    <div class="subpanel" data-sub="cls">
+      <div class="grid">
+        <div class="card c12">
+          <div class="card-head">
+            <div><h2>Classement joueurs</h2><p class="sub" id="tacRankSub"></p></div>
+            <div class="ctrl"><select id="tacMetric"></select></div>
+          </div>
+          <div class="chart-box tall"><canvas id="chTacRank"></canvas></div>
+        </div>
+        <div class="card c12">
+          <div class="card-head">
+            <div><h2>Statistiques par joueur</h2><p class="sub">Cliquez sur un joueur pour le sélectionner</p></div>
+            <div class="ctrl">
+              <select id="tacPlMode"><option value="tot">Total</option><option value="p90">Par 90 min</option></select>
+              <span>Min. joué ≥ <input type="number" id="tacMinMin" value="0" min="0" step="15" style="width:70px"> min</span>
+              <button class="btn" data-csv="tblTacPlayers">CSV</button>
+            </div>
+          </div>
+          <div class="tbl-wrap" id="tblTacPlayers"></div>
+        </div>
+        <div class="card c12">
+          <div class="card-head">
+            <div><h2>Statistiques par équipe</h2><p class="sub">Cliquez sur une équipe pour filtrer · cliquez un en-tête pour trier</p></div>
+            <div class="ctrl"><select id="tacTeamMode"><option value="pm">Moyenne par match</option><option value="tot">Total</option></select><button class="btn" data-csv="tblTacTeams">CSV</button></div>
+          </div>
+          <div class="tbl-wrap" id="tblTacTeams"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -364,58 +460,63 @@ input.j{width:64px}
 <section class="panel" id="panel-phy">
   <div id="phyEmpty" class="empty" hidden><b>Aucune donnée physique</b>Importez des fichiers <code>physical-*.jsonl</code> dans l'onglet Données.</div>
   <div id="phyBody">
+    <nav class="subtabs" data-for="phy"><button data-sub="res">Résumé</button><button data-sub="cls">Classements</button></nav>
     <p class="focus-line" id="phyFocus"></p>
-    <div class="kpis" id="phyKpis"></div>
-    <div class="grid" style="margin-top:14px">
-      <div class="card c7">
-        <div class="card-head">
-          <div><h2>Classement joueurs</h2><p class="sub" id="phyRankSub"></p></div>
-          <div class="ctrl"><select id="phyMetric"></select></div>
-        </div>
-        <div class="chart-box tall"><canvas id="chPhyRank"></canvas></div>
-      </div>
-      <div class="card c5">
-        <div class="card-head"><div><h2>Répartition par allure</h2><p class="sub" id="zoneSub"></p></div></div>
-        <div class="chart-box tall"><canvas id="chZones"></canvas></div>
-      </div>
 
-      <div class="card c12">
-        <div class="card-head">
-          <div><h2>Statistiques physiques par joueur</h2><p class="sub">Cliquez sur un joueur pour le sélectionner</p></div>
-          <div class="ctrl">
-            <select id="phyPlMode"><option value="tot">Total</option><option value="p90">Par 90 min</option></select>
-            <span>Min. joué ≥ <input type="number" id="phyMinMin" value="0" min="0" step="15" style="width:70px"> min</span>
-            <button class="btn" data-csv="tblPhyPlayers">CSV</button>
+    <div class="subpanel" data-sub="res">
+      <div class="kpis" id="phyKpis"></div>
+      <div class="grid" style="margin-top:14px">
+        <div class="card c8">
+          <div class="card-head"><div><h2>Évolution au fil du match</h2><p class="sub">Par tranche de 5 minutes, moyenne par joueur sur le terrain</p></div>
+          <div class="ctrl"><select id="phyEvoMetric"><option value="mpm">Distance (m/min)</option><option value="himpm">Haute intensité (m/min)</option><option value="sprmpm">Sprint (m/min)</option></select></div></div>
+          <div class="chart-box"><canvas id="chEvo"></canvas></div>
+        </div>
+        <div class="card c4">
+          <div class="card-head"><div><h2>Par quart d'heure</h2><p class="sub">Même indicateur, regroupé par 15 min</p></div></div>
+          <div class="chart-box"><canvas id="chPhyQ"></canvas></div>
+        </div>
+        <div class="card c6">
+          <div class="card-head"><div><h2>Volume vs intensité</h2><p class="sub">Joueurs de champ, par 90 min (≥ 45 min ou seuil choisi)</p></div></div>
+          <div class="chart-box"><canvas id="chPhyScatter"></canvas></div>
+        </div>
+        <div class="card c6">
+          <div class="card-head"><div><h2>Haute intensité avec / sans ballon</h2><p class="sub">Distance HSR + sprint par match, par équipe</p></div></div>
+          <div class="chart-box"><canvas id="chPoss"></canvas></div>
+        </div>
+        <div class="card c12">
+          <div class="card-head">
+            <div><h2>Statistiques physiques par équipe</h2><p class="sub">Cliquez sur une équipe pour filtrer</p></div>
+            <div class="ctrl"><select id="phyTeamMode"><option value="pm">Moyenne par match</option><option value="tot">Total</option></select><button class="btn" data-csv="tblPhyTeams">CSV</button></div>
           </div>
+          <div class="tbl-wrap" id="tblPhyTeams"></div>
         </div>
-        <div class="tbl-wrap" id="tblPhyPlayers"></div>
       </div>
+    </div>
 
-      <div class="card c8">
-        <div class="card-head"><div><h2>Évolution au fil du match</h2><p class="sub">Par tranche de 5 minutes, moyenne par joueur sur le terrain</p></div>
-        <div class="ctrl"><select id="phyEvoMetric"><option value="mpm">Distance (m/min)</option><option value="himpm">Haute intensité (m/min)</option><option value="sprmpm">Sprint (m/min)</option></select></div></div>
-        <div class="chart-box"><canvas id="chEvo"></canvas></div>
-      </div>
-      <div class="card c4">
-        <div class="card-head"><div><h2>Par quart d'heure</h2><p class="sub">Même indicateur, regroupé par 15 min</p></div></div>
-        <div class="chart-box"><canvas id="chPhyQ"></canvas></div>
-      </div>
-
-      <div class="card c6">
-        <div class="card-head"><div><h2>Volume vs intensité</h2><p class="sub">Joueurs de champ, par 90 min (≥ 45 min ou seuil choisi)</p></div></div>
-        <div class="chart-box"><canvas id="chPhyScatter"></canvas></div>
-      </div>
-      <div class="card c6">
-        <div class="card-head"><div><h2>Haute intensité avec / sans ballon</h2><p class="sub">Distance HSR + sprint par match, par équipe</p></div></div>
-        <div class="chart-box"><canvas id="chPoss"></canvas></div>
-      </div>
-
-      <div class="card c12">
-        <div class="card-head">
-          <div><h2>Statistiques physiques par équipe</h2><p class="sub">Cliquez sur une équipe pour filtrer</p></div>
-          <div class="ctrl"><select id="phyTeamMode"><option value="pm">Moyenne par match</option><option value="tot">Total</option></select><button class="btn" data-csv="tblPhyTeams">CSV</button></div>
+    <div class="subpanel" data-sub="cls">
+      <div class="grid">
+        <div class="card c7">
+          <div class="card-head">
+            <div><h2>Classement joueurs</h2><p class="sub" id="phyRankSub"></p></div>
+            <div class="ctrl"><select id="phyMetric"></select></div>
+          </div>
+          <div class="chart-box tall"><canvas id="chPhyRank"></canvas></div>
         </div>
-        <div class="tbl-wrap" id="tblPhyTeams"></div>
+        <div class="card c5">
+          <div class="card-head"><div><h2>Répartition par allure</h2><p class="sub" id="zoneSub"></p></div></div>
+          <div class="chart-box tall"><canvas id="chZones"></canvas></div>
+        </div>
+        <div class="card c12">
+          <div class="card-head">
+            <div><h2>Statistiques physiques par joueur</h2><p class="sub">Cliquez sur un joueur pour le sélectionner</p></div>
+            <div class="ctrl">
+              <select id="phyPlMode"><option value="tot">Total</option><option value="p90">Par 90 min</option></select>
+              <span>Min. joué ≥ <input type="number" id="phyMinMin" value="0" min="0" step="15" style="width:70px"> min</span>
+              <button class="btn" data-csv="tblPhyPlayers">CSV</button>
+            </div>
+          </div>
+          <div class="tbl-wrap" id="tblPhyPlayers"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -590,6 +691,7 @@ const S = {
   tab: 'data',
   f: {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0,1,2,3,4,5])},
   role: 'local',
+  sub: {tac: 'res', phy: 'res'},
   sort: {},               // tableId -> {k, asc}
   charts: {}
 };
@@ -777,7 +879,7 @@ function procInsight(m, rows) {
           ev.poss.push({tm: k.teamId, q, dur: Math.max(0, (k.endClock ?? 0) - (k.startClock ?? 0)), xg: k.teamXg || 0,
             st: k.startType || 'autre', vp: k.verticalPassing || 0, vc: k.verticalCarrying || 0, ct: k.isContested ? 1 : 0}); break;
         case 'corner':
-          ev.corners.push({tm: k.attTeamId, q, p: k.takerId}); break;
+          ev.corners.push({tm: k.attTeamId, q, p: k.takerId, att: (k.attInBox || []).length + (k.attInGkBox || []).length, def: (k.defInBox || []).length + (k.defInGkBox || []).length, sh: k.shortOption ? 1 : 0, sw: k.crossSwing === 'inswing' ? 'in' : k.crossSwing === 'outswing' ? 'out' : ''}); break;
         case 'shot':
           shotMkList.push({k, q});
           if (k.optaId) shotMk[k.optaId] = k; break;
@@ -811,15 +913,16 @@ function procInsight(m, rows) {
     if (o.typeId === 17 && (qv[32] !== undefined || qv[33] !== undefined)) subs.push({t: 18, p: pid, abs});
     if ([13, 14, 15, 16].includes(o.typeId)) {
       if (o.typeId === 16 && qv[28] !== undefined) { // contre son camp
-        ev.goals.push({tm: opp(tm), p: null, og: 1, q, min: o.timeMin, a: null}); continue;
+        ev.goals.push({tm: opp(tm), p: null, og: 1, q, min: o.timeMin, a: null, pat: 'jeu'}); continue;
       }
       const mk = shotMk[o.id];
       const x = mk ? nx(mk.shotLoc[0]) : r1(o.x * 1.05), y = mk ? ny(mk.shotLoc[1]) : r1((100 - o.y) * 0.68);
       const shot = {p: pid, tm, q, xg: mk ? (mk.xG || 0) : 0, x, y, g: o.typeId === 16 ? 1 : 0,
         ot: (o.typeId === 16 || (o.typeId === 15 && qv[82] === undefined)) ? 1 : 0, pen: qv[9] !== undefined ? 1 : 0,
-        min: o.timeMin, rel: (qv[55] !== undefined) ? +qv[55] : null, ast: qv[29] !== undefined};
+        min: o.timeMin, rel: (qv[55] !== undefined) ? +qv[55] : null, ast: qv[29] !== undefined,
+        pat: qv[9] !== undefined ? 'pen' : qv[25] !== undefined ? 'cor' : qv[26] !== undefined ? 'cfd' : qv[24] !== undefined ? 'cfi' : qv[160] !== undefined ? 'tou' : qv[23] !== undefined ? 'ctr' : 'jeu'};
       ev.shots.push(shot);
-      if (shot.g) ev.goals.push({tm, p: pid, og: 0, q, min: o.timeMin, a: null, _rel: shot.rel});
+      if (shot.g) ev.goals.push({tm, p: pid, og: 0, q, min: o.timeMin, a: null, _rel: shot.rel, pat: shot.pat});
       continue;
     }
     if (!OPTA_KEEP.has(o.typeId)) continue;
@@ -843,6 +946,7 @@ function procInsight(m, rows) {
   if (!optaRaw.length) {
     for (const {k, q} of shotMkList) ev.shots.push({p: k.shooterId, tm: k.attTeamId, q, xg: k.xG || 0, x: nx(k.shotLoc[0]), y: ny(k.shotLoc[1]), g: 0, ot: 0, pen: 0, min: null});
   }
+  ev.v = 2;
   m.ev = ev;
   // minutes de repli (si pas de physique)
   m.minsOpta = minutesFromOpta(m, setup, subs);
@@ -1003,8 +1107,9 @@ function refreshFilters() {
    ===================================================================== */
 const TAC_FIELDS = ['mp', 'secs', 'gf', 'ga', 'xg', 'xga', 'sh', 'sha', 'sot', 'pass', 'passOk', 'xpass', 'npr', 'lb', 'byp', 'prog', 'f3', 'box', 'kp', 'ast',
   'cross', 'crossOk', 'carry', 'carryD', 'carryProg', 'rec', 'intc', 'possN', 'possT', 'possTot', 'possXg', 'vp', 'vc', 'tk', 'tkW', 'int', 'recov', 'clr',
-  'aer', 'aerW', 'foul', 'fouled', 'drb', 'drbOk', 'lost', 'yc', 'rc', 'saves', 'blk', 'opp60', 'defAct', 'corners'];
-const newAgg = () => { const o = {starts: {}, byQ: [0, 1, 2, 3, 4, 5].map(() => ({xg: 0, xga: 0, gf: 0, ga: 0, sh: 0, lb: 0, pass: 0, possT: 0, possTot: 0}))}; TAC_FIELDS.forEach(k => o[k] = 0); return o; };
+  'aer', 'aerW', 'foul', 'fouled', 'drb', 'drbOk', 'lost', 'yc', 'rc', 'saves', 'blk', 'opp60', 'defAct', 'corners',
+  'recovH', 'shCtr', 'xgCtr', 'shCpa', 'xgCpa', 'gfCpa', 'gaCpa', 'shaCpa', 'xgaCpa', 'pen', 'penG', 'cpaPoss', 'cpaXgP', 'cpaXgaP', 'cornD', 'cornAtt', 'cornShort', 'cornIn', 'cornOut', 'mV2'];
+const newAgg = () => { const o = {starts: {}, cpaT: {}, cpaTa: {}, byQ: [0, 1, 2, 3, 4, 5].map(() => ({xg: 0, xga: 0, gf: 0, ga: 0, sh: 0, lb: 0, pass: 0, possT: 0, possTot: 0}))}; TAC_FIELDS.forEach(k => o[k] = 0); return o; };
 
 function aggTactical(ms, qsOverride) {
   const qs = qsOverride || S.f.qs;
@@ -1066,7 +1171,24 @@ function aggTactical(ms, qsOverride) {
       const o = t(e.tm); o.possN++; o.possXg += e.xg; o.vp += e.vp; o.vc += e.vc; o.starts[e.st] = (o.starts[e.st] || 0) + 1;
       if (!e.ct) { o.possT += e.dur; t(H).possTot += e.dur; t(A).possTot += e.dur; }
     }
-    for (const e of E.corners) { if (ok(e) && qs.has(e.q)) t(e.tm).corners++; }
+    for (const e of E.corners) { if (ok(e) && qs.has(e.q)) { const o = t(e.tm); o.corners++; if (e.att != null) { o.cornD++; o.cornAtt += e.att; o.cornShort += e.sh; if (e.sw === 'in') o.cornIn++; if (e.sw === 'out') o.cornOut++; } } }
+    // --- CPA & contre-attaques ---
+    const CPA_ST = {corner_kick: 'cor', free_kick: 'cf', throw_in: 'tou', penalty: 'pen'};
+    if (E.v >= 2) { t(H).mV2++; t(A).mV2++; }
+    for (const e of E.poss) {
+      if (!ok(e) || !qs.has(e.q)) continue; const ty = CPA_ST[e.st]; if (!ty) continue;
+      const o = t(e.tm), d = t(opp(e.tm));
+      o.cpaPoss++; o.cpaXgP += e.xg; d.cpaXgaP += e.xg;
+      (o.cpaT[ty] = o.cpaT[ty] || {xg: 0, n: 0}).xg += e.xg; o.cpaT[ty].n++;
+      (d.cpaTa[ty] = d.cpaTa[ty] || {xg: 0, n: 0}).xg += e.xg; d.cpaTa[ty].n++;
+    }
+    for (const s of E.shots) {
+      if (!ok(s) || !qs.has(s.q) || !s.pat) continue;
+      const tgt = [t(s.tm), s.p && p(s.p)], d = t(opp(s.tm));
+      if (s.pat === 'ctr') for (const o of tgt) if (o) { o.shCtr++; o.xgCtr += s.xg; }
+      if (['cor', 'cfd', 'cfi', 'tou', 'pen'].includes(s.pat)) { for (const o of tgt) if (o) { o.shCpa++; o.xgCpa += s.xg; if (s.g) o.gfCpa++; } d.shaCpa++; d.xgaCpa += s.xg; if (s.g) d.gaCpa++; }
+      if (s.pat === 'pen') for (const o of tgt) if (o) { o.pen++; if (s.g) o.penG++; }
+    }
     for (const e of E.opta) { if (!ok(e)) continue;
       if (!qs.has(e.q)) continue;
       const tgt = [t(e.tm), e.p && p(e.p)];
@@ -1077,7 +1199,7 @@ function aggTactical(ms, qsOverride) {
         case 8: for (const o of tgt) if (o) o.int++; if (defZone) t(e.tm).defAct++; break;
         case 4: for (const o of tgt) if (o) { if (e.o) o.fouled++; else o.foul++; } if (!e.o && defZone) t(e.tm).defAct++; break;
         case 45: if (defZone) t(e.tm).defAct++; break;
-        case 49: for (const o of tgt) if (o) o.recov++; break;
+        case 49: for (const o of tgt) if (o) { o.recov++; if (e.x >= 50) o.recovH++; } break;
         case 12: for (const o of tgt) if (o) o.clr++; break;
         case 44: for (const o of tgt) if (o) { o.aer++; if (e.o) o.aerW++; } break;
         case 3: for (const o of tgt) if (o) { o.drb++; if (e.o) o.drbOk++; } break;
@@ -1154,6 +1276,21 @@ const TAC = {
   lost: {l: 'Ballons perdus', t: 'add'}, foul: {l: 'Fautes', t: 'add'}, fouled: {l: 'Fautes subies', t: 'add'},
   yc: {l: 'Jaunes', t: 'add'}, rc: {l: 'Rouges', t: 'add'}, saves: {l: 'Arrêts', t: 'add'}, corners: {l: 'Corners', t: 'add'},
   ppda: {l: 'PPDA', t: 'ratio', d: 1, f: o => o.defAct ? o.opp60 / o.defAct : null, h: 'Passes adverses autorisées par action défensive (60 % adverses du terrain). Plus c’est bas, plus le pressing est intense.'},
+  recovH: {l: 'Récup. camp adverse', t: 'add', h: 'Récupérations dans la moitié de terrain adverse'},
+  tkPct: {l: '% tacles gagnés', t: 'ratio', d: 1, f: o => o.tk ? o.tkW / o.tk * 100 : null},
+  shCtr: {l: 'Tirs en contre', t: 'add', h: 'Tirs issus d’une contre-attaque (Opta)'}, xgCtr: {l: 'xG en contre', t: 'add', d: 2},
+  sotPct: {l: '% tirs cadrés', t: 'ratio', d: 1, f: o => o.sh ? o.sot / o.sh * 100 : null},
+  cpaPoss: {l: 'Possessions CPA', t: 'add', h: 'Possessions démarrées sur corner, coup franc, touche ou penalty'},
+  cpaXgP: {l: 'xG sur CPA', t: 'add', d: 2, h: 'xG des possessions démarrées sur un coup de pied arrêté'},
+  cpaXgaP: {l: 'xG CPA concédés', t: 'add', d: 2},
+  cpaShare: {l: 'Part xG CPA %', t: 'ratio', d: 1, f: o => o.possXg ? o.cpaXgP / o.possXg * 100 : null, h: 'Part des xG de l’équipe créés sur coups de pied arrêtés'},
+  cpaXgPoss: {l: 'xG / poss. CPA', t: 'ratio', d: 3, f: o => o.cpaPoss ? o.cpaXgP / o.cpaPoss : null},
+  shCpa: {l: 'Tirs sur CPA', t: 'add'}, gfCpa: {l: 'Buts sur CPA', t: 'add'}, gaCpa: {l: 'Buts CPA encaissés', t: 'add'},
+  shaCpa: {l: 'Tirs CPA concédés', t: 'add'},
+  pen: {l: 'Penaltys tirés', t: 'add'}, penG: {l: 'Penaltys marqués', t: 'add'},
+  cornAttAvg: {l: 'Joueurs dans la surface / corner', t: 'ratio', d: 1, f: o => o.cornD ? o.cornAtt / o.cornD : null},
+  cornShortPct: {l: '% corners joués courts', t: 'ratio', d: 1, f: o => o.cornD ? o.cornShort / o.cornD * 100 : null},
+  cornInPct: {l: '% corners rentrants', t: 'ratio', d: 1, f: o => (o.cornIn + o.cornOut) ? o.cornIn / (o.cornIn + o.cornOut) * 100 : null},
   vert: {l: 'Verticalité', t: 'ratio', d: 1, f: o => o.possN ? (o.vp + o.vc) / o.possN : null, h: 'Progression verticale moyenne par possession (passes + conduites)'}
 };
 const PHY = {
@@ -1223,6 +1360,7 @@ function exportCSV(id) {
    ===================================================================== */
 function chart(id, cfg) {
   let el = document.getElementById(id); if (!el) return;
+  if (!el.offsetParent) { if (S.charts[id]) { S.charts[id].destroy(); delete S.charts[id]; } return; }
   if (S.charts[id]) {
     S.charts[id].destroy(); delete S.charts[id];
     // Safari limite la mémoire des <canvas> : on libère l'ancien et on repart d'un canvas neuf
@@ -1415,6 +1553,23 @@ function focusText(ms, TN, PI) {
 function kpiHTML(list) { return list.map(k => `<div class="kpi"><div class="l">${esc(k.l)}</div><div class="v">${k.v}</div><div class="s">${k.s || '&nbsp;'}</div></div>`).join(''); }
 function sumAgg(objs) { const o = newAgg(); for (const x of objs) TAC_FIELDS.forEach(k => o[k] += x[k] || 0); return o; }
 
+function eventMapSVG(evs, PI, TN) {
+  const C = {49: 'var(--s1)', 8: 'var(--s2)', 7: 'var(--s3)'}, L = {49: 'Récupération', 8: 'Interception', 7: 'Tacle gagné'};
+  const dots = evs.slice(0, 1500).map(e => `<circle cx="${r1(e.x * 1.05)}" cy="${r1((100 - e.y) * .68)}" r=".9" fill="${C[e.t]}" fill-opacity=".8" stroke="var(--surface)" stroke-width=".2" data-tip="${esc(L[e.t] + ' · ' + (PI[e.p] ? PI[e.p].name : '') + ' (' + (TN[e.tm] || '') + ')')}"/>`).join('');
+  return `<svg class="pitch" viewBox="-2 -2 109 72">${pitchLines(true)}<line x1="52.5" y1="0" x2="52.5" y2="68" stroke="var(--text-3)" stroke-width=".3"/>${dots}</svg>`;
+}
+function shotMapColored(shots, PI, TN, color) { return shotMapSVG(shots, PI, TN).replace(/var\(--s1\)/g, color); }
+function rankPlayers(chartId, subId, mk, reg, plRows, pm, minMin, hl) {
+  const top = plRows.map(r => ({id: r.id, tid: r.tid, name: r.name, sub: r.team, v: val(reg, mk, r.o, pm)})).filter(x => x.v != null && x.v !== 0).sort((a, b) => b.v - a.v).slice(0, 15);
+  if (hl && !top.some(x => x.id === hl)) { const r = plRows.find(x => x.id === hl); if (r) top.push({id: r.id, tid: r.tid, name: r.name, sub: r.team, v: val(reg, mk, r.o, pm)}); }
+  $(subId).textContent = `Top 15 · ${reg[mk].l}${pm === 'p90' && reg[mk].t === 'add' ? ' par 90 min' : ''}${minMin ? ` · ≥ ${minMin} min` : ''}`;
+  rankChart(chartId, top, reg[mk].l, dec(reg, mk, pm), hl);
+}
+function teamTable(id, cols, teamRows, mode, defSort, f) {
+  renderTable(id, [{k: 'name', l: 'Équipe', txt: 1, v: r => r.name, html: r => logoHTML(r.id) + esc(r.name)}, ...cols.map(k => ({k, l: TAC[k].l, h: TAC[k].h, d: dec(TAC, k, mode), v: r => val(TAC, k, r.o, mode)}))],
+    teamRows, {defaultSort: defSort, hl: r => r.id === f.team, onRow: id => setFilter('team', id)});
+}
+
 function renderTactical() {
   const TN = teamNames(), PI = playerInfo();
   const ms = filteredMatches();
@@ -1422,156 +1577,223 @@ function renderTactical() {
   $('#tacEmpty').hidden = has; $('#tacBody').hidden = !has;
   if (!has) return;
   const {T, P} = aggTactical(ms);
-  const f = S.f;
+  const f = S.f, sub = S.sub.tac;
   $('#tacFocus').innerHTML = focusText(ms, TN, PI);
-
-  // KPI
   const F = f.player ? P[f.player] : f.team ? T[f.team] : sumAgg(Object.values(T));
   const isTeam = !f.player && f.team, isPl = !!f.player;
-  const mp = F ? F.mp : 0;
-  const per = o => isPl ? (o.secs >= 60 ? 5400 / o.secs : null) : (o.mp ? 1 / (isTeam ? o.mp : o.mp) : null);
+  const per = o => isPl ? (o.secs >= 60 ? 5400 / o.secs : null) : (o.mp ? 1 / o.mp : null);
   const perLbl = isPl ? '/90' : '/match';
-  const K = F ? [
-    {l: 'Buts', v: fmt(F.gf), s: isTeam ? `${fmt(F.ga)} encaissé(s)` : isPl ? `${fmt(F.ast)} passe(s) déc.` : ''},
-    {l: 'xG', v: fmt(F.xg, 2), s: isTeam ? `xG contre ${fmt(F.xga, 2)}` : `${fmt(F.xg * (per(F) || 0), 2)} ${perLbl}`},
-    {l: 'Tirs', v: fmt(F.sh), s: `${fmt(F.sot)} cadrés · ${fmt(F.sh ? F.xg / F.sh : null, 2)} xG/tir`},
-    {l: 'Passes', v: fmt(F.pass), s: `${fmt(F.pass ? F.passOk / F.pass * 100 : null, 1)} % réussies · ${F.npr ? (F.passOk - F.xpass >= 0 ? '+' : '') + fmt(F.passOk - F.xpass, 1) : '—'} vs attendu`},
-    {l: 'Cassent la ligne', v: fmt(F.lb), s: `${fmt(F.lb * (per(F) || 0), 1)} ${perLbl}`},
-    isTeam ? {l: 'Possession', v: fmt(TAC.possPct.f(F), 1) + ' %', s: `${fmt(F.possN)} possessions`} : {l: 'Passes clés', v: fmt(F.kp), s: `${fmt(F.prog)} passes progressives`},
-    isTeam ? {l: 'PPDA', v: fmt(TAC.ppda.f(F), 1), s: 'pressing (bas = intense)'} : {l: 'Récupérations', v: fmt(F.recov), s: `${fmt(F.int)} interceptions · ${fmt(F.tkW)} tacles gagnés`},
-    isPl ? {l: 'Minutes', v: fmt(F.secs / 60), s: `${fmt(F.mp)} match(s)`} : null
-  ].filter(Boolean) : [];
-  $('#tacKpis').innerHTML = kpiHTML(K);
-
-  // Classement (points sur buts des quarts sélectionnés)
-  const allQ = f.qs.size === 6;
-  const stand = {};
-  const stdMs = matchesByBaseFilters(true).filter(m => !f.match || m.id === f.match);
-  for (const m of stdMs) {
-    let gh, ga;
-    if (allQ) [gh, ga] = m.score;
-    else if (m.ev) { gh = 0; ga = 0; for (const g of m.ev.goals) if (f.qs.has(g.q)) { if (g.tm === m.home.id) gh++; else ga++; } }
-    else continue;
-    for (const [id, gf, gc] of [[m.home.id, gh, ga], [m.away.id, ga, gh]]) {
-      const s = stand[id] || (stand[id] = {id, name: TN[id], mj: 0, v: 0, n: 0, d: 0, bp: 0, bc: 0});
-      s.mj++; s.bp += gf; s.bc += gc; if (gf > gc) s.v++; else if (gf === gc) s.n++; else s.d++;
-    }
-  }
-  const standRows = Object.values(stand).map(s => ({...s, pts: s.v * 3 + s.n, diff: s.bp - s.bc}));
-  standRows.forEach(s => s._sortKey = s.pts * 1e6 + (s.diff + 500) * 1e3 + s.bp);
-  $('#stdSub').textContent = allQ ? 'Sur les scores finaux des matchs chargés (filtres équipe/journée/match)' : 'Points recalculés uniquement sur les buts des quarts d’heure sélectionnés';
-  if (!S.sort.tblStand) S.sort.tblStand = {k: '_s', asc: false};
-  renderTable('tblStand', [
-    {k: 'name', l: 'Équipe', txt: 1, v: r => r.name, html: r => logoHTML(r.id) + esc(r.name)}, {k: '_s', l: 'Pts', v: r => r._sortKey, disp: r => r.pts},
-    {k: 'mj', l: 'MJ', v: r => r.mj}, {k: 'v', l: 'V', v: r => r.v}, {k: 'n', l: 'N', v: r => r.n}, {k: 'd', l: 'D', v: r => r.d},
-    {k: 'bp', l: 'BP', v: r => r.bp}, {k: 'bc', l: 'BC', v: r => r.bc}, {k: 'diff', l: 'Diff', v: r => r.diff}
-  ], standRows, {hl: r => r.id === f.team, onRow: id => setFilter('team', id)});
-
-  // Tableau équipes
-  const tm = $('#tacTeamMode').value;
-  const teamCols = ['mp', 'gf', 'ga', 'xg', 'xga', 'xgd', 'sh', 'sot', 'sha', 'possPct', 'pass', 'passPct', 'xpd', 'lb', 'prog', 'f3', 'box', 'kp', 'carryProg', 'ppda', 'recov', 'int', 'tkW', 'aerPct', 'foul', 'yc', 'rc', 'corners', 'vert', 'xgPoss'];
   const teamRows = Object.entries(T).map(([id, o]) => ({id, name: TN[id], o}));
-  renderTable('tblTacTeams', [{k: 'name', l: 'Équipe', txt: 1, v: r => r.name, html: r => logoHTML(r.id) + esc(r.name)}, ...teamCols.map(k => ({k, l: TAC[k].l, h: TAC[k].h, d: dec(TAC, k, tm), v: r => val(TAC, k, r.o, tm)}))],
-    teamRows, {defaultSort: 'xgd', hl: r => r.id === f.team, onRow: id => setFilter('team', id)});
-
-  // Joueurs
-  const pm = $('#tacPlMode').value, minMin = +$('#tacMinMin').value || 0;
+  const s1 = css('--s1'), s2 = css('--s2'), s3 = css('--s3');
+  const pmP = $('#tacPlMode').value, minMin = +$('#tacMinMin').value || 0;
   const plRows = Object.entries(P).filter(([id, o]) => PI[id] && (!f.team || PI[id].team === f.team) && o.secs / 60 >= minMin && (o.secs > 0 || o.pass || o.sh))
     .map(([id, o]) => ({id, tid: PI[id].team, name: PI[id].name, team: TN[PI[id].team] || '', pos: PI[id].pos === 'SUB' ? '' : PI[id].pos, o}));
-  const plCols = ['mp', 'min', 'gf', 'ast', 'xg', 'gmx', 'sh', 'sot', 'pass', 'passPct', 'xpd', 'lb', 'byp', 'prog', 'kp', 'f3', 'box', 'cross', 'carryProg', 'drbOk', 'recov', 'int', 'tkW', 'aerW', 'aerPct', 'lost', 'foul', 'fouled', 'yc', 'saves'];
-  renderTable('tblTacPlayers', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'team', l: 'Équipe', txt: 1, v: r => r.team, html: r => logoHTML(r.tid) + esc(r.team)}, {k: 'pos', l: 'Poste', txt: 1, v: r => r.pos},
-    ...plCols.map(k => ({k, l: TAC[k].l, h: TAC[k].h, d: dec(TAC, k, pm), v: r => val(TAC, k, r.o, pm)}))],
-    plRows, {defaultSort: 'xg', hl: r => r.id === f.player, onRow: id => setFilter('player', id)});
+  const focusShot = s => f.player ? s.p === f.player : f.team ? s.tm === f.team : true;
 
-  // Classement joueurs (graphique)
-  const mk = $('#tacMetric').value;
-  const top = plRows.map(r => ({id: r.id, tid: r.tid, name: r.name, sub: r.team, v: val(TAC, mk, r.o, pm)})).filter(x => x.v != null && x.v !== 0).sort((a, b) => b.v - a.v).slice(0, 15);
-  if (f.player && !top.some(x => x.id === f.player)) { const r = plRows.find(x => x.id === f.player); if (r) top.push({id: r.id, tid: r.tid, name: r.name, sub: r.team, v: val(TAC, mk, r.o, pm)}); }
-  $('#tacRankSub').textContent = `Top 15 · ${TAC[mk].l}${pm === 'p90' && TAC[mk].t === 'add' ? ' par 90 min' : ''}${minMin ? ` · ≥ ${minMin} min` : ''}`;
-  rankChart('chTacRank', top, TAC[mk].l, dec(TAC, mk, pm), f.player);
+  if (sub === 'res') {
+    const K = F ? [
+      {l: 'Buts', v: fmt(F.gf), s: isTeam ? `${fmt(F.ga)} encaissé(s)` : isPl ? `${fmt(F.ast)} passe(s) déc.` : ''},
+      {l: 'xG', v: fmt(F.xg, 2), s: isTeam ? `xG contre ${fmt(F.xga, 2)}` : `${fmt(F.xg * (per(F) || 0), 2)} ${perLbl}`},
+      {l: 'Tirs', v: fmt(F.sh), s: `${fmt(F.sot)} cadrés · ${fmt(F.sh ? F.xg / F.sh : null, 2)} xG/tir`},
+      {l: 'Passes', v: fmt(F.pass), s: `${fmt(F.pass ? F.passOk / F.pass * 100 : null, 1)} % réussies · ${F.npr ? (F.passOk - F.xpass >= 0 ? '+' : '') + fmt(F.passOk - F.xpass, 1) : '—'} vs attendu`},
+      {l: 'Cassent la ligne', v: fmt(F.lb), s: `${fmt(F.lb * (per(F) || 0), 1)} ${perLbl}`},
+      isTeam ? {l: 'Possession', v: fmt(TAC.possPct.f(F), 1) + ' %', s: `${fmt(F.possN)} possessions`} : {l: 'Passes clés', v: fmt(F.kp), s: `${fmt(F.prog)} passes progressives`},
+      isTeam ? {l: 'PPDA', v: fmt(TAC.ppda.f(F), 1), s: 'pressing (bas = intense)'} : {l: 'Récupérations', v: fmt(F.recov), s: `${fmt(F.int)} interceptions · ${fmt(F.tkW)} tacles gagnés`},
+      isPl ? {l: 'Minutes', v: fmt(F.secs / 60), s: `${fmt(F.mp)} match(s)`} : null
+    ].filter(Boolean) : [];
+    $('#tacKpis').innerHTML = kpiHTML(K);
 
-  // Carte des tirs
-  const shots = [];
-  for (const m of ms) if (m.ev) for (const s of m.ev.shots) if (f.qs.has(s.q) && (f.player ? s.p === f.player : f.team ? s.tm === f.team : true)) shots.push(s);
-  const sx = shots.reduce((a, s) => a + s.xg, 0), sg = shots.filter(s => s.g).length;
-  $('#shotSub').textContent = `${shots.length} tirs · ${sg} buts · ${fmt(sx, 2)} xG`;
-  $('#shotMap').innerHTML = shotMapSVG(shots, PI, TN);
-
-  // xG scatter
-  const s1 = css('--s1'), s2 = css('--s2'), s3 = css('--text-3');
-  const pts = teamRows.filter(r => r.o.mp).map(r => ({x: r.o.xg / r.o.mp, y: r.o.xga / r.o.mp, lab: r.name, id: r.id}));
-  pts.forEach(p => { p.img = logoImg(p.id, p.id === f.team ? 34 : 26); if (p.img) p.off = p.id === f.team ? 20 : 16; });
-  chart('chXgScatter', {type: 'scatter', data: {datasets: [{label: 'Équipes', data: pts, pointStyle: pts.map(p => p.img || 'circle'), pointRadius: pts.map(p => p.img ? 13 : (p.id === f.team ? 7 : 5)),
-      backgroundColor: pts.map(p => p.id === f.team ? s2 : s1), borderColor: css('--surface'), borderWidth: 2, pointHoverRadius: 8}]},
-    options: {layout: {padding: {right: 90}}, plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${c.raw.lab} : xG ${fmt(c.raw.x, 2)} / xG contre ${fmt(c.raw.y, 2)}`}}},
-      scales: {x: {grace: '15%', title: {display: true, text: 'xG produits / match'}, grid: {color: css('--grid')}}, y: {grace: '15%', reverse: true, title: {display: true, text: 'xG concédés / match (inversé)'}, grid: {color: css('--grid')}}}},
-    plugins: [pointLabels, avgLines(mean(pts.map(p => p.x)), mean(pts.map(p => p.y)),
-      {tl: 'Solide, peu offensif', tr: 'Domine les occasions', bl: 'Subit', br: 'Offensif mais fragile'}, v => fmt(v, 2), v => fmt(v, 2))]});
-
-  // Par quart d'heure
-  const qm = $('#tacQMetric').value;
-  const qData = (agg, k) => agg ? agg.byQ.map(b => k === 'possPct' ? (b.possTot ? b.possT / b.possTot * 100 : null) : b[k]) : [];
-  let qSets = [], qSub = '';
-  if (f.player) {
-    const per = [0, 1, 2, 3, 4, 5].map(q => { const {P: PP} = aggTactical(ms, new Set([q])); const o = PP[f.player]; return o ? (qm === 'possPct' ? null : o[qm === 'xg' ? 'xg' : qm]) : 0; });
-    qSets = [{label: PI[f.player].name, data: per, color: s1}]; qSub = 'Joueur sélectionné';
-  } else if (f.team) {
-    const o = T[f.team]; const oppK = {xg: 'xga', gf: 'ga'}[qm];
-    qSets = [{label: TN[f.team], data: qData(o, qm), color: s1}];
-    if (oppK) qSets.push({label: 'Adversaires', data: qData(o, oppK), color: s2});
-    else if (qm !== 'possPct') { // adversaires : somme des autres équipes sur les mêmes matchs
-      const oppData = [0, 0, 0, 0, 0, 0];
-      for (const m of ms) { if (!m.ev) continue; const oid = m.home.id === f.team ? m.away.id : m.home.id; const {T: TT} = aggTactical([m], new Set([0, 1, 2, 3, 4, 5])); TT[oid].byQ.forEach((b, i) => oppData[i] += b[qm]); }
-      qSets.push({label: 'Adversaires', data: oppData, color: s2});
+    const allQ = f.qs.size === 6, stand = {};
+    const stdMs = matchesByBaseFilters(true).filter(m => !f.match || m.id === f.match);
+    for (const m of stdMs) {
+      let gh, ga;
+      if (allQ) [gh, ga] = m.score;
+      else if (m.ev) { gh = 0; ga = 0; for (const g of m.ev.goals) if (f.qs.has(g.q)) { if (g.tm === m.home.id) gh++; else ga++; } }
+      else continue;
+      for (const [id, gf, gc] of [[m.home.id, gh, ga], [m.away.id, ga, gh]]) {
+        const st = stand[id] || (stand[id] = {id, name: TN[id], mj: 0, v: 0, n: 0, d: 0, bp: 0, bc: 0});
+        st.mj++; st.bp += gf; st.bc += gc; if (gf > gc) st.v++; else if (gf === gc) st.n++; else st.d++;
+      }
     }
-    qSub = 'Équipe sélectionnée vs adversaires';
-  } else {
-    const tot = [0, 0, 0, 0, 0, 0];
-    Object.values(T).forEach(o => o.byQ.forEach((b, i) => tot[i] += qm === 'possPct' ? 0 : b[qm]));
-    qSets = qm === 'possPct' ? [] : [{label: 'Toutes équipes', data: tot, color: s1}]; qSub = 'Toutes les équipes (sélectionnez une équipe pour comparer)';
+    const standRows = Object.values(stand).map(x => ({...x, pts: x.v * 3 + x.n, diff: x.bp - x.bc}));
+    standRows.forEach(x => x._sortKey = x.pts * 1e6 + (x.diff + 500) * 1e3 + x.bp);
+    $('#stdSub').textContent = allQ ? 'Sur les scores finaux des matchs chargés (filtres équipe/journée/match)' : 'Points recalculés uniquement sur les buts des quarts d’heure sélectionnés';
+    if (!S.sort.tblStand) S.sort.tblStand = {k: '_s', asc: false};
+    renderTable('tblStand', [
+      {k: 'name', l: 'Équipe', txt: 1, v: r => r.name, html: r => logoHTML(r.id) + esc(r.name)}, {k: '_s', l: 'Pts', v: r => r._sortKey, disp: r => r.pts},
+      {k: 'mj', l: 'MJ', v: r => r.mj}, {k: 'v', l: 'V', v: r => r.v}, {k: 'n', l: 'N', v: r => r.n}, {k: 'd', l: 'D', v: r => r.d},
+      {k: 'bp', l: 'BP', v: r => r.bp}, {k: 'bc', l: 'BC', v: r => r.bc}, {k: 'diff', l: 'Diff', v: r => r.diff}
+    ], standRows, {hl: r => r.id === f.team, onRow: id => setFilter('team', id)});
+
+    const pts = teamRows.filter(r => r.o.mp).map(r => ({x: r.o.xg / r.o.mp, y: r.o.xga / r.o.mp, lab: r.name, id: r.id}));
+    pts.forEach(p => { p.img = logoImg(p.id, p.id === f.team ? 34 : 26); if (p.img) p.off = p.id === f.team ? 20 : 16; });
+    chart('chXgScatter', {type: 'scatter', data: {datasets: [{label: 'Équipes', data: pts, pointStyle: pts.map(p => p.img || 'circle'), pointRadius: pts.map(p => p.img ? 13 : (p.id === f.team ? 7 : 5)),
+        backgroundColor: pts.map(p => p.id === f.team ? s2 : s1), borderColor: css('--surface'), borderWidth: 2, pointHoverRadius: 8}]},
+      options: {layout: {padding: {right: 90}}, plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${c.raw.lab} : xG ${fmt(c.raw.x, 2)} / xG contre ${fmt(c.raw.y, 2)}`}}},
+        scales: {x: {grace: '15%', title: {display: true, text: 'xG produits / match'}, grid: {color: css('--grid')}}, y: {grace: '15%', reverse: true, title: {display: true, text: 'xG concédés / match (inversé)'}, grid: {color: css('--grid')}}}},
+      plugins: [pointLabels, avgLines(mean(pts.map(p => p.x)), mean(pts.map(p => p.y)),
+        {tl: 'Solide, peu offensif', tr: 'Domine les occasions', bl: 'Subit', br: 'Offensif mais fragile'}, v => fmt(v, 2), v => fmt(v, 2))]});
+
+    const qm = $('#tacQMetric').value;
+    const qData = (agg, k) => agg ? agg.byQ.map(b => k === 'possPct' ? (b.possTot ? b.possT / b.possTot * 100 : null) : b[k]) : [];
+    let qSets = [], qSub = '';
+    if (f.player) {
+      const pq = [0, 1, 2, 3, 4, 5].map(q => { const {P: PP} = aggTactical(ms, new Set([q])); const o = PP[f.player]; return o ? (qm === 'possPct' ? null : o[qm]) : 0; });
+      qSets = [{label: PI[f.player].name, data: pq, color: s1}]; qSub = 'Joueur sélectionné';
+    } else if (f.team) {
+      const o = T[f.team]; const oppK = {xg: 'xga', gf: 'ga'}[qm];
+      qSets = [{label: TN[f.team], data: qData(o, qm), color: s1}];
+      if (oppK) qSets.push({label: 'Adversaires', data: qData(o, oppK), color: s2});
+      else if (qm !== 'possPct') {
+        const oppData = [0, 0, 0, 0, 0, 0];
+        for (const m of ms) { if (!m.ev) continue; const oid = m.home.id === f.team ? m.away.id : m.home.id; const {T: TT} = aggTactical([m], new Set([0, 1, 2, 3, 4, 5])); TT[oid].byQ.forEach((b, i) => oppData[i] += b[qm]); }
+        qSets.push({label: 'Adversaires', data: oppData, color: s2});
+      }
+      qSub = 'Équipe sélectionnée vs adversaires';
+    } else {
+      const tot = [0, 0, 0, 0, 0, 0];
+      Object.values(T).forEach(o => o.byQ.forEach((b, i) => tot[i] += qm === 'possPct' ? 0 : b[qm]));
+      qSets = qm === 'possPct' ? [] : [{label: 'Toutes équipes', data: tot, color: s1}]; qSub = 'Toutes les équipes (sélectionnez une équipe pour comparer)';
+    }
+    $('#tacQSub').textContent = qSub;
+    const n = Math.max(1, ms.filter(m => m.ev).length);
+    chart('chTacQ', {type: 'bar', data: {labels: Q_LABELS, datasets: qSets.map(d => ({label: d.label, data: d.data.map(v => v == null ? null : qm !== 'possPct' && !f.player ? v / n : v),
+        backgroundColor: Q_LABELS.map((_, i) => f.qs.has(i) ? d.color : d.color + '55'), borderRadius: 4, borderSkipped: 'start'}))},
+      options: {plugins: {legend: {display: qSets.length > 1}, tooltip: {callbacks: {label: c => `${c.dataset.label} : ${fmt(c.raw, qm === 'xg' ? 2 : 1)}`}}},
+        scales: {y: {beginAtZero: true, title: {display: true, text: qm === 'possPct' ? '%' : (f.player ? 'total' : 'moyenne par match')}, grid: {color: css('--grid')}}, x: {grid: {display: false}}}}});
   }
-  $('#tacQSub').textContent = qSub;
-  const n = Math.max(1, ms.filter(m => m.ev).length);
-  const perMatch = qm !== 'possPct';
-  chart('chTacQ', {type: 'bar', data: {labels: Q_LABELS, datasets: qSets.map(d => ({label: d.label, data: d.data.map(v => v == null ? null : perMatch && !f.player ? v / n : v),
-      backgroundColor: Q_LABELS.map((_, i) => f.qs.has(i) ? d.color : d.color + '55'), borderRadius: 4, borderSkipped: 'start'}))},
-    options: {plugins: {legend: {display: qSets.length > 1}, tooltip: {callbacks: {label: c => `${c.dataset.label} : ${fmt(c.raw, qm === 'xg' ? 2 : 1)}`}}},
-      scales: {y: {beginAtZero: true, title: {display: true, text: qm === 'possPct' ? '%' : (f.player ? 'total' : 'moyenne par match')}, grid: {color: css('--grid')}}, x: {grid: {display: false}}}}});
 
-  // Débuts de possession
-  const STL = {interception: 'Interception', throw_in: 'Touche', tackle: 'Tacle', free_kick: 'Coup franc', goal_kick: 'Six mètres', corner_kick: 'Corner', shot_recovered: 'Tir récupéré (gardien/rebond)', kick_off: "Coup d'envoi", recovery: 'Récupération', penalty: 'Penalty', drop_ball: 'Balle à terre'};
-  const st = {};
-  const srcT = f.team ? [T[f.team]] : Object.values(T);
-  srcT.forEach(o => o && Object.entries(o.starts).forEach(([k, v]) => st[k] = (st[k] || 0) + v));
-  const stE = Object.entries(st).sort((a, b) => b[1] - a[1]);
-  const stTot = stE.reduce((a, x) => a + x[1], 0) || 1;
-  chart('chPossStart', {type: 'bar', data: {labels: stE.map(x => STL[x[0]] || x[0]), datasets: [{label: 'Possessions', data: stE.map(x => x[1]), backgroundColor: s1, borderRadius: 4, borderSkipped: 'start'}]},
-    options: {indexAxis: 'y', plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${fmt(c.raw)} possessions (${fmt(c.raw / stTot * 100, 1)} %)`}}}, scales: {x: {grid: {color: css('--grid')}}, y: {grid: {display: false}}}}});
-
-  // Carte des passes
-  const pt = $('#passMapType').value;
-  const inBox = (x, y) => x >= 88.5 && Math.abs(y - 34) <= 20.16;
-  let pl = [];
-  if (!f.team && !f.player && ms.length > 1) {
-    $('#passMap').innerHTML = '<div class="empty">Sélectionnez une équipe, un joueur ou un match pour afficher la carte des passes.</div>';
-    $('#lbSub').textContent = '';
-  } else {
-    const kpSet = new Set();
-    for (const m of ms) if (m.ev) {
-      for (const e of m.ev.passes) {
-        if (!f.qs.has(e.q)) continue;
-        if (f.player ? e.p !== f.player : f.team ? e.tm !== f.team : false) continue;
-        const ok = pt === 'lb' ? (e.c && e.br) : pt === 'prog' ? (e.c && e.x1 - e.x0 >= 10 && e.x1 >= 35) : pt === 'box' ? (e.c && inBox(e.x1, e.y1) && !inBox(e.x0, e.y0)) : false;
-        if (ok) pl.push(e);
+  if (sub === 'off') {
+    $('#offKpis').innerHTML = kpiHTML(F ? [
+      {l: 'Buts', v: fmt(F.gf), s: `${fmt(F.gf * (per(F) || 0), 2)} ${perLbl}`},
+      {l: 'xG', v: fmt(F.xg, 2), s: `Buts − xG : ${(F.gf - F.xg >= 0 ? '+' : '') + fmt(F.gf - F.xg, 2)}`},
+      {l: 'Tirs', v: fmt(F.sh), s: `${fmt(TAC.sotPct.f(F), 1)} % cadrés · ${fmt(TAC.xgsh.f(F), 2)} xG/tir`},
+      {l: 'Passes clés', v: fmt(F.kp), s: `${fmt(F.ast)} passe(s) décisive(s)`},
+      {l: 'Entrées surface', v: fmt(F.box), s: `${fmt(F.f3)} entrées dernier tiers`},
+      {l: 'Cassent la ligne', v: fmt(F.lb), s: `${fmt(F.byp)} défenseurs éliminés`},
+      {l: 'Contre-attaques', v: fmt(F.shCtr), s: `tirs · ${fmt(F.xgCtr, 2)} xG`},
+      isTeam ? {l: 'Possession', v: fmt(TAC.possPct.f(F), 1) + ' %', s: `${fmt(TAC.xgPoss.f(F), 3)} xG / possession`} : {l: 'Dribbles réussis', v: fmt(F.drbOk), s: `${fmt(TAC.drbPct.f(F), 1)} % de réussite`}
+    ] : []);
+    const st = $('#shotType').value, CPA = ['cor', 'cfd', 'cfi', 'tou', 'pen'];
+    const shots = [];
+    for (const m of ms) if (m.ev) for (const x of m.ev.shots) if (f.qs.has(x.q) && focusShot(x) && (st === 'all' || (st === 'cpa' ? CPA.includes(x.pat) : st === 'jeu' ? (!x.pat || x.pat === 'jeu') : x.pat === st))) shots.push(x);
+    $('#shotSub').textContent = `${shots.length} tirs · ${shots.filter(x => x.g).length} buts · ${fmt(shots.reduce((a, x) => a + x.xg, 0), 2)} xG`;
+    $('#shotMap').innerHTML = shotMapSVG(shots, PI, TN);
+    rankPlayers('chOffRank', '#offRankSub', $('#offMetric').value, TAC, plRows, pmP, minMin, f.player);
+    teamTable('tblOffTeams', ['mp', 'gf', 'xg', 'gmx', 'sh', 'sot', 'sotPct', 'xgsh', 'shCtr', 'xgCtr', 'possPct', 'pass', 'passPct', 'xpd', 'lb', 'byp', 'prog', 'f3', 'box', 'kp', 'cross', 'crossPct', 'carryProg', 'drbOk', 'vert', 'xgPoss'],
+      teamRows, $('#offTeamMode').value, 'xg', f);
+    const STL = {interception: 'Interception', throw_in: 'Touche', tackle: 'Tacle', free_kick: 'Coup franc', goal_kick: 'Six mètres', corner_kick: 'Corner', shot_recovered: 'Tir récupéré (gardien/rebond)', kick_off: "Coup d'envoi", recovery: 'Récupération', penalty: 'Penalty', drop_ball: 'Balle à terre'};
+    const stc = {}; (f.team ? [T[f.team]] : Object.values(T)).forEach(o => o && Object.entries(o.starts).forEach(([k, v]) => stc[k] = (stc[k] || 0) + v));
+    const stE = Object.entries(stc).sort((a, b) => b[1] - a[1]); const stTot = stE.reduce((a, x) => a + x[1], 0) || 1;
+    chart('chPossStart', {type: 'bar', data: {labels: stE.map(x => STL[x[0]] || x[0]), datasets: [{label: 'Possessions', data: stE.map(x => x[1]), backgroundColor: s1, borderRadius: 4, borderSkipped: 'start'}]},
+      options: {indexAxis: 'y', plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${fmt(c.raw)} possessions (${fmt(c.raw / stTot * 100, 1)} %)`}}}, scales: {x: {grid: {color: css('--grid')}}, y: {grid: {display: false}}}}});
+    const pt = $('#passMapType').value, inBox = (x, y) => x >= 88.5 && Math.abs(y - 34) <= 20.16;
+    if (!f.team && !f.player && ms.length > 1) { $('#passMap').innerHTML = '<div class="empty">Sélectionnez une équipe, un joueur ou un match pour afficher la carte des passes.</div>'; $('#lbSub').textContent = ''; }
+    else {
+      const pl = [];
+      for (const m of ms) if (m.ev) {
+        for (const e of m.ev.passes) {
+          if (!f.qs.has(e.q) || (f.player ? e.p !== f.player : f.team ? e.tm !== f.team : false)) continue;
+          if (pt === 'lb' ? (e.c && e.br) : pt === 'prog' ? (e.c && e.x1 - e.x0 >= 10 && e.x1 >= 35) : pt === 'box' ? (e.c && inBox(e.x1, e.y1) && !inBox(e.x0, e.y0)) : false) pl.push(e);
+        }
+        if (pt === 'kp') for (const e of m.ev.opta) {
+          if (e.t !== 1 || !e.kp || !f.qs.has(e.q) || (f.player ? e.p !== f.player : f.team ? e.tm !== f.team : false)) continue;
+          pl.push({p: e.p, tm: e.tm, x0: r1(e.x * 1.05), y0: r1((100 - e.y) * .68), x1: r1((e.ex ?? e.x) * 1.05), y1: r1((100 - (e.ey ?? e.y)) * .68), by: 0});
+        }
       }
-      if (pt === 'kp') for (const e of m.ev.opta) {
-        if (e.t !== 1 || !e.kp || !f.qs.has(e.q)) continue;
-        if (f.player ? e.p !== f.player : f.team ? e.tm !== f.team : false) continue;
-        pl.push({p: e.p, tm: e.tm, x0: r1(e.x * 1.05), y0: r1((100 - e.y) * .68), x1: r1((e.ex ?? e.x) * 1.05), y1: r1((100 - (e.ey ?? e.y)) * .68), by: 0});
-      }
+      $('#lbSub').textContent = `${pl.length} passe(s)` + (pt === 'kp' ? ' · position de départ de la passe' : '');
+      $('#passMap').innerHTML = passMapSVG(pl, PI, TN);
     }
-    $('#lbSub').textContent = `${pl.length} passe(s)` + (pt === 'kp' ? ' · position de départ de la passe' : '');
-    $('#passMap').innerHTML = passMapSVG(pl, PI, TN);
+  }
+
+  if (sub === 'def') {
+    $('#defKpis').innerHTML = kpiHTML(F ? (isPl ? [
+      {l: 'Récupérations', v: fmt(F.recov), s: `${fmt(F.recovH)} dans le camp adverse`},
+      {l: 'Interceptions', v: fmt(F.int), s: `${fmt(F.int * (per(F) || 0), 1)} /90`},
+      {l: 'Tacles gagnés', v: fmt(F.tkW), s: `${fmt(TAC.tkPct.f(F), 1)} % de réussite`},
+      {l: 'Duels aériens gagnés', v: fmt(F.aerW), s: `${fmt(TAC.aerPct.f(F), 1)} %`},
+      {l: 'Dégagements', v: fmt(F.clr), s: `${fmt(F.blk)} passes contrées`},
+      {l: 'Fautes', v: fmt(F.foul), s: `${fmt(F.yc)} jaune(s) · ${fmt(F.rc)} rouge(s)`}
+    ] : [
+      {l: 'Buts encaissés', v: fmt(F.ga), s: `${fmt(F.ga * (per(F) || 0), 2)} ${perLbl}`},
+      {l: 'xG concédés', v: fmt(F.xga, 2), s: `${fmt(F.xga * (per(F) || 0), 2)} ${perLbl}`},
+      {l: 'Tirs concédés', v: fmt(F.sha), s: `${fmt(F.sha * (per(F) || 0), 1)} ${perLbl}`},
+      {l: 'PPDA', v: fmt(TAC.ppda.f(F), 1), s: 'pressing (bas = intense)'},
+      {l: 'Récupérations', v: fmt(F.recov), s: `${fmt(F.recovH)} dans le camp adverse`},
+      {l: 'Interceptions', v: fmt(F.int), s: `${fmt(F.int * (per(F) || 0), 1)} ${perLbl}`},
+      {l: 'Tacles gagnés', v: fmt(F.tkW), s: `${fmt(TAC.tkPct.f(F), 1)} % de réussite`},
+      {l: 'Duels aériens', v: fmt(TAC.aerPct.f(F), 1) + ' %', s: `${fmt(F.aerW)} gagnés sur ${fmt(F.aer)}`}
+    ]) : []);
+    const rt = $('#recType').value, evs = [];
+    if (!f.team && !f.player && ms.length > 1) { $('#recMap').innerHTML = '<div class="empty">Sélectionnez une équipe, un joueur ou un match pour afficher les zones de récupération.</div>'; $('#recSub').textContent = ''; }
+    else {
+      for (const m of ms) if (m.ev) for (const e of m.ev.opta) {
+        if (!f.qs.has(e.q) || !(e.t === 49 || e.t === 8 || (e.t === 7 && e.o))) continue;
+        if (rt !== 'all' && e.t !== +rt) continue;
+        if (f.player ? e.p !== f.player : f.team ? e.tm !== f.team : false) continue;
+        evs.push(e);
+      }
+      const hi = evs.filter(e => e.x >= 50).length;
+      $('#recSub').textContent = `${evs.length} actions · ${fmt(evs.length ? hi / evs.length * 100 : null, 0)} % dans le camp adverse`;
+      $('#recMap').innerHTML = eventMapSVG(evs, PI, TN);
+    }
+    if (!f.team) { $('#shotMapAg').innerHTML = '<div class="empty">Sélectionnez une équipe pour voir les tirs qu’elle a concédés.</div>'; $('#shotAgSub').textContent = ''; }
+    else {
+      const sa = [];
+      for (const m of ms) if (m.ev && (m.home.id === f.team || m.away.id === f.team)) for (const x of m.ev.shots) if (f.qs.has(x.q) && x.tm !== f.team) sa.push(x);
+      $('#shotAgSub').textContent = `${sa.length} tirs · ${sa.filter(x => x.g).length} buts · ${fmt(sa.reduce((a, x) => a + x.xg, 0), 2)} xG`;
+      $('#shotMapAg').innerHTML = shotMapColored(sa, PI, TN, 'var(--s2)');
+    }
+    rankPlayers('chDefRank', '#defRankSub', $('#defMetric').value, TAC, plRows, pmP, minMin, f.player);
+    const pp = teamRows.filter(r => r.o.mp && TAC.ppda.f(r.o) != null).map(r => ({x: TAC.ppda.f(r.o), y: r.o.xga / r.o.mp, lab: r.name, id: r.id}));
+    pp.forEach(p => { p.img = logoImg(p.id, p.id === f.team ? 34 : 26); if (p.img) p.off = p.id === f.team ? 20 : 16; });
+    chart('chPpda', {type: 'scatter', data: {datasets: [{label: 'Équipes', data: pp, pointStyle: pp.map(p => p.img || 'circle'), pointRadius: pp.map(p => p.img ? 13 : (p.id === f.team ? 7 : 5)),
+        backgroundColor: pp.map(p => p.id === f.team ? s2 : s1), borderColor: css('--surface'), borderWidth: 2}]},
+      options: {layout: {padding: {right: 90}}, plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${c.raw.lab} : PPDA ${fmt(c.raw.x, 1)} · xG contre ${fmt(c.raw.y, 2)}/match`}}},
+        scales: {x: {grace: '10%', reverse: true, title: {display: true, text: 'PPDA (inversé : à droite = pressing intense)'}, grid: {color: css('--grid')}}, y: {grace: '10%', reverse: true, title: {display: true, text: 'xG concédés / match (inversé)'}, grid: {color: css('--grid')}}}},
+      plugins: [pointLabels, avgLines(mean(pp.map(p => p.x)), mean(pp.map(p => p.y)),
+        {tl: 'Bloc bas solide', tr: 'Presse et protège', bl: 'Passif et exposé', br: 'Presse mais concède'}, v => fmt(v, 1), v => fmt(v, 2))]});
+    if (!S.sort.tblDefTeams) S.sort.tblDefTeams = {k: 'ppda', asc: true};
+    teamTable('tblDefTeams', ['mp', 'ga', 'xga', 'sha', 'ppda', 'recov', 'recovH', 'int', 'tk', 'tkW', 'tkPct', 'aerW', 'aerPct', 'clr', 'blk', 'foul', 'yc', 'rc', 'saves'],
+      teamRows, $('#defTeamMode').value, 'ppda', f);
+  }
+
+  if (sub === 'cpa') {
+    const old = ms.filter(m => m.ev && !(m.ev.v >= 2)).length;
+    $('#cpaNote').hidden = !old;
+    $('#cpaNote').innerHTML = old ? `⚠ ${old} match(s) ont été importés avant l’ajout de l’onglet CPA : leurs <b>buts, tirs et penaltys sur CPA</b> et le <b>détail des corners</b> ne sont pas comptés. Pour les compléter, réimportez simplement leurs dossiers dans l’onglet Données (les xG des possessions CPA, eux, sont déjà complets).` : '';
+    const mpF = F ? (isPl ? null : F.mp) : null;
+    $('#cpaKpis').innerHTML = kpiHTML(F ? [
+      {l: 'Corners obtenus', v: fmt(F.corners), s: mpF ? `${fmt(F.corners / mpF, 1)} /match` : ''},
+      {l: 'xG sur CPA', v: fmt(F.cpaXgP, 2), s: `${fmt(TAC.cpaShare.f(F), 1)} % des xG de l’équipe`},
+      {l: 'Buts sur CPA', v: fmt(F.gfCpa), s: `${fmt(F.shCpa)} tirs sur CPA`},
+      {l: 'Penaltys', v: fmt(F.pen), s: `${fmt(F.penG)} marqué(s)`},
+      isPl ? null : {l: 'xG CPA concédés', v: fmt(F.cpaXgaP, 2), s: `${fmt(F.gaCpa)} but(s) CPA encaissé(s)`},
+      isPl ? null : {l: 'Corners : surface', v: fmt(TAC.cornAttAvg.f(F), 1), s: `joueurs en moyenne · ${fmt(TAC.cornShortPct.f(F), 0)} % joués courts`}
+    ].filter(Boolean) : []);
+    const TY = [['cor', 'Corner'], ['cf', 'Coup franc'], ['tou', 'Touche'], ['pen', 'Penalty']];
+    let sets;
+    if (f.team) { const o = T[f.team] || newAgg(); sets = [{label: TN[f.team], c: s1, d: TY.map(([k]) => (o.cpaT[k] || {}).xg || 0)}, {label: 'Adversaires', c: s2, d: TY.map(([k]) => (o.cpaTa[k] || {}).xg || 0)}]; $('#cpaTypeSub').textContent = 'xG des possessions démarrées sur CPA · équipe vs adversaires'; }
+    else { const tot = TY.map(([k]) => Object.values(T).reduce((a, o) => a + ((o.cpaT[k] || {}).xg || 0), 0)); sets = [{label: 'Toutes équipes', c: s1, d: tot}]; $('#cpaTypeSub').textContent = 'xG des possessions démarrées sur CPA · toutes équipes (sélectionnez une équipe pour comparer)'; }
+    chart('chCpaType', {type: 'bar', data: {labels: TY.map(x => x[1]), datasets: sets.map(x => ({label: x.label, data: x.d, backgroundColor: x.c, borderRadius: 4, borderSkipped: 'start'}))},
+      options: {plugins: {legend: {display: sets.length > 1}, tooltip: {callbacks: {label: c => `${c.dataset.label} : ${fmt(c.raw, 2)} xG`}}}, scales: {y: {beginAtZero: true, title: {display: true, text: 'xG (total)'}, grid: {color: css('--grid')}}, x: {grid: {display: false}}}}});
+    const CPA = ['cor', 'cfd', 'cfi', 'tou', 'pen'], sc = [];
+    for (const m of ms) if (m.ev) for (const x of m.ev.shots) if (f.qs.has(x.q) && focusShot(x) && CPA.includes(x.pat)) sc.push(x);
+    $('#shotCpaSub').textContent = `${sc.length} tirs · ${sc.filter(x => x.g).length} buts · ${fmt(sc.reduce((a, x) => a + x.xg, 0), 2)} xG`;
+    $('#shotMapCpa').innerHTML = shotMapSVG(sc, PI, TN);
+    teamTable('tblCpaTeams', ['mp', 'corners', 'cpaPoss', 'cpaXgP', 'cpaXgPoss', 'cpaShare', 'shCpa', 'gfCpa', 'pen', 'penG', 'cpaXgaP', 'shaCpa', 'gaCpa', 'cornAttAvg', 'cornShortPct', 'cornInPct'],
+      teamRows, $('#cpaTeamMode').value, 'cpaXgP', f);
+  }
+
+  if (sub === 'cls') {
+    const tm = $('#tacTeamMode').value;
+    teamTable('tblTacTeams', ['mp', 'gf', 'ga', 'xg', 'xga', 'xgd', 'sh', 'sot', 'sha', 'possPct', 'pass', 'passPct', 'xpd', 'lb', 'prog', 'f3', 'box', 'kp', 'carryProg', 'ppda', 'recov', 'int', 'tkW', 'aerPct', 'foul', 'yc', 'rc', 'corners', 'vert', 'xgPoss'],
+      teamRows, tm, 'xgd', f);
+    const plCols = ['mp', 'min', 'gf', 'ast', 'xg', 'gmx', 'sh', 'sot', 'pass', 'passPct', 'xpd', 'lb', 'byp', 'prog', 'kp', 'f3', 'box', 'cross', 'carryProg', 'drbOk', 'recov', 'recovH', 'int', 'tkW', 'aerW', 'aerPct', 'lost', 'foul', 'fouled', 'yc', 'saves'];
+    renderTable('tblTacPlayers', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'team', l: 'Équipe', txt: 1, v: r => r.team, html: r => logoHTML(r.tid) + esc(r.team)}, {k: 'pos', l: 'Poste', txt: 1, v: r => r.pos},
+      ...plCols.map(k => ({k, l: TAC[k].l, h: TAC[k].h, d: dec(TAC, k, pmP), v: r => val(TAC, k, r.o, pmP)}))],
+      plRows, {defaultSort: 'xg', hl: r => r.id === f.player, onRow: id => setFilter('player', id)});
+    rankPlayers('chTacRank', '#tacRankSub', $('#tacMetric').value, TAC, plRows, pmP, minMin, f.player);
   }
 }
 
@@ -1744,7 +1966,7 @@ function setFilter(k, v) {
 function releaseHiddenCharts() {
   for (const [id, c] of Object.entries(S.charts)) {
     const panel = c.canvas && c.canvas.closest('.panel');
-    if (panel && !panel.classList.contains('active')) { const el = c.canvas; c.destroy(); el.width = 0; el.height = 0; delete S.charts[id]; }
+    if ((panel && !panel.classList.contains('active')) || !c.canvas || !c.canvas.offsetParent) { const el = c.canvas; c.destroy(); el.width = 0; el.height = 0; delete S.charts[id]; }
   }
 }
 function render() {
@@ -1758,13 +1980,35 @@ function render() {
 function refreshAll() { refreshFilters(); render(); }
 
 function fillMetricSelects() {
-  const tacOpts = ['xg', 'gf', 'ast', 'sh', 'sot', 'gmx', 'pass', 'passPct', 'xpd', 'lb', 'byp', 'prog', 'kp', 'f3', 'box', 'carryProg', 'drbOk', 'recov', 'int', 'tkW', 'aerW', 'lost'];
+  const tacOpts = ['xg', 'gf', 'ast', 'sh', 'sot', 'gmx', 'pass', 'passPct', 'xpd', 'lb', 'byp', 'prog', 'kp', 'f3', 'box', 'carryProg', 'drbOk', 'recov', 'recovH', 'int', 'tkW', 'aerW', 'lost', 'shCpa'];
   $('#tacMetric').innerHTML = tacOpts.map(k => `<option value="${k}">${TAC[k].l}</option>`).join('');
+  const offOpts = ['xg', 'gf', 'ast', 'sh', 'sot', 'gmx', 'kp', 'box', 'f3', 'lb', 'byp', 'prog', 'carryProg', 'drbOk', 'cross', 'shCtr'];
+  $('#offMetric').innerHTML = offOpts.map(k => `<option value="${k}">${TAC[k].l}</option>`).join('');
+  const defOpts = ['recov', 'recovH', 'int', 'tkW', 'tk', 'aerW', 'clr', 'blk', 'foul'];
+  $('#defMetric').innerHTML = defOpts.map(k => `<option value="${k}">${TAC[k].l}</option>`).join('');
   const phyOpts = ['dist', 'mpm', 'hi', 'hsr', 'spr', 'nspr', 'nhsr', 'vmax', 'hiPct', 'hOP', 'hIP'];
   $('#phyMetric').innerHTML = phyOpts.map(k => `<option value="${k}">${PHY[k].l}</option>`).join('');
 }
 
+function applySubtabs() {
+  document.querySelectorAll('.subtabs').forEach(nav => {
+    const tab = nav.dataset.for, cur = S.sub[tab];
+    nav.querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', b.dataset.sub === cur));
+    nav.parentElement.querySelectorAll(':scope > .subpanel').forEach(p => p.classList.toggle('active', p.dataset.sub === cur));
+  });
+}
+function bindSubtabs() {
+  try { const sv = JSON.parse(localStorage.getItem('dash-sub') || 'null'); if (sv) Object.assign(S.sub, sv); } catch (e) {}
+  document.querySelectorAll('.subtabs').forEach(nav => nav.onclick = e => {
+    const b = e.target.closest('button[data-sub]'); if (!b) return;
+    S.sub[nav.dataset.for] = b.dataset.sub;
+    try { localStorage.setItem('dash-sub', JSON.stringify(S.sub)); } catch (err) {}
+    applySubtabs(); render(); window.scrollTo({top: 0});
+  });
+  applySubtabs();
+}
 function bindUI() {
+  bindSubtabs();
   document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => {
     S.tab = b.dataset.tab;
     document.querySelectorAll('nav.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
@@ -1790,7 +2034,8 @@ function bindUI() {
     refreshAll();
   };
   $('#fReset').onclick = () => { S.f = {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0, 1, 2, 3, 4, 5])}; refreshAll(); };
-  ['#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#passMapType', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyEvoMetric', '#phyTeamMode']
+  ['#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#passMapType', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyEvoMetric', '#phyTeamMode',
+   '#shotType', '#offMetric', '#offTeamMode', '#recType', '#defMetric', '#defTeamMode', '#cpaTeamMode']
     .forEach(s => $(s).onchange = render);
   document.querySelectorAll('[data-csv]').forEach(b => b.onclick = () => exportCSV(b.dataset.csv));
 
