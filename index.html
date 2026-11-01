@@ -1235,6 +1235,36 @@ function chartDefaults() {
   Chart.defaults.plugins.legend.labels.useBorderRadius = true;
   Chart.defaults.plugins.legend.labels.borderRadius = 2;
 }
+// Lignes de moyenne (quadrillage en 4 zones) + libellés des zones
+function avgLines(mx, my, labels, fx, fy) {
+  return {
+    id: 'avgLines',
+    beforeDatasetsDraw(c) {
+      if (mx == null || my == null || !isFinite(mx) || !isFinite(my)) return;
+      const {ctx, chartArea: a, scales: {x, y}} = c;
+      const px = x.getPixelForValue(mx), py = y.getPixelForValue(my);
+      ctx.save();
+      ctx.strokeStyle = css('--text-3'); ctx.lineWidth = 1.25; ctx.setLineDash([5, 4]);
+      ctx.beginPath(); ctx.moveTo(px, a.top); ctx.lineTo(px, a.bottom); ctx.moveTo(a.left, py); ctx.lineTo(a.right, py); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.font = '600 10.5px system-ui,sans-serif'; ctx.fillStyle = css('--text-3');
+      ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+      ctx.fillText('moy. ' + fx(mx), px + 4, a.top + 2);
+      ctx.textBaseline = 'bottom'; ctx.textAlign = 'right';
+      ctx.fillText('moy. ' + fy(my), a.right - 2, py - 3);
+      if (labels) {
+        ctx.font = '600 11px system-ui,sans-serif'; ctx.fillStyle = css('--text-2'); ctx.globalAlpha = .75;
+        const pad = 6;
+        ctx.textAlign = 'left'; ctx.textBaseline = 'top'; ctx.fillText(labels.tl, a.left + pad, a.top + pad + 12);
+        ctx.textAlign = 'right'; ctx.fillText(labels.tr, a.right - pad, a.top + pad + 12);
+        ctx.textAlign = 'left'; ctx.textBaseline = 'bottom'; ctx.fillText(labels.bl, a.left + pad, a.bottom - pad);
+        ctx.textAlign = 'right'; ctx.fillText(labels.br, a.right - pad, a.bottom - pad);
+      }
+      ctx.restore();
+    }
+  };
+}
+const mean = arr => { const v = arr.filter(x => x != null && isFinite(x)); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; };
 const pointLabels = {
   id: 'pointLabels',
   afterDatasetsDraw(c) {
@@ -1396,7 +1426,8 @@ function renderTactical() {
       backgroundColor: pts.map(p => p.id === f.team ? s2 : s1), borderColor: css('--surface'), borderWidth: 2, pointHoverRadius: 8}]},
     options: {layout: {padding: {right: 90}}, plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${c.raw.lab} : xG ${fmt(c.raw.x, 2)} / xG contre ${fmt(c.raw.y, 2)}`}}},
       scales: {x: {grace: '15%', title: {display: true, text: 'xG produits / match'}, grid: {color: css('--grid')}}, y: {grace: '15%', reverse: true, title: {display: true, text: 'xG concédés / match (inversé)'}, grid: {color: css('--grid')}}}},
-    plugins: [pointLabels]});
+    plugins: [pointLabels, avgLines(mean(pts.map(p => p.x)), mean(pts.map(p => p.y)),
+      {tl: 'Solide, peu offensif', tr: 'Domine les occasions', bl: 'Subit', br: 'Offensif mais fragile'}, v => fmt(v, 2), v => fmt(v, 2))]});
 
   // Par quart d'heure
   const qm = $('#tacQMetric').value;
@@ -1578,7 +1609,8 @@ function renderPhysical() {
   chart('chPhyScatter', {type: 'scatter', data: {datasets: [{label: 'Joueurs', data: sc, backgroundColor: sc.map(p => p.id === f.player ? s2 : s1 + 'cc'), pointRadius: sc.map(p => p.id === f.player ? 7 : 4.5), borderColor: css('--surface'), borderWidth: 1.5, pointHoverRadius: 7}]},
     options: {layout: {padding: {right: 90}}, plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${c.raw.name} (${c.raw.team}) : ${fmt(c.raw.x)} m · HI ${fmt(c.raw.y)} m /90`}}},
       scales: {x: {title: {display: true, text: 'Distance / 90 min (m)'}, grid: {color: css('--grid')}}, y: {title: {display: true, text: 'HSR + sprint / 90 min (m)'}, grid: {color: css('--grid')}}}},
-    plugins: [pointLabels]});
+    plugins: [pointLabels, avgLines(mean(sc.map(p => p.x)), mean(sc.map(p => p.y)),
+      {tl: 'Intense, peu de volume', tr: 'Volume + intensité', bl: 'Sous la moyenne', br: 'Volume, peu intense'}, v => fmt(v) + ' m', v => fmt(v) + ' m')]});
 
   // HI avec / sans ballon par équipe
   const tr = Object.entries(T).map(([id, o]) => ({id, name: TN[id], o})).sort((a, b) => (val(PHY, 'hOP', b.o, 'pm') || 0) - (val(PHY, 'hOP', a.o, 'pm') || 0));
