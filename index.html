@@ -87,6 +87,8 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .cage{width:100%;height:auto;display:block}
 .cage-leg{display:flex;gap:14px;justify-content:center;font-size:11.5px;color:var(--text-2);flex-wrap:wrap;margin-top:4px}
 .cage-leg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+.logo-add{grid-column:1/-1;display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px}.logo-add input{font:inherit;padding:6px 9px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);min-width:240px}
+.logo-tile.pending{border-style:dashed}
 .clr-row{display:flex;gap:4px;align-items:center;justify-content:center;margin-top:4px}.clr-row input{width:26px;height:20px;padding:0;border:1px solid var(--border);border-radius:4px;background:none;cursor:pointer}
 .clr-row button{font-size:11px;padding:1px 5px}
 .rep-ctl{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
@@ -1356,7 +1358,13 @@ function bindComp() {
 /* =====================================================================
    Référentiels équipes / joueurs
    ===================================================================== */
+let TN_MEMO = null;
 function teamNames() {
+  const n = Object.keys(S.matches).length;
+  if (TN_MEMO && TN_MEMO.v === DATA_VER && TN_MEMO.n === n) return TN_MEMO.r;
+  const r = teamNamesRaw(); TN_MEMO = {v: DATA_VER, n, r}; return r;
+}
+function teamNamesRaw() {
   const t = {};
   for (const m of Object.values(S.matches).sort((a, b) => a.date - b.date)) for (const s of [m.home, m.away]) {
     if (!t[s.id] || s.full || !t[s.id].full) t[s.id] = {name: s.name, full: s.full};
@@ -1785,13 +1793,16 @@ function avgLines(mx, my, labels, fx, fy) {
 }
 /* ---------- Logos d'équipes (importés par les Masters) ---------- */
 const LOGO = {data: {}, img: {}, pending: null};
+const normName = n => String(n || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+// logo d'une équipe : par identifiant, sinon par nom (logos importés avant le premier match du club)
+function logoData(tid) { if (!tid) return null; if (LOGO.data[tid]) return LOGO.data[tid]; const k = 'n:' + normName(teamNames()[tid]); return LOGO.data[k] || null; }
 function logoImg(tid, size) {
-  const d = tid && LOGO.data[tid]; if (!d) return null;
+  const d = logoData(tid); if (!d) return null;
   const k = tid + '@' + size; let im = LOGO.img[k];
   if (!im) { im = new Image(size, size); im.onload = () => scheduleRender(); im.onerror = () => { im._bad = 1; }; im.src = d; LOGO.img[k] = im; }
   return im.complete && im.naturalWidth && !im._bad ? im : null; // image prête uniquement (sinon point classique)
 }
-function logoHTML(tid) { const d = tid && LOGO.data[tid]; return d ? `<img class="tlogo" src="${d}" alt="">` : ''; }
+function logoHTML(tid) { const d = logoData(tid); return d ? `<img class="tlogo" src="${d}" alt="">` : ''; }
 function barLogos(tids) {
   return {id: 'barLogos', afterDatasetsDraw(c) {
     const ctx = c.ctx, yS = c.scales.y;
@@ -1831,17 +1842,43 @@ function resizeImage(file) {
 }
 function renderLogos() {
   const el = $('#logoGrid'); if (!el) return;
-  const TN = teamNames(); const teams = Object.entries(TN).sort((a, b) => a[1].localeCompare(b[1]));
-  if (!teams.length) { el.innerHTML = '<div class="muted">Les équipes apparaîtront ici après l’import d’un premier match.</div>'; return; }
-  el.innerHTML = teams.map(([id, name]) => `<div class="logo-tile"><div class="lg">${LOGO.data[id] ? `<img src="${LOGO.data[id]}" alt="">` : esc(name.split(/\s+/).map(w => w[0]).join('').slice(0, 3).toUpperCase())}</div>
-    <div class="nm" title="${esc(name)}">${esc(name)}</div><div class="acts"><button class="btn" data-logo="${id}">${LOGO.data[id] ? 'Changer' : 'Importer'}</button>${LOGO.data[id] ? `<button class="btn danger" data-unlogo="${id}">Retirer</button>` : ''}</div>
+  const TN = teamNames();
+  const inComp = new Set(CM().flatMap(m => [m.home.id, m.away.id]));
+  const teams = Object.entries(TN).filter(([id]) => inComp.has(id)).sort((a, b) => a[1].localeCompare(b[1]));
+  // clubs ajoutés par leur nom (avant tout match importé) pour ce championnat
+  const NM = LOGO.data._names || {};
+  const known = new Set(teams.map(([, n]) => 'n:' + normName(n)));
+  const pend = Object.entries(NM).filter(([k, o]) => (o.comp || 'L1') === S.comp && !known.has(k)).map(([k, o]) => [k, o.name]);
+  const all = [...teams, ...pend].sort((a, b) => a[1].localeCompare(b[1]));
+  const add = canEdit() ? `<div class="logo-add"><input type="text" id="logoNewName" placeholder="Nom du club (ex. ${S.comp === 'L2' ? 'AS Saint-Étienne' : 'Paris FC'})"><button class="btn" id="logoNewBtn">Ajouter un club de ${esc(compName())}</button><span class="muted">pour importer son logo avant son premier match : il sera relié au club par son nom</span></div>` : '';
+  if (!all.length) { el.innerHTML = add + '<div class="muted">Aucun club de ce championnat pour l’instant : importez un match ou ajoutez un club ci-dessus.</div>'; bindLogoAdd(); return; }
+  const dOf = id => id.startsWith('n:') ? LOGO.data[id] : logoData(id);
+  el.innerHTML = add + all.map(([id, name]) => `<div class="logo-tile${id.startsWith('n:') ? ' pending' : ''}"><div class="lg">${dOf(id) ? `<img src="${dOf(id)}" alt="">` : esc(name.split(/\s+/).map(w => w[0]).join('').slice(0, 3).toUpperCase())}</div>
+    <div class="nm" title="${esc(name)}${id.startsWith('n:') ? ' (aucun match importé)' : ''}">${esc(name)}</div><div class="acts"><button class="btn" data-logo="${id}">${dOf(id) ? 'Changer' : 'Importer'}</button>${dOf(id) || id.startsWith('n:') ? `<button class="btn danger" data-unlogo="${id}">Retirer</button>` : ''}</div>
     <div class="clr-row" title="Couleur principale / secondaire du club">${(() => { const c = clubCols(id) || ['#2a78d6', '#eb6834']; const ov = (LOGO.data._colors || {})[id]; return `<input type="color" data-c1="${id}" value="${c[0]}"><input type="color" data-c2="${id}" value="${c[1]}">${ov ? `<button class="btn" data-creset="${id}" title="Revenir aux couleurs par défaut">↺</button>` : ''}`; })()}</div></div>`).join('');
   el.querySelectorAll('[data-logo]').forEach(b => b.onclick = () => { LOGO.pending = b.dataset.logo; $('#logoInput').value = ''; $('#logoInput').click(); });
-  el.querySelectorAll('[data-unlogo]').forEach(b => b.onclick = async () => { delete LOGO.data[b.dataset.unlogo]; try { await saveLogos(); } catch (e) { alert(e.message); } renderLogos(); render(); });
+  el.querySelectorAll('[data-unlogo]').forEach(b => b.onclick = async () => {
+    const id = b.dataset.unlogo;
+    if (id.startsWith('n:')) { delete LOGO.data[id]; if (LOGO.data._names) delete LOGO.data._names[id]; }
+    else { delete LOGO.data[id]; delete LOGO.data['n:' + normName(TN[id])]; }
+    try { await saveLogos(); } catch (e) { alert(e.message); } renderLogos(); render();
+  });
+  bindLogoAdd();
   const setCol = async (id, i, v) => { const C = LOGO.data._colors = LOGO.data._colors || {}; const cur = C[id] || (clubCols(id) || ['#2a78d6', '#eb6834']).slice(); cur[i] = v; C[id] = cur; try { await saveLogos(); } catch (e) { alert(e.message); } renderLogos(); render(); };
   el.querySelectorAll('[data-c1]').forEach(x => x.onchange = () => setCol(x.dataset.c1, 0, x.value));
   el.querySelectorAll('[data-c2]').forEach(x => x.onchange = () => setCol(x.dataset.c2, 1, x.value));
   el.querySelectorAll('[data-creset]').forEach(b => b.onclick = async () => { delete (LOGO.data._colors || {})[b.dataset.creset]; try { await saveLogos(); } catch (e) { alert(e.message); } renderLogos(); render(); });
+}
+function bindLogoAdd() {
+  const btn = $('#logoNewBtn'); if (!btn) return;
+  const go = async () => {
+    const name = $('#logoNewName').value.trim(); if (!name) return;
+    const k = 'n:' + normName(name);
+    LOGO.data._names = LOGO.data._names || {}; LOGO.data._names[k] = {name, comp: S.comp};
+    try { await saveLogos(); } catch (e) { alert(e.message); }
+    renderLogos();
+  };
+  btn.onclick = go; $('#logoNewName').onkeydown = e => { if (e.key === 'Enter') go(); };
 }
 function bindLogos() {
   $('#logoInput').onchange = async e => {
@@ -1969,8 +2006,10 @@ function colDist(a, b) { const x = hexRgb(a), y = hexRgb(b); if (!x || !y) retur
 // lisible sur le fond : noir → gris clair en thème sombre, blanc/très clair → gris en thème clair
 function readable(c) { const L = lum(c); if (isDark() && L < .03) return '#d9d9d9'; if (!isDark() && L > .8) return '#9a9a9a'; return c; }
 function clubCols(tid) {
-  const ov = (LOGO.data._colors || {})[tid]; if (ov && ov[0]) return [ov[0], ov[1] || ov[0]];
-  const nm = teamNames()[tid] || ''; const hit = CLUB_COL.find(([re]) => re.test(nm));
+  if (!tid) return null;
+  const nm = String(tid).startsWith('n:') ? ((LOGO.data._names || {})[tid] || {}).name || '' : teamNames()[tid] || '';
+  const C = LOGO.data._colors || {}, ov = C[tid] || C['n:' + normName(nm)]; if (ov && ov[0]) return [ov[0], ov[1] || ov[0]];
+  const hit = CLUB_COL.find(([re]) => re.test(nm));
   return hit ? [hit[1], hit[2]] : null;
 }
 function clubColor(tid, fallback) { const c = clubCols(tid); return c ? readable(c[0]) : (fallback || css('--s1')); }
@@ -2977,7 +3016,7 @@ function renderPhyH2H(lg, TN, PI) {
   const wa = who(sel[0]), wb = who(sel[1]);
   const [hA, hB] = clubPair(wa.tid, wb.tid);
   const sp = document.querySelector('.subpanel[data-sub="h2h"]'); sp.style.setProperty('--ha', hA); sp.style.setProperty('--hb', hB);
-  const logoBig = tid => { const d = tid && LOGO.data[tid]; return d ? `<img src="${d}" alt="">` : ''; };
+  const logoBig = tid => { const d = logoData(tid); return d ? `<img src="${d}" alt="">` : ''; };
   $('#h2hHead').innerHTML = `<div class="h2h-side a">${logoBig(wa.tid)}<div><div class="nm">${esc(wa.name)}</div><div class="meta">${wa.meta}</div></div></div><div class="h2h-vs">VS</div>`
     + `<div class="h2h-side b">${logoBig(wb.tid)}<div><div class="nm">${esc(wb.name)}</div><div class="meta">${wb.meta}</div></div></div>`;
   $('#h2hCmpSub').textContent = mode === 'team' ? 'Moyenne par match · la barre la plus longue l’emporte' : 'Par 90 minutes · la barre la plus longue l’emporte';
