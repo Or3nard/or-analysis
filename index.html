@@ -80,6 +80,7 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .chart-box.tall{height:460px}
 .chart-box.short{height:260px}
 .chart-box.xl{height:560px}
+.comp-sel{font:inherit;font-weight:650;font-size:13.5px;border:1px solid var(--border);background:var(--accent-soft);color:var(--accent);border-radius:8px;padding:5px 8px;cursor:pointer}
 #errToast{position:fixed;right:16px;bottom:16px;max-width:520px;background:#fff3f2;color:#7a1d16;border:1px solid #f0b5ae;border-radius:10px;padding:10px 14px;font-size:13px;z-index:100;box-shadow:0 6px 24px rgba(0,0,0,.15);cursor:pointer}
 @media print{#errToast{display:none}}
 .cage-wrap{max-width:760px;margin:0 auto}
@@ -310,6 +311,7 @@ input.j{width:64px}
 <body>
 <header>
   <h1>OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <select id="compSel" class="comp-sel" title="Championnat"></select>
   <nav class="tabs" role="tablist">
     <button role="tab" data-tab="tac" aria-selected="false">Analyse tactique</button>
     <button role="tab" data-tab="phy" aria-selected="false">Physique</button>
@@ -375,6 +377,7 @@ input.j{width:64px}
         <p><b style="font-size:16px;color:var(--text)">Glissez ici les fichiers ou dossiers de vos matchs</b></p>
         <p>Un dossier par match est l'idéal, mais vous pouvez aussi déposer tous les fichiers en vrac : le dashboard les regroupe automatiquement par match.</p>
         <div class="btns">
+          <label class="lbl">Championnat des fichiers <select id="impComp"></select></label>
           <button class="btn primary" id="pickFiles">Choisir des fichiers</button>
           <button class="btn" id="pickDir">Choisir un dossier (sous-dossiers inclus)</button>
         </div>
@@ -393,6 +396,7 @@ input.j{width:64px}
           <button class="btn danger" id="clearDb">Tout effacer</button>
         </div>
       </div>
+      <p class="sub" id="compNote" style="margin:6px 0"></p>
       <div id="matchList"></div>
     </div>
     <div class="card c12" id="logoCard">
@@ -962,6 +966,7 @@ const S = {
   tab: 'data',
   f: {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0,1,2,3,4,5])},
   role: 'local',
+  comp: 'L1',
   sub: {tac: 'res', phy: 'team'},
   h2h: {mode: 'team', team: ['', ''], player: ['', '']},
   role: 'CB', roleMin: {},
@@ -1085,7 +1090,9 @@ async function importFiles(list) {
     log(`✓ ${m.home.name} – ${m.away.name} : physique (${it.kind === 'summary' ? 'résumé' : it.kind === 'splits' ? 'par 5 min' : 'par minute'})`);
   }
 
-  for (const id of touched) { finalizeMinutes(S.matches[id]); }
+  const impComp = ($('#impComp') && $('#impComp').value) || S.comp;
+  for (const id of touched) { finalizeMinutes(S.matches[id]); S.matches[id].comp = impComp; }
+  if (touched.size && impComp !== S.comp) setComp(impComp, true);
   for (const id of autoJournees()) touched.add(id);
   for (const id of touched) persist(S.matches[id]);
   if (CLOUD && touched.size) log(`Envoi en ligne de ${touched.size} match(s)…`);
@@ -1313,6 +1320,40 @@ function autoJournees() { // renvoie les matchs dont la journée a changé
 }
 
 /* =====================================================================
+   Championnats
+   ===================================================================== */
+const COMPS = [['L1', 'Ligue 1'], ['L2', 'Ligue 2']];
+const compOf = m => m.comp || 'L1';
+const compName = c => (COMPS.find(x => x[0] === (c || S.comp)) || COMPS[0])[1];
+const compShort = () => S.comp || 'L1';
+let CM_MEMO = null;
+function CM() { // matchs du championnat affiché
+  const all = Object.values(S.matches);
+  if (CM_MEMO && CM_MEMO.v === DATA_VER && CM_MEMO.c === S.comp && CM_MEMO.n === all.length && CM_MEMO.all.every((m, i) => m === all[i])) return CM_MEMO.r.slice();
+  const r = all.filter(m => compOf(m) === S.comp);
+  CM_MEMO = {v: DATA_VER, c: S.comp, n: all.length, all, r};
+  return r.slice();
+}
+function setComp(c, keepView) {
+  if (!COMPS.some(x => x[0] === c)) c = 'L1';
+  S.comp = c; try { localStorage.setItem('dash-comp', c); } catch (e) {}
+  S.f = {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0, 1, 2, 3, 4, 5])};
+  if (S.rep) { S.rep.match = ''; S.rep.opp = ''; S.rep.us = ''; S.rep.jEnd = null; }
+  if (S.h2h) S.h2h = {mode: S.h2h.mode, team: ['', ''], player: ['', '']};
+  const sel = $('#compSel'); if (sel) sel.value = c;
+  const imp = $('#impComp'); if (imp) imp.value = c;
+  if (!keepView) refreshAll();
+}
+function bindComp() {
+  try { S.comp = localStorage.getItem('dash-comp') || 'L1'; } catch (e) { S.comp = 'L1'; }
+  if (!COMPS.some(x => x[0] === S.comp)) S.comp = 'L1';
+  const opts = COMPS.map(([k, l]) => `<option value="${k}">${l}</option>`).join('');
+  $('#compSel').innerHTML = opts; $('#compSel').value = S.comp;
+  $('#impComp').innerHTML = opts; $('#impComp').value = S.comp;
+  $('#compSel').onchange = e => setComp(e.target.value);
+}
+
+/* =====================================================================
    Référentiels équipes / joueurs
    ===================================================================== */
 function teamNames() {
@@ -1333,7 +1374,7 @@ function playerInfo() { // dernier club connu
    ===================================================================== */
 function matchesByBaseFilters(ignoreMatch) {
   const f = S.f;
-  return Object.values(S.matches).filter(m =>
+  return CM().filter(m =>
     (!f.team || m.home.id === f.team || m.away.id === f.team) &&
     (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1) &&
     (ignoreMatch || !f.match || m.id === f.match)
@@ -1355,10 +1396,11 @@ function evPlayers(m) {
 }
 function refreshFilters() {
   const TN = teamNames(), PI = playerInfo();
-  const all = Object.values(S.matches);
+  const all = CM();
   $('#filters').hidden = !['tac', 'phy'].includes(S.tab) || !all.length;
   $('#pdfBtn').hidden = !['tac', 'phy', 'rep'].includes(S.tab) || !all.length;
-  const teams = Object.entries(TN).sort((a, b) => a[1].localeCompare(b[1]));
+  const inComp = new Set(all.flatMap(m => [m.home.id, m.away.id]));
+  const teams = Object.entries(TN).filter(([id]) => inComp.has(id)).sort((a, b) => a[1].localeCompare(b[1]));
   S.f.team = fillSelect($('#fTeam'), [['', 'Toutes les équipes'], ...teams], S.f.team);
   const js = [...new Set(all.map(m => m.j))].sort((a, b) => a - b);
   const jOpts = js.map(j => [j, 'J' + j]);
@@ -1912,7 +1954,12 @@ const CLUB_COL = [
   [/rennes|rennais/i, '#e1001a', '#1f1f1f'], [/strasbourg/i, '#009fe3', '#0a2d6e'], [/toulouse/i, '#5b2c83', '#b39ddb'],
   [/troyes|estac/i, '#1e5aa8', '#86b6e8'], [/nantes/i, '#f6c700', '#007a3d'], [/metz/i, '#7a1e3a', '#c9a227'],
   [/montpellier/i, '#f26522', '#0a2a5c'], [/reims/i, '#e30613', '#1f1f1f'], [/etienne|étienne/i, '#009639', '#1f1f1f'],
-  [/bordeaux/i, '#0b1f4d', '#8c8c8c'], [/clermont/i, '#c8102e', '#1b2c5c']
+  [/bordeaux/i, '#0b1f4d', '#8c8c8c'], [/clermont/i, '#c8102e', '#1b2c5c'],
+  [/bastia/i, '#003da5', '#8c8c8c'], [/guingamp/i, '#c8102e', '#1f1f1f'], [/grenoble/i, '#0055a4', '#8c8c8c'], [/\bpau\b/i, '#f6c700', '#0a2a5c'],
+  [/amiens/i, '#1f1f1f', '#8c8c8c'], [/annecy/i, '#d71920', '#8c8c8c'], [/laval/i, '#f37021', '#1f1f1f'], [/red star/i, '#00843d', '#1f1f1f'],
+  [/rodez/i, '#c8102e', '#f2c200'], [/dunkerque/i, '#0055a4', '#8c8c8c'], [/boulogne/i, '#c8102e', '#1f1f1f'], [/nancy/i, '#e2001a', '#8c8c8c'],
+  [/caen/i, '#003da5', '#da291c'], [/ajaccio/i, '#c8102e', '#8c8c8c'], [/quevilly/i, '#f6c700', '#1f1f1f'], [/valenciennes/i, '#c8102e', '#8c8c8c'],
+  [/sochaux/i, '#f6c700', '#003087'], [/niort/i, '#003da5', '#8c8c8c'], [/martigues/i, '#003da5', '#c8102e'], [/concarneau/i, '#003da5', '#f2c200']
 ];
 const hexRgb = h => { const m = /^#?([0-9a-f]{6})$/i.exec(h || ''); if (!m) return null; const n = parseInt(m[1], 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
 const lum = h => { const c = hexRgb(h); if (!c) return .5; const f = v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }; return .2126 * f(c[0]) + .7152 * f(c[1]) + .0722 * f(c[2]); };
@@ -1986,7 +2033,7 @@ const xtCell = (x, y) => {
 };
 let XT_MEMO = null;
 function xtGrid() {
-  const all = Object.values(S.matches).filter(m => m.ev);
+  const all = CM().filter(m => m.ev);
   if (XT_MEMO && XT_MEMO.v === DATA_VER && XT_MEMO.ms.length === all.length && XT_MEMO.ms.every((m, i) => m === all[i])) return XT_MEMO.g;
   const N = XT_NX * XT_NY;
   const shots = new Float64Array(N), goals = new Float64Array(N), moves = new Float64Array(N);
@@ -2236,7 +2283,7 @@ const KEY_METR = [
 function renderKeyFigures(TN, PI) {
   const f = S.f;
   // contexte championnat : journées choisies, quarts d'heure choisis, toutes équipes
-  const lg = Object.values(S.matches).filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1));
+  const lg = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1));
   const T = aggTactical(lg, f.qs).T, PT = aggPhys(lg, f.qs).T;
   const teams = Object.keys(T).filter(t => T[t].mp);
   const W = t => ({A: T[t], P: PT[t]});
@@ -2246,8 +2293,8 @@ function renderKeyFigures(TN, PI) {
   const jTxt = (f.j0 != null || f.j1 != null) ? `J${f.j0 ?? ''} à J${f.j1 ?? ''}` : 'toutes les journées';
   const qTxt = f.qs.size === 6 ? '' : ' · ' + [...f.qs].sort().map(q => Q_LABELS[q]).join(', ');
   $('#keyFigSub').innerHTML = tid
-    ? `<b style="color:${cT}">${esc(TN[tid])}</b> · <b style="color:${cL}">Moyenne L1</b> · rang de ${esc(TN[tid])} sur ${teams.length} · ${jTxt}${qTxt}`
-    : `<b style="color:${cL}">Moyenne L1</b> et meilleure équipe · ${jTxt}${qTxt} · sélectionnez une équipe pour voir ses chiffres et son rang`;
+    ? `<b style="color:${cT}">${esc(TN[tid])}</b> · <b style="color:${cL}">Moyenne ${compShort()}</b> · rang de ${esc(TN[tid])} sur ${teams.length} · ${jTxt}${qTxt}`
+    : `<b style="color:${cL}">Moyenne ${compShort()}</b> et meilleure équipe · ${jTxt}${qTxt} · sélectionnez une équipe pour voir ses chiffres et son rang`;
   $('#keyFig').innerHTML = KEY_METR.map(([l, fn, d, dir]) => {
     const vals = teams.map(t => [t, fn(W(t))]).filter(v => v[1] != null).sort((a, b) => dir > 0 ? b[1] - a[1] : a[1] - b[1]);
     const avg = mean(vals.map(v => v[1]));
@@ -2582,7 +2629,7 @@ const phyByPlayer = (ms, minSecs) => memoAgg('PM' + minSecs, (a, q) => phyByPlay
 function leagueMatches() {
   const f = S.f;
   if (f.match && S.matches[f.match]) return [S.matches[f.match]];
-  return Object.values(S.matches).filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1)).sort((a, b) => a.date - b.date);
+  return CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1)).sort((a, b) => a.date - b.date);
 }
 
 // Indicateurs des nuages de points / comparaisons. T = équipe (par match), P = joueur (par 90 min)
@@ -2739,7 +2786,7 @@ function qChart(id, sets, em) {
 function renderPhysical() {
   const TN = teamNames(), PI = playerInfo();
   const ms = filteredMatches();
-  const has = Object.values(S.matches).some(m => m.phys);
+  const has = CM().some(m => m.phys);
   const needBins = S.f.qs.size < 6;
   const hasBins = ms.some(m => m.phys && m.phys.bins);
   $('#phyEmpty').hidden = has; $('#phyBody').hidden = !has;
@@ -3018,18 +3065,24 @@ function renderPhyRank(ms, TN, PI) {
 function renderData() {
   renderLogos();
   const TN = teamNames();
-  const list = Object.values(S.matches).sort((a, b) => a.date - b.date);
+  const list = CM().sort((a, b) => a.date - b.date);
+  const others = Object.values(S.matches).length - list.length;
   $('#hdrCount').textContent = list.length ? `${list.length} match(s)` : '';
+  $('#compNote').textContent = others ? `${list.length} match(s) en ${compName()} · ${others} dans l'autre championnat (changez de championnat en haut de page pour les voir)` : '';
   if (!list.length) { $('#matchList').innerHTML = canEdit() ? '<div class="empty"><b>Aucun match chargé</b>Déposez les fichiers d’un ou plusieurs matchs ci-dessus.</div>' : '<div class="empty"><b>Aucun match disponible</b>Les matchs apparaîtront ici dès qu’un compte Master les aura ajoutés.</div>'; return; }
-  $('#matchList').innerHTML = `<div class="tbl-wrap"><table><thead><tr><th class="txt">Date</th><th class="txt">Journée</th><th class="txt">Match</th><th>Score</th><th class="txt">Données</th><th></th></tr></thead><tbody>` +
+  $('#matchList').innerHTML = `<div class="tbl-wrap"><table><thead><tr><th class="txt">Date</th><th class="txt">Journée</th><th class="txt">Match</th><th>Score</th><th class="txt">Données</th><th class="txt">Championnat</th><th></th></tr></thead><tbody>` +
     list.map(m => `<tr data-id="${m.id}" style="cursor:default"><td class="txt">${new Date(m.date).toLocaleDateString('fr-FR', {weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric'})}</td>
       <td class="txt">${canEdit() ? `<input type="number" class="j" min="1" value="${m.j}" data-j="${m.id}" title="Modifier la journée">${m.jManual ? ' <span class="muted" title="Modifiée manuellement">✎</span>' : ''}` : 'J' + m.j}</td>
       <td class="txt">${esc(TN[m.home.id])} – ${esc(TN[m.away.id])}</td><td>${m.score[0]} – ${m.score[1]}</td>
       <td class="txt"><span class="badge on">Fiche</span><span class="badge ${m.ev ? 'on' : ''}">Événements</span><span class="badge ${m.phys && m.phys.sum ? 'on' : ''}">Physique résumé</span><span class="badge ${m.phys && m.phys.bins ? 'on' : ''}">Physique ${m.phys && m.phys.binsSrc === 'minute' ? '/min' : '/5 min'}</span></td>
+      <td class="txt">${canEdit() ? `<select data-comp="${m.id}" title="Déplacer vers un autre championnat">${COMPS.map(([k, l]) => `<option value="${k}"${compOf(m) === k ? ' selected' : ''}>${l}</option>`).join('')}</select>` : compName(compOf(m))}</td>
       <td>${canEdit() ? `<button class="btn danger" data-del="${m.id}" style="padding:3px 9px">Supprimer</button>` : ''}</td></tr>`).join('') + '</tbody></table></div>';
   $('#matchList').querySelectorAll('[data-j]').forEach(inp => inp.onchange = () => {
     const m = S.matches[inp.dataset.j]; const v = parseInt(inp.value, 10);
     if (v > 0) { m.j = v; m.jManual = true; persist(m); S.f.j0 = null; S.f.j1 = null; refreshAll(); }
+  });
+  $('#matchList').querySelectorAll('[data-comp]').forEach(sel => sel.onchange = () => {
+    const m = S.matches[sel.dataset.comp]; m.comp = sel.value; persist(m); refreshAll();
   });
   $('#matchList').querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
     const m = S.matches[b.dataset.del];
@@ -3132,7 +3185,7 @@ function repDefaults() {
   return R;
 }
 function saveRep() { try { const {_loaded, ...x} = S.rep; localStorage.setItem('dash-rep', JSON.stringify(x)); } catch (e) {} }
-const teamMatches = (tid, jEnd, n) => Object.values(S.matches).filter(m => (m.home.id === tid || m.away.id === tid) && (jEnd == null || m.j <= jEnd) && m.ev)
+const teamMatches = (tid, jEnd, n) => CM().filter(m => (m.home.id === tid || m.away.id === tid) && (jEnd == null || m.j <= jEnd) && m.ev)
   .sort((a, b) => b.j - a.j || String(b.date).localeCompare(String(a.date))).slice(0, n);
 const otherSide = (m, tid) => m.home.id === tid ? m.away.id : m.home.id;
 const pct = (a, b) => b ? Math.round(a / b * 100) : null;
@@ -3385,10 +3438,10 @@ function reportPre(R, TN, PI, SR) {
   const jEnd = R.jEnd || null, N = R.n || 5;
   const mo = teamMatches(opp, jEnd, N); if (!mo.length) return '<div class="empty">Aucun match de cet adversaire sur la période.</div>';
   const mu = us ? teamMatches(us, jEnd, N) : [];
-  const nO = TN[opp], nU = us ? TN[us] : 'Moyenne L1', cL = css('--text-3');
+  const nO = TN[opp], nU = us ? TN[us] : 'Moyenne ' + compShort(), cL = css('--text-3');
   const [cO, cU] = us ? clubPair(opp, us) : [clubColor(opp), colDist(clubColor(opp), css('--s1')) < 160 ? css('--s2') : css('--s1')];
   // Valeurs de chaque équipe sur ses N derniers matchs (pour les rangs et la moyenne)
-  const teams = [...new Set(Object.values(S.matches).flatMap(m => [m.home.id, m.away.id]))];
+  const teams = [...new Set(CM().flatMap(m => [m.home.id, m.away.id]))];
   const win = {}; for (const t of teams) { const ms = teamMatches(t, jEnd, N); win[t] = {ms, A: aggTactical(ms, ALLQ).T[t], P: aggPhys(ms, ALLQ).T[t]}; }
   const METR = [
     ['Buts / match', w => w.A && w.A.mp ? w.A.gf / w.A.mp : null, 2, 1], ['Buts encaissés / match', w => w.A && w.A.mp ? w.A.ga / w.A.mp : null, 2, -1],
@@ -3409,7 +3462,7 @@ function reportPre(R, TN, PI, SR) {
   const head = `<div class="rhead pre"><div class="rteam"><span class="rlogo">${logoHTML(opp)}</span><b>${esc(nO)}</b><small>${mo.length} derniers matchs${jEnd ? ' jusqu’à la J' + jEnd : ''} · ${rec[0]} V · ${rec[1]} N · ${rec[2]} D</small></div>${us ? `<div class="rscore"><small>prochain match</small><span class="vs">VS</span><small></small></div><div class="rteam b"><span class="rlogo">${logoHTML(us)}</span><b>${esc(nU)}</b></div>` : ''}</div>`;
   const TOT = 5, A = win[opp].A || newAgg();
   const p1 = rpage(1, TOT, 'Profil de l’adversaire', `${nO} en un coup d’œil.`, 'Résultats récents et chiffres clés, comparés au reste du championnat sur la même période.', head,
-    `<div class="rgrid2 w37">${rblk(1, 'Forme', `${mo.length} derniers matchs`, `<ul class="rform">${form}</ul>`)}${rblk(2, 'Chiffres clés', `<b style="color:${cO}">${esc(nO)}</b> · <b style="color:${us ? cU : cL}">${esc(nU)}</b> · rang de ${esc(nO)} en L1`, `<div class="rtiles small">${tiles}</div>`)}</div>`
+    `<div class="rgrid2 w37">${rblk(1, 'Forme', `${mo.length} derniers matchs`, `<ul class="rform">${form}</ul>`)}${rblk(2, 'Chiffres clés', `<b style="color:${cO}">${esc(nO)}</b> · <b style="color:${us ? cU : cL}">${esc(nU)}</b> · rang de ${esc(nO)} en ${compShort()}`, `<div class="rtiles small">${tiles}</div>`)}</div>`
     + rblk(3, 'Quand ils marquent, quand ils encaissent', 'par quart d’heure · moyenne par match', `<div class="chart-box short"><canvas id="chRepQ"></canvas></div>`));
   // Page 2 : comment ils attaquent
   const O = blkOrigin({a: mo, b: mu}, opp, us || null, nO, nU, cO, cU);
@@ -3429,7 +3482,7 @@ function reportPre(R, TN, PI, SR) {
   const hO = mean(rO.map(p => p.x)), hL = mean(teams.map(t => mean(recovPts(win[t].ms, t).map(p => p.x))));
   const gA = goalsList(mo, opp, true), gapat = {}; gA.forEach(g => gapat[g.pat] = (gapat[g.pat] || 0) + 1);
   const p3 = rpage(3, TOT, 'Défensif', 'Comment ils défendent.', 'Hauteur du pressing, zones de récupération, où ils perdent le ballon (où les presser) et ce qu’ils concèdent.', head.replace('rhead', 'rhead mini'),
-    rblk(1, 'Pressing', '', `<div class="rtiles small"><div class="rtile"><span>Hauteur moyenne de récupération</span><div><b style="color:${cO}">${fmt(hO)} m</b><b style="color:${cL}">${fmt(hL)} m</b></div><small>${esc(nO)} · moyenne L1</small></div><div class="rtile"><span>PPDA</span><div><b style="color:${cO}">${fmt(val(TAC, 'ppda', A), 1)}</b><b style="color:${cL}">${fmt(avgOf(w => val(TAC, 'ppda', w.A)), 1)}</b></div><small>plus bas = pressing plus intense</small></div><div class="rtile"><span>Récup. camp adverse / match</span><div><b style="color:${cO}">${fmt(A.recovH / (A.mp || 1), 1)}</b><b style="color:${cL}">${fmt(avgOf(w => w.A && w.A.mp ? w.A.recovH / w.A.mp : null), 1)}</b></div><small>${esc(nO)} · moyenne L1</small></div><div class="rtile"><span>Buts encaissés</span><div><b style="color:${cO}">${gA.length}</b></div><small>${Object.entries(gapat).map(([k, v]) => `${v} ${PAT_L[k] || k}`).join(' · ') || '—'}</small></div></div>`)
+    rblk(1, 'Pressing', '', `<div class="rtiles small"><div class="rtile"><span>Hauteur moyenne de récupération</span><div><b style="color:${cO}">${fmt(hO)} m</b><b style="color:${cL}">${fmt(hL)} m</b></div><small>${esc(nO)} · moyenne ${compShort()}</small></div><div class="rtile"><span>PPDA</span><div><b style="color:${cO}">${fmt(val(TAC, 'ppda', A), 1)}</b><b style="color:${cL}">${fmt(avgOf(w => val(TAC, 'ppda', w.A)), 1)}</b></div><small>plus bas = pressing plus intense</small></div><div class="rtile"><span>Récup. camp adverse / match</span><div><b style="color:${cO}">${fmt(A.recovH / (A.mp || 1), 1)}</b><b style="color:${cL}">${fmt(avgOf(w => w.A && w.A.mp ? w.A.recovH / w.A.mp : null), 1)}</b></div><small>${esc(nO)} · moyenne ${compShort()}</small></div><div class="rtile"><span>Buts encaissés</span><div><b style="color:${cO}">${gA.length}</b></div><small>${Object.entries(gapat).map(([k, v]) => `${v} ${PAT_L[k] || k}`).join(' · ') || '—'}</small></div></div>`)
     + `<div class="rgrid2">${rblk(2, 'Où ils récupèrent', `${rO.length} récupérations`, thirdsGridSVG(rO, cO, nO + ' attaque'))}${rblk(3, 'Où ils perdent le ballon', `${lO.length} pertes · zones à presser`, thirdsGridSVG(lO, cU, nO + ' attaque'))}</div>`
     + `<div class="rgrid2">${rblk(4, 'D’où on leur tire dessus', `${sC.length} tirs concédés · ${fmt(A.xga, 2)} xG · leur but en haut`, shotGridSVG(sC, cU))}${(() => { const c = cageSVG(sC, cU); return rblk(5, 'Où ça va dans leur cage', c.sub, c.svg); })()}</div>`);
   // Page 4 : CPA
@@ -3456,7 +3509,7 @@ function reportPre(R, TN, PI, SR) {
 
 function renderReport() {
   const R = repDefaults(), TN = teamNames(), PI = playerInfo(), SR = seasonRoles();
-  const all = Object.values(S.matches).filter(m => m.ev).sort((a, b) => b.j - a.j || String(b.date).localeCompare(String(a.date)));
+  const all = CM().filter(m => m.ev).sort((a, b) => b.j - a.j || String(b.date).localeCompare(String(a.date)));
   $('#repEmpty').hidden = !!all.length; $('#repBody').hidden = !all.length; if (!all.length) return;
   const teams = [...new Set(all.flatMap(m => [m.home.id, m.away.id]))].sort((a, b) => (TN[a] || '').localeCompare(TN[b] || ''));
   const js = [...new Set(all.map(m => m.j))].sort((a, b) => a - b);
@@ -3471,7 +3524,7 @@ function renderReport() {
   } else {
     if (!teams.includes(R.opp)) R.opp = teams[0];
     fillSelect($('#repOpp'), teams.map(t => [t, TN[t]]), R.opp);
-    fillSelect($('#repUs'), [['', '— aucune (comparer à la moyenne L1) —'], ...teams.filter(t => t !== R.opp).map(t => [t, TN[t]])], R.us || '');
+    fillSelect($('#repUs'), [['', `— aucune (comparer à la moyenne ${compShort()}) —`], ...teams.filter(t => t !== R.opp).map(t => [t, TN[t]])], R.us || '');
     fillSelect($('#repJ'), [['', 'toutes'], ...js.map(j => [j, 'J' + j])], R.jEnd || '');
     $('#repN').value = R.n;
   }
@@ -3524,6 +3577,7 @@ function exportPDF() {
   }));
 }
 function bindUI() {
+  bindComp();
   bindSubtabs();
   bindPhyUI();
   bindReportUI();
