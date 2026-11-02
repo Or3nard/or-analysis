@@ -80,6 +80,12 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .chart-box.tall{height:460px}
 .chart-box.short{height:260px}
 .chart-box.xl{height:560px}
+.cage-wrap{max-width:760px;margin:0 auto}
+.cage{width:100%;height:auto;display:block}
+.cage-leg{display:flex;gap:14px;justify-content:center;font-size:11.5px;color:var(--text-2);flex-wrap:wrap;margin-top:4px}
+.cage-leg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+.clr-row{display:flex;gap:4px;align-items:center;justify-content:center;margin-top:4px}.clr-row input{width:26px;height:20px;padding:0;border:1px solid var(--border);border-radius:4px;background:none;cursor:pointer}
+.clr-row button{font-size:11px;padding:1px 5px}
 .rep-ctl{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
 .rep-ctl .sub{margin:0 0 0 auto}
 .rep-fields{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
@@ -123,7 +129,7 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .rtile div{display:flex;justify-content:space-between;margin-top:2px}.rtile b{font-size:19px;font-weight:800}.rtile small{color:var(--text-3);font-size:10.5px}
 .rtbar{height:4px;display:flex;border-radius:2px;overflow:hidden;margin-top:4px}
 .rgrid{width:100%;height:auto;display:block}.rgrid.shots{max-width:420px;margin:0 auto}
-.rnarrow{max-width:440px;margin:0 auto}
+.rnarrow{max-width:440px;margin:0 auto}.rnarrow.wide{max-width:640px}
 .rleg{display:flex;gap:14px;font-size:11.5px;color:var(--text-2);margin-top:4px;flex-wrap:wrap}.rleg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 .rtbl table{font-size:12px}.rtbl th{white-space:nowrap}
 .rcorner .rname{margin-bottom:4px}
@@ -191,10 +197,10 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .pct-row .vl small{color:var(--text-3);display:block;font-size:11px}
 .h2h-ctrl{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .h2h-ctrl select{max-width:260px}
-.h2h-ctrl .lbl.a{color:var(--s1)}.h2h-ctrl .lbl.b{color:var(--s2)}
+.h2h-ctrl .lbl.a{color:var(--ha,var(--s1))}.h2h-ctrl .lbl.b{color:var(--hb,var(--s2))}
 .h2h-head{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:stretch;margin-top:14px}
-.h2h-side{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;border-top:4px solid var(--s1)}
-.h2h-side.b{border-top-color:var(--s2);flex-direction:row-reverse;text-align:right}
+.h2h-side{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;border-top:4px solid var(--ha,var(--s1))}
+.h2h-side.b{border-top-color:var(--hb,var(--s2));flex-direction:row-reverse;text-align:right}
 .h2h-side img{width:44px;height:44px;object-fit:contain}
 .h2h-side .nm{font-size:17px;font-weight:700}
 .h2h-side .meta{font-size:12.5px;color:var(--text-3)}
@@ -208,7 +214,7 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .h2h-row .m small{display:block;color:var(--text-3);font-size:10.5px}
 .h2h-row .bar{height:12px;background:var(--surface-2);border-radius:3px;position:relative;overflow:hidden}
 .h2h-row .bar i{position:absolute;top:0;bottom:0;border-radius:3px}
-.h2h-row .bar.a i{right:0;background:var(--s1)}.h2h-row .bar.b i{left:0;background:var(--s2)}
+.h2h-row .bar.a i{right:0;background:var(--ha,var(--s1))}.h2h-row .bar.b i{left:0;background:var(--hb,var(--s2))}
 .h2h-row .bar i.lose{opacity:.45}
 @media (max-width:700px){.h2h-head{grid-template-columns:1fr}.h2h-vs{display:none}.h2h-row{grid-template-columns:52px 1fr 100px 1fr 52px}}
 .tbl-wrap{overflow:auto;max-height:520px;border:1px solid var(--border);border-radius:8px}
@@ -386,7 +392,7 @@ input.j{width:64px}
       <div id="matchList"></div>
     </div>
     <div class="card c12" id="logoCard">
-      <div class="card-head"><div><h2>Logos des équipes</h2><p class="sub">Importez l'image de chaque club (PNG, JPG ou SVG). Elle s'affiche dans les graphiques et les tableaux, pour tous les utilisateurs.</p></div></div>
+      <div class="card-head"><div><h2>Logos et couleurs des équipes</h2><p class="sub">Importez l'image de chaque club (PNG, JPG ou SVG). Les deux pastilles sont la couleur principale et la couleur secondaire du club (cliquez pour les modifier) : la secondaire est utilisée quand deux équipes d'un même graphique ont des couleurs trop proches. Logos et couleurs s'appliquent à tous les utilisateurs.</p></div></div>
       <div id="logoGrid" class="logo-grid"></div>
       <input type="file" id="logoInput" accept="image/*" hidden>
     </div>
@@ -473,6 +479,10 @@ input.j{width:64px}
             <div class="ctrl"><select id="offMetric"></select></div>
           </div>
           <div class="chart-box tall"><canvas id="chOffRank"></canvas></div>
+        </div>
+        <div class="card c12">
+          <div class="card-head"><div><h2>Où vont les tirs dans la cage</h2><p class="sub" id="cageSub"></p></div></div>
+          <div id="cageOff" class="cage-wrap"></div>
         </div>
         <div class="card c12">
           <div class="card-head"><div><h2>Carte des passes</h2><p class="sub" id="lbSub"></p></div>
@@ -1172,6 +1182,7 @@ function procInsight(m, rows) {
       const x = mk ? nx(mk.shotLoc[0]) : r1(o.x * 1.05), y = mk ? ny(mk.shotLoc[1]) : r1((100 - o.y) * 0.68);
       const shot = {p: pid, tm, q, xg: mk ? (mk.xG || 0) : 0, x, y, g: o.typeId === 16 ? 1 : 0,
         ot: (o.typeId === 16 || (o.typeId === 15 && qv[82] === undefined)) ? 1 : 0, pen: qv[9] !== undefined ? 1 : 0,
+        gy: qv[102] != null ? +qv[102] : null, gz: qv[103] != null ? +qv[103] : null, blk: qv[82] !== undefined ? 1 : 0, post: o.typeId === 14 ? 1 : 0,
         min: o.timeMin, rel: (qv[55] !== undefined) ? +qv[55] : null, ast: qv[29] !== undefined,
         pat: qv[9] !== undefined ? 'pen' : qv[25] !== undefined ? 'cor' : qv[26] !== undefined ? 'cfd' : qv[24] !== undefined ? 'cfi' : qv[160] !== undefined ? 'tou' : qv[23] !== undefined ? 'ctr' : 'jeu'};
       ev.shots.push(shot);
@@ -1200,7 +1211,7 @@ function procInsight(m, rows) {
   if (!optaRaw.length) {
     for (const {k, q} of shotMkList) ev.shots.push({p: k.shooterId, tm: k.attTeamId, q, xg: k.xG || 0, x: nx(k.shotLoc[0]), y: ny(k.shotLoc[1]), g: 0, ot: 0, pen: 0, min: null});
   }
-  ev.v = 3;
+  ev.v = 4;
   m.ev = ev;
   // minutes de repli (si pas de physique)
   m.minsOpta = minutesFromOpta(m, setup, subs);
@@ -1761,9 +1772,14 @@ function renderLogos() {
   const TN = teamNames(); const teams = Object.entries(TN).sort((a, b) => a[1].localeCompare(b[1]));
   if (!teams.length) { el.innerHTML = '<div class="muted">Les équipes apparaîtront ici après l’import d’un premier match.</div>'; return; }
   el.innerHTML = teams.map(([id, name]) => `<div class="logo-tile"><div class="lg">${LOGO.data[id] ? `<img src="${LOGO.data[id]}" alt="">` : esc(name.split(/\s+/).map(w => w[0]).join('').slice(0, 3).toUpperCase())}</div>
-    <div class="nm" title="${esc(name)}">${esc(name)}</div><div class="acts"><button class="btn" data-logo="${id}">${LOGO.data[id] ? 'Changer' : 'Importer'}</button>${LOGO.data[id] ? `<button class="btn danger" data-unlogo="${id}">Retirer</button>` : ''}</div></div>`).join('');
+    <div class="nm" title="${esc(name)}">${esc(name)}</div><div class="acts"><button class="btn" data-logo="${id}">${LOGO.data[id] ? 'Changer' : 'Importer'}</button>${LOGO.data[id] ? `<button class="btn danger" data-unlogo="${id}">Retirer</button>` : ''}</div>
+    <div class="clr-row" title="Couleur principale / secondaire du club">${(() => { const c = clubCols(id) || ['#2a78d6', '#eb6834']; const ov = (LOGO.data._colors || {})[id]; return `<input type="color" data-c1="${id}" value="${c[0]}"><input type="color" data-c2="${id}" value="${c[1]}">${ov ? `<button class="btn" data-creset="${id}" title="Revenir aux couleurs par défaut">↺</button>` : ''}`; })()}</div></div>`).join('');
   el.querySelectorAll('[data-logo]').forEach(b => b.onclick = () => { LOGO.pending = b.dataset.logo; $('#logoInput').value = ''; $('#logoInput').click(); });
   el.querySelectorAll('[data-unlogo]').forEach(b => b.onclick = async () => { delete LOGO.data[b.dataset.unlogo]; try { await saveLogos(); } catch (e) { alert(e.message); } renderLogos(); render(); });
+  const setCol = async (id, i, v) => { const C = LOGO.data._colors = LOGO.data._colors || {}; const cur = C[id] || (clubCols(id) || ['#2a78d6', '#eb6834']).slice(); cur[i] = v; C[id] = cur; try { await saveLogos(); } catch (e) { alert(e.message); } renderLogos(); render(); };
+  el.querySelectorAll('[data-c1]').forEach(x => x.onchange = () => setCol(x.dataset.c1, 0, x.value));
+  el.querySelectorAll('[data-c2]').forEach(x => x.onchange = () => setCol(x.dataset.c2, 1, x.value));
+  el.querySelectorAll('[data-creset]').forEach(b => b.onclick = async () => { delete (LOGO.data._colors || {})[b.dataset.creset]; try { await saveLogos(); } catch (e) { alert(e.message); } renderLogos(); render(); });
 }
 function bindLogos() {
   $('#logoInput').onchange = async e => {
@@ -1864,6 +1880,80 @@ function teamTable(id, cols, teamRows, mode, defSort, f) {
     teamRows, {defaultSort: defSort, hl: r => r.id === f.team, onRow: id => setFilter('team', id)});
 }
 
+/* =====================================================================
+   Couleurs des clubs (couleurs traditionnelles ; secondaire si les deux se ressemblent)
+   ===================================================================== */
+const CLUB_COL = [
+  [/paris fc|^pfc\b/i, '#1b2c5c', '#6ec1e4'], [/paris saint|paris sg|\bpsg\b/i, '#004170', '#da291c'],
+  [/auxerre/i, '#1565c0', '#86bce8'], [/angers/i, '#1f1f1f', '#8c8c8c'], [/brest/i, '#d71920', '#7a7a7a'],
+  [/havre/i, '#3d9ad6', '#0d2c54'], [/\blens\b/i, '#e30613', '#f0b400'], [/lille|losc/i, '#c8102e', '#1b2a59'],
+  [/lorient/i, '#f37021', '#1f1f1f'], [/le mans/i, '#c8102e', '#e9b200'], [/lyon/i, '#1d3e8f', '#da291c'],
+  [/marseille/i, '#2faee0', '#0b2240'], [/monaco/i, '#e2001a', '#8c8c8c'], [/nice/i, '#c8102e', '#1f1f1f'],
+  [/rennes|rennais/i, '#e1001a', '#1f1f1f'], [/strasbourg/i, '#009fe3', '#0a2d6e'], [/toulouse/i, '#5b2c83', '#b39ddb'],
+  [/troyes|estac/i, '#1e5aa8', '#86b6e8'], [/nantes/i, '#f6c700', '#007a3d'], [/metz/i, '#7a1e3a', '#c9a227'],
+  [/montpellier/i, '#f26522', '#0a2a5c'], [/reims/i, '#e30613', '#1f1f1f'], [/etienne|étienne/i, '#009639', '#1f1f1f'],
+  [/bordeaux/i, '#0b1f4d', '#8c8c8c'], [/clermont/i, '#c8102e', '#1b2c5c']
+];
+const hexRgb = h => { const m = /^#?([0-9a-f]{6})$/i.exec(h || ''); if (!m) return null; const n = parseInt(m[1], 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
+const lum = h => { const c = hexRgb(h); if (!c) return .5; const f = v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }; return .2126 * f(c[0]) + .7152 * f(c[1]) + .0722 * f(c[2]); };
+const isDark = () => { const t = document.documentElement.getAttribute('data-theme'); return t ? t === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; };
+// distance perceptuelle simple (« redmean »)
+function colDist(a, b) { const x = hexRgb(a), y = hexRgb(b); if (!x || !y) return 999; const r = (x[0] + y[0]) / 2, dr = x[0] - y[0], dg = x[1] - y[1], db = x[2] - y[2]; return Math.sqrt((2 + r / 256) * dr * dr + 4 * dg * dg + (2 + (255 - r) / 256) * db * db); }
+// lisible sur le fond : noir → gris clair en thème sombre, blanc/très clair → gris en thème clair
+function readable(c) { const L = lum(c); if (isDark() && L < .03) return '#d9d9d9'; if (!isDark() && L > .8) return '#9a9a9a'; return c; }
+function clubCols(tid) {
+  const ov = (LOGO.data._colors || {})[tid]; if (ov && ov[0]) return [ov[0], ov[1] || ov[0]];
+  const nm = teamNames()[tid] || ''; const hit = CLUB_COL.find(([re]) => re.test(nm));
+  return hit ? [hit[1], hit[2]] : null;
+}
+function clubColor(tid, fallback) { const c = clubCols(tid); return c ? readable(c[0]) : (fallback || css('--s1')); }
+function clubPair(a, b) {
+  const ca = clubCols(a), cb = clubCols(b);
+  let A = ca ? readable(ca[0]) : css('--s1'), B = cb ? readable(cb[0]) : css('--s2');
+  const close = (x, y) => colDist(x, y) < 160;
+  if (close(A, B)) {
+    if (cb && !close(A, readable(cb[1]))) B = readable(cb[1]);
+    else if (ca && !close(readable(ca[1]), B)) A = readable(ca[1]);
+    else B = close(A, css('--s2')) ? css('--s1') : css('--s2');
+  }
+  return [A, B];
+}
+
+/* ---------- Cage : où arrivent les tirs (coordonnées Opta 102/103, vue depuis le tireur) ---------- */
+function cageSVG(shots, col) {
+  const PY0 = 45.2, PY1 = 54.8, BAR = 38;            // poteaux / barre (unités Opta)
+  const Y0 = 41, Y1 = 59, ZM = 62;                   // zone affichée autour du but
+  const KX = 7.32 / (PY1 - PY0), KZ = 2.44 / BAR;    // mètres par unité
+  const X = gy => (Y1 - gy) * KX, Z = gz => (ZM - gz) * KZ; // gauche du tireur à gauche
+  const W = (Y1 - Y0) * KX, H = ZM * KZ;
+  const ok = shots.filter(s => s.gy != null && !s.blk);
+  const blk = shots.filter(s => s.blk).length, miss = shots.filter(s => s.gy == null && !s.blk).length;
+  // grille 3 × 3 dans le cadre
+  const cx = [PY1, PY1 - 3.2, PY0 + 3.2, PY0], cz = [BAR, BAR * 2 / 3, BAR / 3, 0];
+  const G = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]; let inF = 0;
+  for (const s of ok) if ((s.ot || s.g) && s.gy >= PY0 && s.gy <= PY1 && s.gz <= BAR) { const c = s.gy > cx[1] ? 0 : s.gy > cx[2] ? 1 : 2, r = s.gz > cz[1] ? 0 : s.gz > cz[2] ? 1 : 2; G[r][c]++; inF++; }
+  const mx = Math.max(1, ...G.flat());
+  let cells = '';
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
+    const x0 = X(cx[c]), x1 = X(cx[c + 1]), z0 = Z(cz[r]), z1 = Z(cz[r + 1]), v = G[r][c];
+    cells += `<rect x="${x0}" y="${z0}" width="${x1 - x0}" height="${z1 - z0}" fill="${v ? `color-mix(in srgb, ${col} ${Math.round(10 + v / mx * 45)}%, var(--surface))` : 'var(--surface)'}" stroke="var(--grid)" stroke-width=".02"/>`
+      + `<text x="${(x0 + x1) / 2}" y="${(z0 + z1) / 2 + .09}" text-anchor="middle" font-size=".26" font-weight="700" fill="var(--text-3)">${v || ''}</text>`;
+  }
+  const dots = ok.slice().sort((a, b) => (a.g - b.g) || ((a.ot || 0) - (b.ot || 0))).map(s => {
+    const x = Math.max(.08, Math.min(W - .08, X(s.gy))), z = Math.max(.08, Math.min(H - .02, Z(s.gz)));
+    const r = .07 + Math.sqrt(Math.max(s.xg || 0, .01)) * .16;
+    const tip = `${s.min != null ? s.min + "' · " : ''}xG ${fmt(s.xg, 2)}${s.g ? ' · BUT' : s.ot ? ' · arrêté' : s.post ? ' · poteau' : ' · non cadré'}`;
+    if (s.g) return `<g data-tip="${esc(tip)}"><circle cx="${x}" cy="${z}" r="${r + .03}" fill="#fff" stroke="${col}" stroke-width=".035"/><text x="${x}" y="${z + .07}" text-anchor="middle" font-size="${(r + .03) * 1.55}">⚽</text></g>`;
+    if (s.ot) return `<circle cx="${x}" cy="${z}" r="${r}" fill="${col}" stroke="var(--surface)" stroke-width=".02" data-tip="${esc(tip)}"/>`;
+    return `<circle cx="${x}" cy="${z}" r="${r}" fill="var(--surface)" stroke="${col}" stroke-width=".03" stroke-dasharray="${s.post ? '0' : '.05 .03'}" data-tip="${esc(tip)}"/>`;
+  }).join('');
+  const frame = `<path d="M${X(PY1)} ${H} V${Z(BAR)} H${X(PY0)} V${H}" fill="none" stroke="var(--text)" stroke-width=".09" stroke-linejoin="round"/><line x1="0" y1="${H}" x2="${W}" y2="${H}" stroke="var(--text-3)" stroke-width=".03"/>`;
+  const lab = ['lucarne', 'mi-hauteur', 'ras de terre'].map((l, r) => `<text x="${X(PY1) - .12}" y="${(Z(cz[r]) + Z(cz[r + 1])) / 2 + .06}" text-anchor="end" font-size=".17" fill="var(--text-3)">${l}</text>`).join('');
+  const gl = ok.filter(s => s.g).length, sv = ok.filter(s => s.ot && !s.g).length, off = ok.length - gl - sv;
+  return {svg: `<svg class="cage" viewBox="-.1 -.1 ${W + .2} ${H + .35}"><rect x="-.1" y="-.1" width="${W + .2}" height="${H + .35}" fill="var(--pitch)"/>${cells}${frame}${lab}${dots}<text x="${W / 2}" y="${H + .25}" text-anchor="middle" font-size=".16" fill="var(--text-3)">vue depuis le tireur</text></svg>`
+    + `<div class="cage-leg"><span>⚽ but (${gl})</span><span><i style="background:${col}"></i>arrêté (${sv})</span><span><i style="border:1.5px dashed ${col}"></i>non cadré (${off})</span>${blk ? `<span>${blk} contré(s), non placés</span>` : ''}</div>`,
+    sub: `${shots.length} tirs · ${inF} cadrés placés dans le cadre · taille = xG${miss ? ` · ${miss} tir(s) sans position (réimportez les matchs)` : ''}`};
+}
 /* =====================================================================
    xT (Expected Threat) — modèle de Karun Singh, calculé sur les matchs importés
    Grille 12 × 8. xT(z) = P(tir|z)·xG moyen(z) + P(action|z)·Σ T(z→z')·xT(z')
@@ -1978,7 +2068,7 @@ function momMarkers(md, PI) {
       for (const gl of m.ev.goals || []) {
         const px = at(gl.per, gl.mi); if (px == null) continue;
         const isA = gl.tm === md.ida;
-        goalIcon(px, isA ? rowA : rowB, isA ? css('--s1') : css('--s2'), `${gl.min}'${gl.og ? ' csc' : ''}`);
+        goalIcon(px, isA ? rowA : rowB, isA ? md.cA : md.cB, `${gl.min}'${gl.og ? ' csc' : ''}`);
       }
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       for (const e of m.ev.opta || []) if (e.card && e.per) {
@@ -2001,7 +2091,7 @@ function renderShotBand(sfx, md, labels, PI) {
   const m = md.single;
   $(`#mom${sfx}ShBox`).hidden = !m; $(`#mom${sfx}ShHead`).hidden = !m;
   if (!m) return;
-  const s1 = css('--s1'), s2 = css('--s2');
+  const s1 = md.cA, s2 = md.cB;
   const pts = [];
   for (const sh of m.ev.shots || []) {
     if (sh.per == null) continue;
@@ -2040,15 +2130,17 @@ function renderShotBand(sfx, md, labels, PI) {
     plugins: [stems]});
 }
 function renderMomentum(sfx, ms, TN, PI, fo) {
-  const f = fo || S.f, s1 = css('--s1'), s2 = css('--s2');
+  const f = fo || S.f;
   const old = ms.filter(m => m.ev && !xtReady(m)).length;
   const md = momentumData(ms, f, TN);
+  [md.cA, md.cB] = md.single ? clubPair(md.ida, otherSide(md.single, md.ida)) : f.team ? [clubColor(f.team), css('--text-3')] : [css('--s1'), css('--s2')];
+  const s1 = md.cA, s2 = md.cB;
   const note = $(`#mom${sfx}Note`);
   note.innerHTML = (old ? `⚠ ${old} match(s) importés avant l’ajout du momentum ne sont pas comptés : réimportez leurs dossiers dans l’onglet Données. ` : '')
     + 'xT (Expected Threat) : gain de menace apporté par chaque passe ou conduite réussie (modèle de Karun Singh, calculé sur tous les matchs importés). '
     + (md.single ? '<br><span class="mom-lg"><span class="ball">⚽</span> but · <i class="dot full"></i> occasion dangereuse (xG ≥ 0,20) · <i class="dot"></i> autre tir (bande « Tirs ») · <i class="mcard y"></i><i class="mcard r"></i> carton · ⇄ entrée en jeu</span>' : 'Choisissez un match pour voir les buts, tirs, cartons et changements.');
   const kind = md.single ? `${md.la} – ${md.lb}` : f.team ? `${md.la} vs adversaires · moyenne sur ${md.n} match(s)` : `Domicile vs extérieur · moyenne sur ${md.n} match(s)`;
-  $(`#mom${sfx}Sub`).innerHTML = md.n ? `${esc(kind)} · xT ${esc(md.la)} <b style="color:var(--s1)">${fmt(md.tA, 2)}</b> – <b style="color:var(--s2)">${fmt(md.tB, 2)}</b> ${esc(md.lb)}` : 'Aucun match avec les données nécessaires';
+  $(`#mom${sfx}Sub`).innerHTML = md.n ? `${esc(kind)} · xT ${esc(md.la)} <b style="color:${md.cA}">${fmt(md.tA, 2)}</b> – <b style="color:${md.cB}">${fmt(md.tB, 2)}</b> ${esc(md.lb)}` : 'Aucun match avec les données nécessaires';
   const mode = $(`#mom${sfx}Mode`).value;
   // on ne garde que les minutes de temps additionnel réellement jouées
   const used = i => md.A[i] > 0 || md.B[i] > 0;
@@ -2224,6 +2316,7 @@ function renderTactical() {
     for (const m of ms) if (m.ev) for (const x of m.ev.shots) if (f.qs.has(x.q) && focusShot(x) && (st === 'all' || (st === 'cpa' ? CPA.includes(x.pat) : st === 'jeu' ? (!x.pat || x.pat === 'jeu') : x.pat === st))) shots.push(x);
     $('#shotSub').textContent = `${shots.length} tirs · ${shots.filter(x => x.g).length} buts · ${fmt(shots.reduce((a, x) => a + x.xg, 0), 2)} xG`;
     $('#shotMap').innerHTML = shotMapSVG(shots, PI, TN);
+    { const c = cageSVG(shots, f.team ? clubColor(f.team) : css('--s1')); $('#cageOff').innerHTML = c.svg; $('#cageSub').textContent = c.sub; }
     rankPlayers('chOffRank', '#offRankSub', $('#offMetric').value, TAC, plRows, pmP, minMin, f.player);
     teamTable('tblOffTeams', ['mp', 'gf', 'xg', 'gmx', 'sh', 'sot', 'sotPct', 'xgsh', 'shCtr', 'xgCtr', 'possPct', 'pass', 'passPct', 'xpd', 'lb', 'byp', 'prog', 'f3', 'box', 'kp', 'cross', 'crossPct', 'carryProg', 'drbOk', 'vert', 'xgPoss'],
       teamRows, $('#offTeamMode').value, 'xg', f);
@@ -2642,10 +2735,11 @@ function renderPhyTeam(ms, lg, TN, PI) {
 
   // Au fil du match
   const em = $('#phyEvoMetric').value;
-  const sets = f.team ? [{l: TN[f.team], d: evoSeries(ms, b => b.tm === f.team, em), c: s1}, {l: 'Adversaires', d: evoSeries(ms, b => b.tm !== f.team, em), c: s2}]
+  const tcol = f.team ? clubColor(f.team) : s1, ocol = css('--text-3');
+  const sets = f.team ? [{l: TN[f.team], d: evoSeries(ms, b => b.tm === f.team, em), c: tcol}, {l: 'Adversaires', d: evoSeries(ms, b => b.tm !== f.team, em), c: ocol}]
     : [{l: 'Toutes équipes', d: evoSeries(ms, () => true, em), c: s1}];
   evoChart('chEvo', sets, em);
-  const qs = f.team ? [{l: TN[f.team], d: qSeries(ms, b => b.tm === f.team, em), c: s1}, {l: 'Adversaires', d: qSeries(ms, b => b.tm !== f.team, em), c: s2}]
+  const qs = f.team ? [{l: TN[f.team], d: qSeries(ms, b => b.tm === f.team, em), c: tcol}, {l: 'Adversaires', d: qSeries(ms, b => b.tm !== f.team, em), c: ocol}]
     : [{l: 'Toutes équipes', d: qSeries(ms, () => true, em), c: s1}];
   qChart('chPhyQ', qs, em);
 
@@ -2773,6 +2867,8 @@ function renderPhyH2H(lg, TN, PI) {
   const who = id => mode === 'team' ? {tid: id, name: TN[id], meta: `${fmt(T[id].mp)} match(s)`}
     : {tid: P[id].tm || PI[id].team, name: PI[id].name, meta: `${esc(TN[P[id].tm || PI[id].team] || '')}${SR[id] && ROLE_L[SR[id]] ? ' · ' + ROLE_L[SR[id]] : ''} · ${fmt(P[id].time / 60)} min · ${fmt(P[id].mp)} match(s)`};
   const wa = who(sel[0]), wb = who(sel[1]);
+  const [hA, hB] = clubPair(wa.tid, wb.tid);
+  const sp = document.querySelector('.subpanel[data-sub="h2h"]'); sp.style.setProperty('--ha', hA); sp.style.setProperty('--hb', hB);
   const logoBig = tid => { const d = tid && LOGO.data[tid]; return d ? `<img src="${d}" alt="">` : ''; };
   $('#h2hHead').innerHTML = `<div class="h2h-side a">${logoBig(wa.tid)}<div><div class="nm">${esc(wa.name)}</div><div class="meta">${wa.meta}</div></div></div><div class="h2h-vs">VS</div>`
     + `<div class="h2h-side b">${logoBig(wb.tid)}<div><div class="nm">${esc(wb.name)}</div><div class="meta">${wb.meta}</div></div></div>`;
@@ -2794,7 +2890,7 @@ function renderPhyH2H(lg, TN, PI) {
   }
   $('#h2hRadarSub').textContent = '0 = le plus bas, 100 = le plus haut, ' + peerTxt;
   const pcs = o => H2H_KEYS.map(k => percentile(peers.map(p => scVal(k, p, lvl)), scVal(k, o, lvl)));
-  const s1 = css('--s1'), s2 = css('--s2');
+  const s1 = hA, s2 = hB;
   chart('chH2hRadar', {type: 'radar', data: {labels: H2H_KEYS.map(k => SCM[k].l), datasets: [
       {label: wa.name, data: pcs(A), borderColor: s1, backgroundColor: s1 + '33', borderWidth: 2, pointRadius: 3, pointBackgroundColor: s1},
       {label: wb.name, data: pcs(B), borderColor: s2, backgroundColor: s2 + '33', borderWidth: 2, pointRadius: 3, pointBackgroundColor: s2}]},
@@ -3138,7 +3234,7 @@ function cornerHTML(c, name, col, PI) {
 function reportPost(R, TN, PI, SR) {
   const m = S.matches[R.match]; if (!m || !m.ev) return '<div class="empty">Choisissez un match.</div>';
   const us = R.side === 'away' ? m.away.id : m.home.id, them = otherSide(m, us);
-  const nA = TN[us], nB = TN[them], cA = css('--s1'), cB = css('--s2');
+  const nA = TN[us], nB = TN[them], [cA, cB] = clubPair(us, them);
   const ms = [m];
   const {T} = aggTactical(ms, ALLQ); const A = T[us] || newAgg(), B = T[them] || newAgg();
   const PH = aggPhys(ms, ALLQ).T;
@@ -3176,7 +3272,8 @@ function reportPost(R, TN, PI, SR) {
   const p3 = rpage(3, TOT, 'Finition', 'D’où on tire, et comment ça finit.', 'Comment finissent nos tirs, d’où ils partent, et ce qu’a produit l’adversaire.', head.replace('rhead', 'rhead mini'),
     `<div class="rgrid2">${rblk(1, 'Comment finissent les tirs', '', `<div class="rtwo"><div class="rside">${donutSVG(oa.parts, sA.length, 'tirs')}${ol(oa, cA)}<div class="rname" style="color:${cA}">${esc(nA)}</div></div><div class="rside">${donutSVG(ob.parts, sB.length, 'tirs')}${ol(ob, cB)}<div class="rname" style="color:${cB}">${esc(nB)}</div></div></div>`)}`
     + `${rblk(2, 'Origine des tirs', '', barPair('Jeu placé', pa.jeu || 0, pb.jeu || 0, pa.jeu || 0, pb.jeu || 0, cA, cB) + barPair('Contre-attaque', pa.ctr || 0, pb.ctr || 0, pa.ctr || 0, pb.ctr || 0, cA, cB) + barPair('Coups de pied arrêtés', pa.cpa || 0, pb.cpa || 0, pa.cpa || 0, pb.cpa || 0, cA, cB) + barPair('xG', A.xg, B.xg, fmt(A.xg, 2), fmt(B.xg, 2), cA, cB) + barPair('xG / tir', val(TAC, 'xgsh', A), val(TAC, 'xgsh', B), fmt(val(TAC, 'xgsh', A), 2), fmt(val(TAC, 'xgsh', B), 2), cA, cB) + `<p class="rnote">${esc(nA)} : ${cr(A)} · ${esc(nB)} : ${cr(B)}</p>`)}</div>`
-    + `<div class="rgrid2">${rblk(3, 'D’où on tire — ' + nA, `${sA.length} tirs · but adverse en haut`, shotGridSVG(sA, cA))}${rblk(4, 'D’où ils tirent — ' + nB, `${sB.length} tirs · notre but en haut`, shotGridSVG(sB, cB))}</div>`);
+    + `<div class="rgrid2">${rblk(3, 'D’où on tire — ' + nA, `${sA.length} tirs · but adverse en haut`, shotGridSVG(sA, cA))}${rblk(4, 'D’où ils tirent — ' + nB, `${sB.length} tirs · notre but en haut`, shotGridSVG(sB, cB))}</div>`
+    + `<div class="rgrid2">${(() => { const c = cageSVG(sA, cA); return rblk(5, 'Où ça va dans la cage — ' + nA, c.sub, c.svg); })()}${(() => { const c = cageSVG(sB, cB); return rblk(6, 'Où ça va dans notre cage — ' + nB, c.sub, c.svg); })()}</div>`);
   // Page 4 : défensif
   const rA = recovPts(ms, us), lA = lossPts(ms, us);
   const hA = mean(rA.map(p => p.x)), hB = mean(recovPts(ms, them).map(p => p.x));
@@ -3215,7 +3312,8 @@ function reportPre(R, TN, PI, SR) {
   const jEnd = R.jEnd || null, N = R.n || 5;
   const mo = teamMatches(opp, jEnd, N); if (!mo.length) return '<div class="empty">Aucun match de cet adversaire sur la période.</div>';
   const mu = us ? teamMatches(us, jEnd, N) : [];
-  const nO = TN[opp], nU = us ? TN[us] : 'Moyenne L1', cO = css('--s2'), cU = css('--s1'), cL = css('--text-3');
+  const nO = TN[opp], nU = us ? TN[us] : 'Moyenne L1', cL = css('--text-3');
+  const [cO, cU] = us ? clubPair(opp, us) : [clubColor(opp), colDist(clubColor(opp), css('--s1')) < 160 ? css('--s2') : css('--s1')];
   // Valeurs de chaque équipe sur ses N derniers matchs (pour les rangs et la moyenne)
   const teams = [...new Set(Object.values(S.matches).flatMap(m => [m.home.id, m.away.id]))];
   const win = {}; for (const t of teams) { const ms = teamMatches(t, jEnd, N); win[t] = {ms, A: aggTactical(ms, ALLQ).T[t], P: aggPhys(ms, ALLQ).T[t]}; }
@@ -3251,7 +3349,8 @@ function reportPre(R, TN, PI, SR) {
   const p2 = rpage(2, TOT, 'Offensif', 'Comment ils attaquent.', 'D’où partent leurs attaques, d’où ils tirent, où ils déséquilibrent, et qui est dangereux.', head.replace('rhead', 'rhead mini'),
     `<div class="rgrid2">${rblk(1, 'D’où partent leurs attaques', us ? `${esc(nO)} · ${esc(nU)} · par match` : 'par match', O.origin)}${rblk(2, 'Lesquelles produisent', 'possessions avec au moins un tir', O.prod)}</div>`
     + `<div class="rgrid2">${rblk(3, 'D’où ils tirent', `${sO.length} tirs · ${fmt(A.xg, 2)} xG · but adverse en haut`, shotGridSVG(sO, cO))}${rblk(4, 'Où ils déséquilibrent', `${uo.reduce((a, c) => a + c.lb + c.car, 0)} actions · vu de leur attaque`, corridorSVG(uo, cO, `color-mix(in srgb, ${cO} 45%, var(--surface))`) + legendHTML([[cO, 'passe qui casse une ligne'], [`color-mix(in srgb, ${cO} 45%, var(--surface))`, 'conduite progressive']]) + `<p class="rnote">Buts marqués : ${Object.entries(gpat).map(([k, v]) => `${v} ${PAT_L[k] || k}`).join(' · ') || 'aucun'}</p>`)}</div>`
-    + rblk(5, 'Joueurs dangereux', 'classés par xG + xT', `<div class="tbl-wrap rtbl"><table><tr><th class="txt">Joueur</th><th>Min</th><th>Buts</th><th>xG</th><th>xT</th><th>Passes clés</th><th>Cassent la ligne</th></tr>${thrRows}</table></div>`));
+    + (() => { const c = cageSVG(sO, cO); return rblk(5, 'Où ils tirent dans la cage', c.sub, `<div class="rnarrow wide">${c.svg}</div>`); })()
+    + rblk(6, 'Joueurs dangereux', 'classés par xG + xT', `<div class="tbl-wrap rtbl"><table><tr><th class="txt">Joueur</th><th>Min</th><th>Buts</th><th>xG</th><th>xT</th><th>Passes clés</th><th>Cassent la ligne</th></tr>${thrRows}</table></div>`));
   // Page 3 : comment ils défendent
   const rO = recovPts(mo, opp), lO = lossPts(mo, opp), sC = []; for (const m of mo) for (const s of m.ev.shots || []) if (s.tm !== opp) sC.push(s);
   const hO = mean(rO.map(p => p.x)), hL = mean(teams.map(t => mean(recovPts(win[t].ms, t).map(p => p.x))));
@@ -3259,7 +3358,7 @@ function reportPre(R, TN, PI, SR) {
   const p3 = rpage(3, TOT, 'Défensif', 'Comment ils défendent.', 'Hauteur du pressing, zones de récupération, où ils perdent le ballon (où les presser) et ce qu’ils concèdent.', head.replace('rhead', 'rhead mini'),
     rblk(1, 'Pressing', '', `<div class="rtiles small"><div class="rtile"><span>Hauteur moyenne de récupération</span><div><b style="color:${cO}">${fmt(hO)} m</b><b style="color:${cL}">${fmt(hL)} m</b></div><small>${esc(nO)} · moyenne L1</small></div><div class="rtile"><span>PPDA</span><div><b style="color:${cO}">${fmt(val(TAC, 'ppda', A), 1)}</b><b style="color:${cL}">${fmt(avgOf(w => val(TAC, 'ppda', w.A)), 1)}</b></div><small>plus bas = pressing plus intense</small></div><div class="rtile"><span>Récup. camp adverse / match</span><div><b style="color:${cO}">${fmt(A.recovH / (A.mp || 1), 1)}</b><b style="color:${cL}">${fmt(avgOf(w => w.A && w.A.mp ? w.A.recovH / w.A.mp : null), 1)}</b></div><small>${esc(nO)} · moyenne L1</small></div><div class="rtile"><span>Buts encaissés</span><div><b style="color:${cO}">${gA.length}</b></div><small>${Object.entries(gapat).map(([k, v]) => `${v} ${PAT_L[k] || k}`).join(' · ') || '—'}</small></div></div>`)
     + `<div class="rgrid2">${rblk(2, 'Où ils récupèrent', `${rO.length} récupérations`, thirdsGridSVG(rO, cO, nO + ' attaque'))}${rblk(3, 'Où ils perdent le ballon', `${lO.length} pertes · zones à presser`, thirdsGridSVG(lO, cU, nO + ' attaque'))}</div>`
-    + rblk(4, 'D’où on leur tire dessus', `${sC.length} tirs concédés · ${fmt(A.xga, 2)} xG · leur but en haut`, `<div class="rnarrow">${shotGridSVG(sC, cU)}</div>`));
+    + `<div class="rgrid2">${rblk(4, 'D’où on leur tire dessus', `${sC.length} tirs concédés · ${fmt(A.xga, 2)} xG · leur but en haut`, shotGridSVG(sC, cU))}${(() => { const c = cageSVG(sC, cU); return rblk(5, 'Où ça va dans leur cage', c.sub, c.svg); })()}</div>`);
   // Page 4 : CPA
   const co = cpaProfile(mo, opp), cc = {rows: CPA_TY.map(([st, l, pats]) => { let n = 0, sh = 0, xg = 0, gl = 0; for (const m of mo) { for (const e of m.ev.poss || []) if (e.tm !== opp && e.st === st && !e.ct) { n++; if (e.xg > 0) sh++; xg += e.xg; } for (const s of m.ev.shots || []) if (s.tm !== opp && s.g && pats.includes(s.pat)) gl++; } return {l, n, sh, xg, gl}; })};
   const p4 = rpage(4, TOT, 'Coups de pied arrêtés', 'Leurs CPA, pour et contre.', 'Ce qu’ils produisent sur coups de pied arrêtés, leur profil de corners, et ce qu’ils concèdent.', head.replace('rhead', 'rhead mini'),
