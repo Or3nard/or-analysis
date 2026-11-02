@@ -80,7 +80,9 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .chart-box.tall{height:460px}
 .chart-box.short{height:260px}
 .chart-box.xl{height:560px}
-.chart-box.mom{height:430px}
+.chart-box.mom{height:400px}
+.chart-box.mom-sh{height:190px}
+.mom-sh-head{font-size:12px;color:var(--text-3);margin:6px 0 0 4px}
 .mom-lg{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;color:var(--text-2)}
 .mom-lg .dot{display:inline-block;width:9px;height:9px;border-radius:50%;border:1.5px solid var(--text-2);margin-left:6px}
 .mom-lg .dot.full{background:var(--text-2);width:11px;height:11px}
@@ -358,6 +360,8 @@ input.j{width:64px}
           <div class="card-head"><div><h2>Momentum du match (xT)</h2><p class="sub" id="momResSub"></p></div>
           <div class="ctrl"><select id="momResMode"><option value="bar">Barres par minute</option><option value="smooth">Courbe lissée (5 min)</option></select></div></div>
           <div class="chart-box mom"><canvas id="chMomRes"></canvas></div>
+          <div class="mom-sh-head" id="momResShHead"><b>Tirs</b> · hauteur = xG du tir (échelle propre) · même axe des minutes</div>
+          <div class="chart-box mom-sh" id="momResShBox"><canvas id="chMomResSh"></canvas></div>
           <p class="note" id="momResNote"></p>
         </div>
         <div class="card c12">
@@ -377,6 +381,8 @@ input.j{width:64px}
           <div class="card-head"><div><h2>Momentum du match (xT)</h2><p class="sub" id="momOffSub"></p></div>
           <div class="ctrl"><select id="momOffMode"><option value="bar">Barres par minute</option><option value="smooth">Courbe lissée (5 min)</option></select></div></div>
           <div class="chart-box mom"><canvas id="chMomOff"></canvas></div>
+          <div class="mom-sh-head" id="momOffShHead"><b>Tirs</b> · hauteur = xG du tir (échelle propre) · même axe des minutes</div>
+          <div class="chart-box mom-sh" id="momOffShBox"><canvas id="chMomOffSh"></canvas></div>
           <p class="note" id="momOffNote"></p>
         </div>
         <div class="card c7">
@@ -1882,17 +1888,6 @@ function momMarkers(md, PI) {
         ctx.font = '700 10px system-ui,sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = col; ctx.fillText(lbl, px + 10, py);
         ctx.strokeStyle = col + '88'; ctx.setLineDash([2, 3]); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, y0); ctx.stroke(); ctx.setLineDash([]);
       };
-      // Tirs sur la ligne zéro : point plein = occasion dangereuse (xG ≥ 0,20), cercle = autre tir
-      for (const sh of m.ev.shots || []) {
-        if (sh.g || sh.per == null) continue;
-        const px = at(sh.per, sh.mi); if (px == null) continue;
-        const isA = sh.tm === m.home.id, col = isA ? css('--s1') : css('--s2');
-        const big = (sh.xg || 0) >= 0.2, r = big ? 3.5 + Math.sqrt(sh.xg) * 5 : 3;
-        const py = isA ? rowA + 21 : rowB - 21;
-        ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2);
-        if (big) { ctx.fillStyle = col; ctx.fill(); ctx.strokeStyle = css('--surface'); ctx.lineWidth = 1.5; ctx.stroke(); }
-        else { ctx.fillStyle = css('--surface'); ctx.fill(); ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.stroke(); }
-      }
       for (const gl of m.ev.goals || []) {
         const px = at(gl.per, gl.mi); if (px == null) continue;
         const isA = gl.tm === m.home.id;
@@ -1901,18 +1896,61 @@ function momMarkers(md, PI) {
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       for (const e of m.ev.opta || []) if (e.card && e.per) {
         const px = at(e.per, e.mi); if (px == null) continue;
-        const isA = e.tm === m.home.id, py = isA ? rowA + 38 : rowB - 38;
+        const isA = e.tm === m.home.id, py = isA ? rowA + 20 : rowB - 20;
         ctx.fillStyle = e.card === 'r' ? '#d62f2f' : '#f2c21b'; ctx.fillRect(px - 4, py - 6, 8, 11);
       }
       ctx.font = '700 11px system-ui,sans-serif';
       for (const sb of m.ev.subs || []) if (sb.t === 19) {
         const px = at(sb.per, sb.mi); if (px == null) continue;
         const isA = sb.tm === m.home.id; ctx.fillStyle = css('--text-3');
-        ctx.fillText('⇄', px, isA ? rowA + 53 : rowB - 53);
+        ctx.fillText('⇄', px, isA ? rowA + 36 : rowB - 36);
       }
     }
     ctx.restore();
   }};
+}
+// Bande « Tirs » sous le momentum : un tir = une tige dont la hauteur est son xG
+function renderShotBand(sfx, md, labels, PI) {
+  const m = md.single;
+  $(`#mom${sfx}ShBox`).hidden = !m; $(`#mom${sfx}ShHead`).hidden = !m;
+  if (!m) return;
+  const s1 = css('--s1'), s2 = css('--s2');
+  const pts = [];
+  for (const sh of m.ev.shots || []) {
+    if (sh.per == null) continue;
+    const b = momBin(sh.per, sh.mi), k = b < 0 ? -1 : md.idx[b]; if (k < 0) continue;
+    const isA = sh.tm === m.home.id, xg = sh.xg || 0;
+    pts.push({x: k, y: isA ? xg : -xg, xg, g: sh.g, pen: sh.pen, A: isA, name: PI[sh.p] ? PI[sh.p].name : '', min: sh.min});
+  }
+  const mx = Math.max(0.3, ...pts.map(p => p.xg)) * 1.15, step = mx > 0.6 ? 0.2 : 0.1, lim = Math.ceil(mx / step - 1e-9) * step;
+  const col = p => p.A ? s1 : s2;
+  const stems = {id: 'shotStems', beforeDatasetsDraw(c) {
+    const {ctx, chartArea: a, scales: {x, y}} = c; const y0 = y.getPixelForValue(0);
+    ctx.save();
+    const hx = (x.getPixelForValue(md.h1) + x.getPixelForValue(md.h1 + 1)) / 2;
+    ctx.strokeStyle = css('--text-3'); ctx.setLineDash([4, 4]); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(hx, a.top); ctx.lineTo(hx, a.bottom); ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle = css('--text-2'); ctx.beginPath(); ctx.moveTo(a.left, y0); ctx.lineTo(a.right, y0); ctx.stroke();
+    // repère 0,20 = occasion dangereuse
+    ctx.strokeStyle = css('--text-3') + '88'; ctx.setLineDash([2, 4]);
+    for (const v of [0.2, -0.2]) { const py = y.getPixelForValue(v); ctx.beginPath(); ctx.moveTo(a.left, py); ctx.lineTo(a.right, py); ctx.stroke(); }
+    ctx.setLineDash([]); ctx.font = '600 9.5px system-ui,sans-serif'; ctx.fillStyle = css('--text-3'); ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+    ctx.fillText('occasion dangereuse (xG ≥ 0,20)', a.left + 4, y.getPixelForValue(0.2) - 2);
+    ctx.lineWidth = 1.5;
+    for (const p of pts) { const px = x.getPixelForValue(p.x); ctx.strokeStyle = col(p) + 'aa'; ctx.beginPath(); ctx.moveTo(px, y0); ctx.lineTo(px, y.getPixelForValue(p.y)); ctx.stroke(); }
+    ctx.restore();
+  }, afterDatasetsDraw(c) {
+    const {ctx, scales: {x, y}} = c;
+    for (const p of pts) if (p.g) drawBall(ctx, x.getPixelForValue(p.x), y.getPixelForValue(p.y), 7, col(p));
+  }};
+  chart(`chMom${sfx}Sh`, {type: 'scatter', data: {datasets: [{label: 'Tirs', data: pts,
+      pointRadius: pts.map(p => p.g ? 0 : p.xg >= 0.2 ? 3.5 + Math.sqrt(p.xg) * 5 : 3.2),
+      pointHoverRadius: pts.map(p => p.g ? 8 : 6),
+      backgroundColor: pts.map(p => p.xg >= 0.2 ? col(p) : css('--surface')), borderColor: pts.map(p => p.xg >= 0.2 ? css('--surface') : col(p)), borderWidth: 1.5}]},
+    options: {animation: false, layout: {autoPadding: false}, clip: false,
+      plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => { const p = c.raw; return `${p.min}' · ${p.name} · xG ${fmt(p.xg, 2)}${p.g ? ' · BUT' : ''}${p.pen ? ' (penalty)' : ''}`; }}}},
+      scales: {x: {type: 'linear', display: false, min: -0.5, max: labels.length - 0.5},
+        y: {afterFit: sc => { sc.width = 64; }, min: -lim, max: lim, title: {display: true, text: 'xG du tir'}, grid: {color: css('--grid')}, ticks: {stepSize: step, callback: v => fmt(Math.abs(v), 1)}}}},
+    plugins: [stems]});
 }
 function renderMomentum(sfx, ms, TN, PI) {
   const f = S.f, s1 = css('--s1'), s2 = css('--s2');
@@ -1921,7 +1959,7 @@ function renderMomentum(sfx, ms, TN, PI) {
   const note = $(`#mom${sfx}Note`);
   note.innerHTML = (old ? `⚠ ${old} match(s) importés avant l’ajout du momentum ne sont pas comptés : réimportez leurs dossiers dans l’onglet Données. ` : '')
     + 'xT (Expected Threat) : gain de menace apporté par chaque passe ou conduite réussie (modèle de Karun Singh, calculé sur tous les matchs importés). '
-    + (md.single ? '<br><span class="mom-lg"><span class="ball">⚽</span> but · <i class="dot full"></i> occasion dangereuse (xG ≥ 0,20, taille = xG) · <i class="dot"></i> autre tir · <i class="mcard y"></i><i class="mcard r"></i> carton · ⇄ entrée en jeu</span>' : 'Choisissez un match pour voir les buts, tirs, cartons et changements.');
+    + (md.single ? '<br><span class="mom-lg"><span class="ball">⚽</span> but · <i class="dot full"></i> occasion dangereuse (xG ≥ 0,20) · <i class="dot"></i> autre tir (bande « Tirs ») · <i class="mcard y"></i><i class="mcard r"></i> carton · ⇄ entrée en jeu</span>' : 'Choisissez un match pour voir les buts, tirs, cartons et changements.');
   const kind = md.single ? `${md.la} – ${md.lb}` : f.team ? `${md.la} vs adversaires · moyenne sur ${md.n} match(s)` : `Domicile vs extérieur · moyenne sur ${md.n} match(s)`;
   $(`#mom${sfx}Sub`).innerHTML = md.n ? `${esc(kind)} · xT ${esc(md.la)} <b style="color:var(--s1)">${fmt(md.tA, 2)}</b> – <b style="color:var(--s2)">${fmt(md.tB, 2)}</b> ${esc(md.lb)}` : 'Aucun match avec les données nécessaires';
   const mode = $(`#mom${sfx}Mode`).value;
@@ -1944,7 +1982,7 @@ function renderMomentum(sfx, ms, TN, PI) {
     : [{label: md.la, data: dA, backgroundColor: dA.map((_, i) => s1 + qa(i)), borderRadius: 1, barPercentage: .82, categoryPercentage: 1},
        {label: md.lb, data: dB, backgroundColor: dB.map((_, i) => s2 + qa(i)), borderRadius: 1, barPercentage: .82, categoryPercentage: 1}];
   // borne symétrique « ronde » (1, 2, 2.5 ou 5 × 10^n)
-  const raw = Math.max(0.005, ...dA, ...dB.map(v => -v)) * (md.single ? 1.6 : 1.2), p10 = Math.pow(10, Math.floor(Math.log10(raw)));
+  const raw = Math.max(0.005, ...dA, ...dB.map(v => -v)) * (md.single ? 1.45 : 1.2), p10 = Math.pow(10, Math.floor(Math.log10(raw)));
   const lim = [1, 2, 2.5, 5, 10].map(k => k * p10).find(v => v >= raw);
   // empilement uniquement pour les barres (positif / négatif) : en courbes, chaque équipe part de 0
   const stk = mode !== 'smooth';
@@ -1952,8 +1990,9 @@ function renderMomentum(sfx, ms, TN, PI) {
     options: {animation: false, interaction: {mode: 'index', intersect: false},
       plugins: {legend: {position: 'top', align: 'end', labels: {boxWidth: 12}}, tooltip: {callbacks: {label: c => `${c.dataset.label} : xT ${fmt(Math.abs(c.raw), 3)}`}}},
       scales: {x: {stacked: stk, grid: {display: false}, ticks: {autoSkip: false, maxRotation: 0, callback: (v, i) => showTick(i) ? labels[i] : ''}},
-        y: {stacked: stk, min: -lim, max: lim, title: {display: true, text: md.n > 1 ? 'xT par minute (moyenne)' : 'xT par minute'}, grid: {color: css('--grid')}, ticks: {callback: v => fmt(Math.abs(v), 2)}}}},
+        y: {afterFit: sc => { sc.width = 64; }, stacked: stk, min: -lim, max: lim, title: {display: true, text: md.n > 1 ? 'xT par minute (moyenne)' : 'xT par minute'}, grid: {color: css('--grid')}, ticks: {callback: v => fmt(Math.abs(v), 2)}}}},
     plugins: [momMarkers(md, PI)]});
+  renderShotBand(sfx, md, labels, PI);
 }
 // Menace créée par joueur et par équipe (onglet Offensif)
 function renderXt(ms, TN, PI, P) {
