@@ -190,6 +190,7 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 @media (max-width:800px){.pair-tbl{grid-template-columns:1fr}}
 .hint{font-size:13px;color:var(--text-3);margin:10px 0 0}
 .pct-list{display:flex;flex-direction:column;gap:7px}
+.pct-leg{display:inline-flex;flex-wrap:wrap;gap:4px 6px;align-items:center;margin-top:3px}.pct-leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-left:6px}
 .pct-row{display:grid;grid-template-columns:150px 1fr 92px;gap:10px;align-items:center;font-size:12.5px}
 .pct-row .nm{color:var(--text-2)}
 .pct-row .bar{position:relative;height:16px;background:var(--surface-2);border-radius:4px;overflow:hidden}
@@ -1659,7 +1660,7 @@ function chart(id, cfg) {
   el.addEventListener('contextlost', scheduleRender);
   el.addEventListener('contextrestored', scheduleRender);
   try { S.charts[id] = new Chart(el, cfg); }
-  catch (e) { console.error('Graphique ' + id, e); }
+  catch (e) { showRenderError(new Error(`graphique « ${id} » : ${e && e.message || e}`)); }
 }
 /* Rendu différé d'une frame (le temps que l'onglet affiché ait sa mise en page),
    puis vérification : si un graphique visible est vide, on le redessine une fois. */
@@ -2816,7 +2817,7 @@ function renderPhyPlayer(ms, lg, TN, PI) {
     const peers = Object.entries(PR).filter(([id]) => SR[id] === pRole);
     let me = PR[pid], note = '';
     if (!me) { me = phyByPlayer(lg, 0)[pid]; note = ` · ${PI[pid].name} n’a aucun match ≥ ${pMin} min : valeurs sur tous ses matchs`; }
-    $('#phyProfileSub').textContent = `Percentile parmi ${peers.length} ${ROLE_L[pRole].toLowerCase()}s (${pRole}) · par 90 min, matchs ≥ ${pMin} min${note}`;
+    $('#phyProfileSub').innerHTML = `Percentile parmi ${peers.length} ${ROLE_L[pRole].toLowerCase()}s (${pRole}) · par 90 min, matchs ≥ ${pMin} min${esc(note)}<br><span class="pct-leg"><i style="background:var(--s3)"></i>quart supérieur (P75 et +) <i style="background:var(--s1)"></i>dans la moyenne (P26 à P74) <i style="background:var(--s2)"></i>quart inférieur (P25 et −) · trait pointillé = médiane du poste (P50)</span>`;
     $('#phyProfile').innerHTML = me ? PROFILE_KEYS.map(k => {
       const v = scVal(k, me, 'P'), pc = percentile(peers.map(([, o]) => scVal(k, o, 'P')), v);
       const col = pc == null ? 'var(--text-3)' : pc >= 75 ? 'var(--s3)' : pc <= 25 ? 'var(--s2)' : 'var(--s1)';
@@ -2827,7 +2828,9 @@ function renderPhyPlayer(ms, lg, TN, PI) {
   const em = $('#phyPEvoMetric').value;
   const sets = [{l: PI[pid].name, d: evoSeries(ms, b => b.p === pid, em), c: css('--s2')}];
   if (pRole && ROLE_L[pRole]) sets.push({l: `Moyenne ${pRole}`, d: evoSeries(lg, b => SR[b.p] === pRole, em), c: css('--s1'), dash: [5, 4]});
-  $('#phyPEvoSub').textContent = `Par tranche de 5 minutes · comparé à la moyenne des ${pRole && ROLE_L[pRole] ? ROLE_L[pRole].toLowerCase() + 's' : 'joueurs'}`;
+  const hasData = sets[0].d.some(v => v != null);
+  $('#phyPEvoSub').textContent = hasData ? `Par tranche de 5 minutes · comparé à la moyenne des ${pRole && ROLE_L[pRole] ? ROLE_L[pRole].toLowerCase() + 's' : 'joueurs'}`
+    : 'Pas de données par tranche de 5 minutes pour ce joueur sur la sélection (fichiers physical-splits ou physical-minute manquants).';
   evoChart('chPhyPEvo', sets, em);
 }
 
@@ -3505,7 +3508,7 @@ function bindUI() {
   $('#fReset').onclick = () => { S.f = {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0, 1, 2, 3, 4, 5])}; refreshAll(); };
   ['#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#passMapType', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyEvoMetric', '#phyTeamMode', '#phyTX', '#phyTY', '#phyPX', '#phyPY', '#phyPEvoMetric', '#h2hEvoMetric', '#momResMode', '#momOffMode', '#xtPlMode',
    '#shotType', '#offMetric', '#offTeamMode', '#recType', '#defMetric', '#defTeamMode', '#cpaTeamMode']
-    .forEach(s => $(s).onchange = render);
+    .forEach(s => $(s).onchange = () => scheduleRender());
   document.querySelectorAll('[data-csv]').forEach(b => b.onclick = () => exportCSV(b.dataset.csv));
 
   // Import
