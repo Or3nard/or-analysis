@@ -2281,7 +2281,7 @@ function renderTactical() {
     const pts = teamRows.filter(r => r.o.mp).map(r => ({x: r.o.xg / r.o.mp, y: r.o.xga / r.o.mp, lab: r.name, id: r.id}));
     pts.forEach(p => { p.img = logoImg(p.id, p.id === f.team ? 34 : 26); if (p.img) p.off = p.id === f.team ? 20 : 16; });
     chart('chXgScatter', {type: 'scatter', data: {datasets: [{label: 'Équipes', data: pts, pointStyle: pts.map(p => p.img || 'circle'), pointRadius: pts.map(p => p.img ? 13 : (p.id === f.team ? 7 : 5)),
-        backgroundColor: pts.map(p => p.id === f.team ? s2 : s1), borderColor: css('--surface'), borderWidth: 2, pointHoverRadius: 8}]},
+        backgroundColor: pts.map(p => p.id === f.team ? clubColor(p.id, s2) : s1), borderColor: css('--surface'), borderWidth: 2, pointHoverRadius: 8}]},
       options: {layout: {padding: {right: 90}}, plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${c.raw.lab} : xG ${fmt(c.raw.x, 2)} / xG contre ${fmt(c.raw.y, 2)}`}}},
         scales: {x: {grace: '15%', title: {display: true, text: 'xG produits / match'}, grid: {color: css('--grid')}}, y: {grace: '15%', reverse: true, title: {display: true, text: 'xG concédés / match (inversé)'}, grid: {color: css('--grid')}}}},
       plugins: [pointLabels, avgLines(mean(pts.map(p => p.x)), mean(pts.map(p => p.y)),
@@ -2292,15 +2292,16 @@ function renderTactical() {
     let qSets = [], qSub = '';
     if (f.player) {
       const pq = [0, 1, 2, 3, 4, 5].map(q => { const {P: PP} = aggTactical(ms, new Set([q])); const o = PP[f.player]; return o ? (qm === 'possPct' ? null : o[qm]) : 0; });
-      qSets = [{label: PI[f.player].name, data: pq, color: s1}]; qSub = 'Joueur sélectionné';
+      qSets = [{label: PI[f.player].name, data: pq, color: clubColor(PI[f.player].team, s1)}]; qSub = 'Joueur sélectionné';
     } else if (f.team) {
       const o = T[f.team]; const oppK = {xg: 'xga', gf: 'ga'}[qm];
-      qSets = [{label: TN[f.team], data: qData(o, qm), color: s1}];
-      if (oppK) qSets.push({label: 'Adversaires', data: qData(o, oppK), color: s2});
+      const gry = css('--text-3');
+      qSets = [{label: TN[f.team], data: qData(o, qm), color: clubColor(f.team, s1)}];
+      if (oppK) qSets.push({label: 'Adversaires', data: qData(o, oppK), color: gry});
       else if (qm !== 'possPct') {
         const oppData = [0, 0, 0, 0, 0, 0];
         for (const m of ms) { if (!m.ev) continue; const oid = m.home.id === f.team ? m.away.id : m.home.id; const {T: TT} = aggTactical([m], new Set([0, 1, 2, 3, 4, 5])); TT[oid].byQ.forEach((b, i) => oppData[i] += b[qm]); }
-        qSets.push({label: 'Adversaires', data: oppData, color: s2});
+        qSets.push({label: 'Adversaires', data: oppData, color: gry});
       }
       qSub = 'Équipe sélectionnée vs adversaires';
     } else {
@@ -2429,7 +2430,7 @@ function renderTactical() {
     ].filter(Boolean) : []);
     const TY = [['cor', 'Corner'], ['cf', 'Coup franc'], ['tou', 'Touche'], ['pen', 'Penalty']];
     let sets;
-    if (f.team) { const o = T[f.team] || newAgg(); sets = [{label: TN[f.team], c: s1, d: TY.map(([k]) => (o.cpaT[k] || {}).xg || 0)}, {label: 'Adversaires', c: s2, d: TY.map(([k]) => (o.cpaTa[k] || {}).xg || 0)}]; $('#cpaTypeSub').textContent = 'xG des possessions démarrées sur CPA · équipe vs adversaires'; }
+    if (f.team) { const o = T[f.team] || newAgg(); sets = [{label: TN[f.team], c: clubColor(f.team, s1), d: TY.map(([k]) => (o.cpaT[k] || {}).xg || 0)}, {label: 'Adversaires', c: css('--text-3'), d: TY.map(([k]) => (o.cpaTa[k] || {}).xg || 0)}]; $('#cpaTypeSub').textContent = 'xG des possessions démarrées sur CPA · équipe vs adversaires'; }
     else { const tot = TY.map(([k]) => Object.values(T).reduce((a, o) => a + ((o.cpaT[k] || {}).xg || 0), 0)); sets = [{label: 'Toutes équipes', c: s1, d: tot}]; $('#cpaTypeSub').textContent = 'xG des possessions démarrées sur CPA · toutes équipes (sélectionnez une équipe pour comparer)'; }
     chart('chCpaType', {type: 'bar', data: {labels: TY.map(x => x[1]), datasets: sets.map(x => ({label: x.label, data: x.d, backgroundColor: x.c, borderRadius: 4, borderSkipped: 'start'}))},
       options: {plugins: {legend: {display: sets.length > 1}, tooltip: {callbacks: {label: c => `${c.dataset.label} : ${fmt(c.raw, 2)} xG`}}}, scales: {y: {beginAtZero: true, title: {display: true, text: 'xG (total)'}, grid: {color: css('--grid')}}, x: {grid: {display: false}}}}});
