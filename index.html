@@ -2817,10 +2817,10 @@ function renderPhyPlayer(ms, lg, TN, PI) {
     const peers = Object.entries(PR).filter(([id]) => SR[id] === pRole);
     let me = PR[pid], note = '';
     if (!me) { me = phyByPlayer(lg, 0)[pid]; note = ` · ${PI[pid].name} n’a aucun match ≥ ${pMin} min : valeurs sur tous ses matchs`; }
-    $('#phyProfileSub').innerHTML = `Percentile parmi ${peers.length} ${ROLE_L[pRole].toLowerCase()}s (${pRole}) · par 90 min, matchs ≥ ${pMin} min${esc(note)}<br><span class="pct-leg"><i style="background:var(--s3)"></i>quart supérieur (P75 et +) <i style="background:var(--s1)"></i>dans la moyenne (P26 à P74) <i style="background:var(--s2)"></i>quart inférieur (P25 et −) · trait pointillé = médiane du poste (P50)</span>`;
+    $('#phyProfileSub').innerHTML = `Percentile parmi ${peers.length} ${ROLE_L[pRole].toLowerCase()}s (${pRole}) · par 90 min, matchs ≥ ${pMin} min${esc(note)}<br><span class="pct-leg"><i style="background:var(--good)"></i>quart supérieur (P75 et +) <i style="background:var(--s1)"></i>dans la moyenne (P26 à P74) <i style="background:var(--bad)"></i>quart inférieur (P25 et −) · trait pointillé = médiane du poste (P50)</span>`;
     $('#phyProfile').innerHTML = me ? PROFILE_KEYS.map(k => {
       const v = scVal(k, me, 'P'), pc = percentile(peers.map(([, o]) => scVal(k, o, 'P')), v);
-      const col = pc == null ? 'var(--text-3)' : pc >= 75 ? 'var(--s3)' : pc <= 25 ? 'var(--s2)' : 'var(--s1)';
+      const col = pc == null ? 'var(--text-3)' : pc >= 75 ? 'var(--good)' : pc <= 25 ? 'var(--bad)' : 'var(--s1)';
       return `<div class="pct-row"><span class="nm">${esc(SCM[k].l)}</span><span class="bar"><i style="width:${pc ?? 0}%;background:${col}"></i><b></b></span><span class="vl">${fmt(v, scDec(k, 'P'))} ${esc(scUnit(k, 'P'))}<small>${pc == null ? '—' : 'P' + pc}</small></span></div>`;
     }).join('') : '<div class="empty">Pas de données physiques</div>';
   } else { $('#phyProfileSub').textContent = 'Poste inconnu'; $('#phyProfile').innerHTML = '<div class="empty">Poste du joueur non identifié</div>'; }
