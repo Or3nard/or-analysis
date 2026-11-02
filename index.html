@@ -80,6 +80,8 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .chart-box.tall{height:460px}
 .chart-box.short{height:260px}
 .chart-box.xl{height:560px}
+#errToast{position:fixed;right:16px;bottom:16px;max-width:520px;background:#fff3f2;color:#7a1d16;border:1px solid #f0b5ae;border-radius:10px;padding:10px 14px;font-size:13px;z-index:100;box-shadow:0 6px 24px rgba(0,0,0,.15);cursor:pointer}
+@media print{#errToast{display:none}}
 .cage-wrap{max-width:760px;margin:0 auto}
 .cage{width:100%;height:auto;display:block}
 .cage-leg{display:flex;gap:14px;justify-content:center;font-size:11.5px;color:var(--text-2);flex-wrap:wrap;margin-top:4px}
@@ -913,13 +915,18 @@ function setSync(state) {
 }
 // Sauvegarde locale + en ligne
 const canEdit = () => !CLOUD || S.role === 'master';
+// Version des données : toute modification d'un match invalide les calculs mis en cache
+let DATA_VER = 0;
+function bumpData() { DATA_VER++; if (typeof AGG_CACHE !== 'undefined') AGG_CACHE.clear(); }
 function persist(m) {
+  bumpData();
   if (!canEdit()) return;
   m._saved = Date.now(); m._synced = false; DB.put(m);
   if (!CLOUD || !Cloud.user) return;
   Cloud.enqueue(async () => { await Cloud.put(m); m._synced = true; m._saved = Date.now(); DB.put(m); });
 }
 function unpersist(ids) {
+  bumpData();
   if (!canEdit()) return;
   ids.forEach(id => DB.del(id));
   if (CLOUD && Cloud.user) Cloud.enqueue(() => Cloud.del(ids));
@@ -940,6 +947,7 @@ async function syncFromCloud() {
     if (m._synced || !canEdit()) { delete S.matches[m.id]; DB.del(m.id); }  // supprimé par un Master
     else persist(m);                                                       // jamais envoyé
   }
+  bumpData();
   setSync();
 }
 
@@ -1381,7 +1389,7 @@ const newAgg = () => { const o = {starts: {}, cpaT: {}, cpaTa: {}, byQ: [0, 1, 2
    tant que la sélection de matchs et de quarts d'heure est la même. */
 const AGG_CACHE = new Map();
 function memoAgg(kind, fn, ms, qs) {
-  const key = kind + '|' + [...qs].sort().join('') + '|' + ms.map(m => m.id).join(',');
+  const key = DATA_VER + '|' + kind + '|' + [...qs].sort().join('') + '|' + ms.map(m => m.id).join(',');
   const hit = AGG_CACHE.get(key);
   if (hit && hit.ms.length === ms.length && hit.ms.every((m, i) => m === ms[i])) return hit.r;
   const r = fn(ms, qs);
@@ -1967,7 +1975,7 @@ const xtCell = (x, y) => {
 let XT_MEMO = null;
 function xtGrid() {
   const all = Object.values(S.matches).filter(m => m.ev);
-  if (XT_MEMO && XT_MEMO.ms.length === all.length && XT_MEMO.ms.every((m, i) => m === all[i])) return XT_MEMO.g;
+  if (XT_MEMO && XT_MEMO.v === DATA_VER && XT_MEMO.ms.length === all.length && XT_MEMO.ms.every((m, i) => m === all[i])) return XT_MEMO.g;
   const N = XT_NX * XT_NY;
   const shots = new Float64Array(N), goals = new Float64Array(N), moves = new Float64Array(N);
   const trans = new Map(); // z*N+z' -> nombre d'actions réussies
@@ -1992,7 +2000,7 @@ function xtGrid() {
     let diff = 0; for (let z = 0; z < N; z++) { nx[z] += mP[z] * acc[z]; diff = Math.max(diff, Math.abs(nx[z] - xt[z])); }
     xt = nx; if (diff < 1e-6) break;
   }
-  XT_MEMO = {ms: all, g: xt};
+  XT_MEMO = {ms: all, g: xt, v: DATA_VER};
   return xt;
 }
 // (P(but|tir) estimée par l'xG moyen des tirs de la zone : plus stable que le taux de buts)
@@ -2453,14 +2461,15 @@ const POS_GENERIC = {DF: 'DF', D: 'DF', DEF: 'DF', MF: 'MF', M: 'MF', MID: 'MF',
 // Empreinte des actions d'un joueur dans un match : profondeur et largeur moyennes
 const FOOT = new WeakMap();
 function footprint(m) {
-  let f = FOOT.get(m); if (f) return f;
+  const hit = FOOT.get(m); if (hit && hit.v === DATA_VER) return hit.f;
+  let f;
   f = {};
   const add = (p, x, w) => { if (!p || x == null || !isFinite(x)) return; const a = f[p] || (f[p] = {n: 0, x: 0, w: 0}); a.n++; a.x += x; a.w += w; };
   if (m.ev) {
     for (const e of m.ev.passes || []) add(e.p, e.x0, Math.abs(e.y0 - 34));
     for (const e of m.ev.opta || []) if (e.x || e.y) add(e.p, e.x * 1.05, Math.abs((100 - e.y) * .68 - 34));
   }
-  FOOT.set(m, f); return f;
+  FOOT.set(m, {v: DATA_VER, f}); return f;
 }
 function guessRole(fp, base) {
   if (!fp || fp.n < 8) return null;
@@ -2474,7 +2483,7 @@ function guessRole(fp, base) {
 let ROLE_MEMO = null;
 function seasonRoles() {
   const all = Object.values(S.matches);
-  if (ROLE_MEMO && ROLE_MEMO.ms.length === all.length && ROLE_MEMO.ms.every((m, i) => m === all[i])) return ROLE_MEMO.r;
+  if (ROLE_MEMO && ROLE_MEMO.v === DATA_VER && ROLE_MEMO.ms.length === all.length && ROLE_MEMO.ms.every((m, i) => m === all[i])) return ROLE_MEMO.r;
   const tally = {};
   const vote = (p, r, w) => { if (!r) return; const t = tally[p] || (tally[p] = {}); t[r] = (t[r] || 0) + w; };
   for (const m of all) {
@@ -2488,7 +2497,7 @@ function seasonRoles() {
   }
   const r = {};
   for (const [pid, t] of Object.entries(tally)) r[pid] = Object.entries(t).sort((a, b) => b[1] - a[1])[0][0];
-  ROLE_MEMO = {ms: all, r};
+  ROLE_MEMO = {ms: all, r, v: DATA_VER};
   return r;
 }
 
@@ -2973,7 +2982,7 @@ function renderData() {
   $('#matchList').querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
     const m = S.matches[b.dataset.del];
     if (!confirm(`Supprimer ${TN[m.home.id]} – ${TN[m.away.id]} ?`)) return;
-    delete S.matches[m.id]; unpersist([m.id]); autoJournees().forEach(id => persist(S.matches[id])); refreshAll();
+    delete S.matches[m.id]; unpersist([m.id]); bumpData(); autoJournees().forEach(id => persist(S.matches[id])); refreshAll();
   });
 }
 
@@ -3000,11 +3009,23 @@ function render(healing) {
     else if (S.tab === 'phy') renderPhysical();
     else if (S.tab === 'rep') renderReport();
     else if (S.tab === 'acc' && !ACC.loaded) loadAccounts();
-  } catch (e) { console.error('Rendu', e); }
+  } catch (e) { showRenderError(e); }
   renderData();
   healCharts();
 }
-function refreshAll() { refreshFilters(); render(); }
+function refreshAll() {
+  try { refreshFilters(); } catch (e) { showRenderError(e); }
+  render();
+}
+// Message visible si un calcul échoue (au lieu d'un graphique figé ou blanc)
+function showRenderError(e) {
+  console.error(e);
+  let el = document.getElementById('errToast');
+  if (!el) { el = document.createElement('div'); el.id = 'errToast'; document.body.appendChild(el); el.onclick = () => el.remove(); }
+  const where = S.tab === 'tac' ? 'Analyse tactique' : S.tab === 'phy' ? 'Physique' : S.tab === 'rep' ? 'Rapports' : S.tab;
+  el.innerHTML = `<b>Un graphique n’a pas pu s’afficher</b> (${esc(where)}${S.sub[S.tab] ? ' › ' + esc(S.sub[S.tab]) : ''}) : ${esc(String(e && e.message || e))}<br><small>Cliquez pour fermer. Si cela se répète, envoyez une capture de ce message.</small>`;
+  clearTimeout(el._t); el._t = setTimeout(() => el.remove(), 15000);
+}
 
 function fillMetricSelects() {
   const tacOpts = ['xg', 'gf', 'ast', 'sh', 'sot', 'gmx', 'pass', 'passPct', 'xpd', 'lb', 'byp', 'prog', 'kp', 'f3', 'box', 'carryProg', 'drbOk', 'recov', 'recovH', 'int', 'tkW', 'aerW', 'lost', 'shCpa'];
@@ -3575,6 +3596,7 @@ async function onLogin(user) {
   await DB.open('or-analysis-' + user.id);
   S.matches = {};
   for (const m of await DB.all()) S.matches[m.id] = m;
+  bumpData();
   $('#auth').hidden = true;
   startApp();
   await syncFromCloud();
