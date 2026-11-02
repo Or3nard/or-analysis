@@ -1647,6 +1647,13 @@ function exportCSV(id) {
 /* =====================================================================
    Graphiques (Chart.js)
    ===================================================================== */
+// Un plugin de dessin qui échoue ne doit jamais bloquer Chart.js
+function safePlugin(pl) {
+  if (!pl || pl._safe) return pl;
+  const o = {_safe: true};
+  for (const [k, v] of Object.entries(pl)) o[k] = typeof v === 'function' ? function (...a) { try { return v.apply(this, a); } catch (e) { console.warn('Plugin ' + (pl.id || '?') + '.' + k, e); } } : v;
+  return o;
+}
 function chart(id, cfg) {
   let el = document.getElementById(id); if (!el) return;
   if (!el.offsetParent) { if (S.charts[id]) { S.charts[id].destroy(); delete S.charts[id]; } return; }
@@ -1659,6 +1666,7 @@ function chart(id, cfg) {
   el.width = 0; el.height = 0; el.replaceWith(fresh); el = fresh;
   el.addEventListener('contextlost', scheduleRender);
   el.addEventListener('contextrestored', scheduleRender);
+  if (cfg.plugins) cfg.plugins = cfg.plugins.map(safePlugin);
   try { S.charts[id] = new Chart(el, cfg); }
   catch (e) { showRenderError(new Error(`graphique « ${id} » : ${e && e.message || e}`)); }
 }
@@ -1690,7 +1698,8 @@ function chartDefaults() {
   Chart.defaults.color = css('--text-2');
   Chart.defaults.borderColor = css('--grid');
   Chart.defaults.maintainAspectRatio = false;
-  Chart.defaults.animation = {duration: 250};
+  // Pas d'animation : un incident pendant une animation figeait tous les graphiques (barres à 0, courbes au plancher)
+  Chart.defaults.animation = false;
   Chart.defaults.plugins.tooltip.backgroundColor = css('--text');
   Chart.defaults.plugins.tooltip.titleColor = css('--surface');
   Chart.defaults.plugins.tooltip.bodyColor = css('--surface');
@@ -1735,8 +1744,8 @@ const LOGO = {data: {}, img: {}, pending: null};
 function logoImg(tid, size) {
   const d = tid && LOGO.data[tid]; if (!d) return null;
   const k = tid + '@' + size; let im = LOGO.img[k];
-  if (!im) { im = new Image(size, size); im.onload = () => Object.values(S.charts).forEach(c => { try { c.draw(); } catch (e) {} }); im.src = d; LOGO.img[k] = im; }
-  return im;
+  if (!im) { im = new Image(size, size); im.onload = () => scheduleRender(); im.onerror = () => { im._bad = 1; }; im.src = d; LOGO.img[k] = im; }
+  return im.complete && im.naturalWidth && !im._bad ? im : null; // image prête uniquement (sinon point classique)
 }
 function logoHTML(tid) { const d = tid && LOGO.data[tid]; return d ? `<img class="tlogo" src="${d}" alt="">` : ''; }
 function barLogos(tids) {
