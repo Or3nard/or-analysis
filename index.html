@@ -80,6 +80,62 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .chart-box.tall{height:460px}
 .chart-box.short{height:260px}
 .chart-box.xl{height:560px}
+.rep-ctl{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.rep-ctl .sub{margin:0 0 0 auto}
+.rep-fields{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.rep-fields select{max-width:320px}
+.rpage{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:26px 30px 16px;margin:0 auto 22px;max-width:1120px;position:relative}
+.rkick{font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em;color:var(--text-3);text-transform:uppercase}
+.rtitle{font-size:28px;letter-spacing:-.02em;margin:8px 0 4px;font-weight:800}
+.rlead{color:var(--text-2);margin:0 0 16px}
+.rfoot{display:flex;justify-content:space-between;font:500 10px ui-monospace,Menlo,monospace;letter-spacing:.08em;color:var(--text-3);border-top:1px solid var(--grid);padding-top:8px;margin-top:10px;text-transform:uppercase}
+.rhead{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;background:var(--surface-2);border-radius:12px;padding:14px 18px;margin-bottom:14px}
+.rhead.pre{grid-template-columns:1fr auto 1fr}
+.rhead.mini{padding:6px 14px;margin-bottom:12px}.rhead.mini .rgoals,.rhead.mini small{display:none}.rhead.mini .rscore span{font-size:20px}
+.rteam{display:flex;flex-direction:column;gap:3px}.rteam.b{text-align:right;align-items:flex-end}
+.rteam b{font-size:18px}.rteam small{color:var(--text-3);font-size:12px}
+.rlogo img{width:34px;height:34px;object-fit:contain}
+.rscore{text-align:center;display:flex;flex-direction:column}.rscore span{font-size:40px;font-weight:800;letter-spacing:-.02em;line-height:1.05}.rscore span.vs{font-size:24px;color:var(--text-3)}.rscore small{color:var(--text-3);font-size:11.5px}
+.rgoals{list-style:none;margin:2px 0 0;padding:0;font-size:12px;color:var(--text-2)}
+.rblk{position:relative;border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:12px;background:var(--surface);break-inside:avoid}
+.rnum{position:absolute;left:-11px;top:-9px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px var(--surface)}
+.rbh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.rbh h3{margin:0;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:750}
+.rsub{font-size:11.5px;color:var(--text-3)}
+.rgrid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.rgrid2>.rblk{margin-bottom:12px}
+.rgrid2.w37{grid-template-columns:.8fr 1.6fr}
+.rtwo{display:grid;grid-template-columns:1fr 1fr;gap:14px}.rtwo.one{grid-template-columns:1fr}
+.rside{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.rname{font-weight:750;font-size:12.5px;width:100%}
+.rlist{list-style:none;margin:0;padding:0;font-size:12px;display:flex;flex-direction:column;gap:3px;min-width:120px}
+.rlist li{display:grid;grid-template-columns:10px 1fr auto;gap:6px;align-items:center}.rlist i{width:10px;height:10px;border-radius:2px;display:inline-block}
+.rprod{display:grid;grid-template-columns:110px 26px auto;gap:4px 8px;align-items:center;font-size:12px;margin-bottom:6px}
+.rprod b{font-size:17px}.rprod .rdots{grid-column:2/4;display:flex;flex-wrap:wrap;gap:2px}
+.rdots i{width:5px;height:5px;border-radius:50%;background:var(--grid)}.rdots i.on{background:var(--text-2)}
+.rnote{font-size:11px;color:var(--text-3);margin:6px 0 0}
+.rfun{display:grid;grid-template-columns:150px 1fr 40px 40px;gap:8px;align-items:center;font-size:12px;margin:4px 0}
+.rfun .b,.rbp .bar{height:10px;background:var(--surface-2);border-radius:3px;position:relative;overflow:hidden}.rfun .b i,.rbp .bar i{position:absolute;top:0;bottom:0;border-radius:3px}
+.rfun b{text-align:right}
+.rbp{display:grid;grid-template-columns:50px 1fr 160px 1fr 50px;gap:8px;align-items:center;font-size:12px;margin:5px 0}
+.rbp .m{text-align:center;color:var(--text-2)}.rbp .va{text-align:right;font-weight:700}.rbp .vb{font-weight:700}.rbp .ba i{right:0}.rbp .bb i{left:0}
+.rtiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.rtile{background:var(--surface-2);border-radius:9px;padding:8px 10px;font-size:11.5px;color:var(--text-2)}
+.rtile div{display:flex;justify-content:space-between;margin-top:2px}.rtile b{font-size:19px;font-weight:800}.rtile small{color:var(--text-3);font-size:10.5px}
+.rtbar{height:4px;display:flex;border-radius:2px;overflow:hidden;margin-top:4px}
+.rgrid{width:100%;height:auto;display:block}.rgrid.shots{max-width:420px;margin:0 auto}
+.rnarrow{max-width:440px;margin:0 auto}
+.rleg{display:flex;gap:14px;font-size:11.5px;color:var(--text-2);margin-top:4px;flex-wrap:wrap}.rleg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.rtbl table{font-size:12px}.rtbl th{white-space:nowrap}
+.rcorner .rname{margin-bottom:4px}
+.rkv{list-style:none;margin:0;padding:0;font-size:12.5px}.rkv li{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-bottom:1px solid var(--grid)}.rkv b.small{font-size:11.5px;text-align:right}
+.rslopes{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}.slope{width:100%;height:auto}
+.rdisc{list-style:none;margin:0;padding:0;font-size:12.5px}.rdisc li{padding:3px 0}.rdisc b{display:inline-block;width:34px}
+.rdisc .mcard{display:inline-block;width:8px;height:11px;vertical-align:-1px;border-radius:1px}.rdisc .mcard.y{background:#f2c21b}.rdisc .mcard.r{background:#d62f2f}
+.rform{list-style:none;margin:0;padding:0;font-size:12.5px}.rform li{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--grid)}
+.rres{width:20px;height:20px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;color:#fff}.rres.V{background:#2e9e5b}.rres.N{background:#9a9a92}.rres.D{background:#d0453f}
+.rsc{margin-left:auto;font-weight:700}
+.vs{color:var(--text-3)}
+@media (max-width:900px){.rgrid2,.rgrid2.w37,.rtwo{grid-template-columns:1fr}.rslopes{grid-template-columns:repeat(3,1fr)}.rpage{padding:18px 16px}}
 .chart-box.mom{height:400px}
 .chart-box.mom-sh{height:190px}
 .mom-sh-head{font-size:12px;color:var(--text-3);margin:6px 0 0 4px}
@@ -108,6 +164,16 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
   .tbl-wrap{max-height:none!important;overflow:visible!important}
   thead th{position:static!important}
   .panel:not(.active),.subpanel:not(.active){display:none!important}
+  #repCtl{display:none!important}
+  .rpage{border:0;border-radius:0;padding:0;margin:0;max-width:none;break-after:page;page-break-after:always;zoom:.6}
+  .rfoot{display:none}
+  .rpage .chart-box.mom .print-img{max-height:290px;width:auto;max-width:100%;margin:0 auto}
+  .rpage .chart-box.mom-sh .print-img{max-height:137.75px;width:auto;max-width:100%;margin:0 auto}
+  .rgrid{max-width:430px;margin:0 auto}.rgrid.shots{max-width:330px}
+  .rhead{padding:8px 14px}
+  .rpage:last-child{break-after:auto;page-break-after:auto}
+  .rblk{break-inside:avoid;page-break-inside:avoid}
+  .rnum{box-shadow:none}
 }
 .lbl{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:var(--text-2);font-weight:600}
 .pair-tbl{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
@@ -237,6 +303,7 @@ input.j{width:64px}
   <nav class="tabs" role="tablist">
     <button role="tab" data-tab="tac" aria-selected="false">Analyse tactique</button>
     <button role="tab" data-tab="phy" aria-selected="false">Physique</button>
+    <button role="tab" data-tab="rep" aria-selected="false">Rapports</button>
     <button role="tab" data-tab="data" aria-selected="true">Données</button>
     <button role="tab" data-tab="acc" aria-selected="false" hidden>Comptes</button>
   </nav>
@@ -550,6 +617,26 @@ input.j{width:64px}
 </section>
 
 <!-- ============ PHYSIQUE ============ -->
+<section class="panel" id="panel-rep">
+  <div id="repEmpty" class="empty" hidden><b>Aucun match</b>Importez des matchs dans l'onglet Données.</div>
+  <div id="repBody">
+    <div class="card rep-ctl" id="repCtl">
+      <div class="chips" id="repType"><button class="chip" data-t="post">Post-match</button><button class="chip" data-t="pre">Pré-match</button></div>
+      <div class="rep-fields" id="repPostCtl">
+        <label class="lbl">Match <select id="repMatch"></select></label>
+        <label class="lbl">Point de vue <select id="repSide"></select></label>
+      </div>
+      <div class="rep-fields" id="repPreCtl" hidden>
+        <label class="lbl">Adversaire <select id="repOpp"></select></label>
+        <label class="lbl">Notre équipe <select id="repUs"></select></label>
+        <label class="lbl">Jusqu'à <select id="repJ"></select></label>
+        <label class="lbl">Derniers matchs <input type="number" id="repN" min="1" max="38" style="width:56px"></label>
+      </div>
+      <span class="sub">Export : bouton « Export PDF » en haut à droite</span>
+    </div>
+    <div id="repPages"></div>
+  </div>
+</section>
 <section class="panel" id="panel-phy">
   <div id="phyEmpty" class="empty" hidden><b>Aucune donnée physique</b>Importez des fichiers <code>physical-*.jsonl</code> dans l'onglet Données.</div>
   <div id="phyBody">
@@ -1248,7 +1335,7 @@ function refreshFilters() {
   const TN = teamNames(), PI = playerInfo();
   const all = Object.values(S.matches);
   $('#filters').hidden = !['tac', 'phy'].includes(S.tab) || !all.length;
-  $('#pdfBtn').hidden = !['tac', 'phy'].includes(S.tab) || !all.length;
+  $('#pdfBtn').hidden = !['tac', 'phy', 'rep'].includes(S.tab) || !all.length;
   const teams = Object.entries(TN).sort((a, b) => a[1].localeCompare(b[1]));
   S.f.team = fillSelect($('#fTeam'), [['', 'Toutes les équipes'], ...teams], S.f.team);
   const js = [...new Set(all.map(m => m.j))].sort((a, b) => a - b);
@@ -1837,7 +1924,7 @@ function momentumData(ms, f, TN) {
   const g = xtGrid();
   const A = new Float64Array(MOM_N), B = new Float64Array(MOM_N);
   let la, lb, n = 0, tA = 0, tB = 0, single = null, ida = null;
-  if (f.match && ms.length === 1) { single = ms[0]; ida = single.home.id; la = TN[single.home.id]; lb = TN[single.away.id]; }
+  if (f.match && ms.length === 1) { single = ms[0]; ida = f.persp || single.home.id; const ob = ida === single.home.id ? single.away.id : single.home.id; la = TN[ida]; lb = TN[ob]; }
   else if (f.team) { ida = f.team; la = TN[f.team]; lb = 'Adversaires'; }
   else { la = 'Domicile'; lb = 'Extérieur'; }
   for (const m of ms) {
@@ -1850,7 +1937,7 @@ function momentumData(ms, f, TN) {
     }
   }
   if (n > 1) for (let i = 0; i < MOM_N; i++) { A[i] /= n; B[i] /= n; }
-  return {A, B, la, lb, n, tA: n ? tA / n : 0, tB: n ? tB / n : 0, single};
+  return {A, B, la, lb, n, tA: n ? tA / n : 0, tB: n ? tB / n : 0, single, ida};
 }
 // Marqueurs : buts, cartons, changements (match unique)
 // Ballon de football vectoriel (cercle blanc, pentagone central, liseré couleur de l'équipe)
@@ -1890,19 +1977,19 @@ function momMarkers(md, PI) {
       };
       for (const gl of m.ev.goals || []) {
         const px = at(gl.per, gl.mi); if (px == null) continue;
-        const isA = gl.tm === m.home.id;
+        const isA = gl.tm === md.ida;
         goalIcon(px, isA ? rowA : rowB, isA ? css('--s1') : css('--s2'), `${gl.min}'${gl.og ? ' csc' : ''}`);
       }
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       for (const e of m.ev.opta || []) if (e.card && e.per) {
         const px = at(e.per, e.mi); if (px == null) continue;
-        const isA = e.tm === m.home.id, py = isA ? rowA + 20 : rowB - 20;
+        const isA = e.tm === md.ida, py = isA ? rowA + 20 : rowB - 20;
         ctx.fillStyle = e.card === 'r' ? '#d62f2f' : '#f2c21b'; ctx.fillRect(px - 4, py - 6, 8, 11);
       }
       ctx.font = '700 11px system-ui,sans-serif';
       for (const sb of m.ev.subs || []) if (sb.t === 19) {
         const px = at(sb.per, sb.mi); if (px == null) continue;
-        const isA = sb.tm === m.home.id; ctx.fillStyle = css('--text-3');
+        const isA = sb.tm === md.ida; ctx.fillStyle = css('--text-3');
         ctx.fillText('⇄', px, isA ? rowA + 36 : rowB - 36);
       }
     }
@@ -1919,7 +2006,7 @@ function renderShotBand(sfx, md, labels, PI) {
   for (const sh of m.ev.shots || []) {
     if (sh.per == null) continue;
     const b = momBin(sh.per, sh.mi), k = b < 0 ? -1 : md.idx[b]; if (k < 0) continue;
-    const isA = sh.tm === m.home.id, xg = sh.xg || 0;
+    const isA = sh.tm === md.ida, xg = sh.xg || 0;
     pts.push({x: k, y: isA ? xg : -xg, xg, g: sh.g, pen: sh.pen, A: isA, name: PI[sh.p] ? PI[sh.p].name : '', min: sh.min});
   }
   const mx = Math.max(0.3, ...pts.map(p => p.xg)) * 1.15, step = mx > 0.6 ? 0.2 : 0.1, lim = Math.ceil(mx / step - 1e-9) * step;
@@ -1952,8 +2039,8 @@ function renderShotBand(sfx, md, labels, PI) {
         y: {afterFit: sc => { sc.width = 64; }, min: -lim, max: lim, title: {display: true, text: 'xG du tir'}, grid: {color: css('--grid')}, ticks: {stepSize: step, callback: v => fmt(Math.abs(v), 1)}}}},
     plugins: [stems]});
 }
-function renderMomentum(sfx, ms, TN, PI) {
-  const f = S.f, s1 = css('--s1'), s2 = css('--s2');
+function renderMomentum(sfx, ms, TN, PI, fo) {
+  const f = fo || S.f, s1 = css('--s1'), s2 = css('--s2');
   const old = ms.filter(m => m.ev && !xtReady(m)).length;
   const md = momentumData(ms, f, TN);
   const note = $(`#mom${sfx}Note`);
@@ -2815,6 +2902,7 @@ function render(healing) {
   try {
     if (S.tab === 'tac') renderTactical();
     else if (S.tab === 'phy') renderPhysical();
+    else if (S.tab === 'rep') renderReport();
     else if (S.tab === 'acc' && !ACC.loaded) loadAccounts();
   } catch (e) { console.error('Rendu', e); }
   renderData();
@@ -2857,16 +2945,387 @@ function bindSubtabs() {
 /* =====================================================================
    Export PDF (page affichée, tous les utilisateurs) via l'impression du navigateur
    ===================================================================== */
+/* =====================================================================
+   Rapports pré-match et post-match (consultables + export PDF)
+   ===================================================================== */
+const ALLQ = new Set([0, 1, 2, 3, 4, 5]);
+const ST_GRP = {interception: 'rec', tackle: 'rec', recovery: 'rec', shot_recovered: 'rec', throw_in: 'cpa', free_kick: 'cpa', corner_kick: 'cpa', penalty: 'cpa', goal_kick: 'rel', kick_off: 'eng', drop_ball: 'eng'};
+const ST_L = {rec: 'Récupération', cpa: 'CPA', rel: 'Relance du gardien', eng: 'Engagement', autre: 'Autre'};
+const ST_ORDER = ['rec', 'cpa', 'rel', 'eng', 'autre'];
+const CPA_TY = [['corner_kick', 'Corner', ['cor']], ['free_kick', 'Coup franc', ['cfd', 'cfi']], ['throw_in', 'Touche', ['tou']], ['penalty', 'Penalty', ['pen']]];
+const PAT_L = {jeu: 'jeu placé', ctr: 'contre-attaque', cor: 'corner', cfd: 'coup franc direct', cfi: 'coup franc indirect', tou: 'touche', pen: 'penalty'};
+const ox = e => e.x * 1.05, oy = e => (100 - e.y) * .68; // Opta 0-100 → mètres (sens d'attaque →, petit y = gauche)
+
+function repDefaults() {
+  const R = S.rep || (S.rep = {});
+  try { if (!R._loaded) { Object.assign(R, JSON.parse(localStorage.getItem('dash-rep') || '{}')); R._loaded = 1; } } catch (e) { R._loaded = 1; }
+  R.type = R.type || 'post'; R.n = R.n || 5;
+  return R;
+}
+function saveRep() { try { const {_loaded, ...x} = S.rep; localStorage.setItem('dash-rep', JSON.stringify(x)); } catch (e) {} }
+const teamMatches = (tid, jEnd, n) => Object.values(S.matches).filter(m => (m.home.id === tid || m.away.id === tid) && (jEnd == null || m.j <= jEnd) && m.ev)
+  .sort((a, b) => b.j - a.j || String(b.date).localeCompare(String(a.date))).slice(0, n);
+const otherSide = (m, tid) => m.home.id === tid ? m.away.id : m.home.id;
+const pct = (a, b) => b ? Math.round(a / b * 100) : null;
+
+/* ---------- Agrégats spécifiques aux rapports ---------- */
+function possProfile(ms, tid) {
+  const g = {}; ST_ORDER.forEach(k => g[k] = {n: 0, sh: 0, xg: 0});
+  const durs = [], bk = [0, 0, 0, 0]; let n = 0;
+  for (const m of ms) for (const e of m.ev.poss || []) {
+    if (e.tm !== tid || e.ct) continue;
+    const k = ST_GRP[e.st] || 'autre'; g[k].n++; n++; if (e.xg > 0) g[k].sh++; g[k].xg += e.xg;
+    durs.push(e.dur); bk[e.dur < 10 ? 0 : e.dur < 20 ? 1 : e.dur < 45 ? 2 : 3]++;
+  }
+  return {g, n, bk, med: median(durs)};
+}
+function shotsOf(ms, tid) { const out = []; for (const m of ms) for (const s of m.ev.shots || []) if (s.tm === tid) out.push(s); return out; }
+function optaOf(ms, tid, types) { const out = []; for (const m of ms) for (const e of m.ev.opta || []) if (e.tm === tid && types.includes(e.t)) out.push(e); return out; }
+function recovPts(ms, tid) { return optaOf(ms, tid, [49, 8, 7]).filter(e => e.t !== 7 || e.o).map(e => ({x: ox(e), y: oy(e)})); }
+function lossPts(ms, tid) {
+  const pts = optaOf(ms, tid, [50, 61]).filter(e => e.t === 50 || !e.o).map(e => ({x: ox(e), y: oy(e)}));
+  for (const m of ms) for (const p of m.ev.passes || []) if (p.tm === tid && !p.c) pts.push({x: p.x0, y: p.y0});
+  return pts;
+}
+// Déséquilibres : passes réussies qui cassent une ligne + conduites progressives (≥ 10 m), par couloir d'arrivée
+function unbalance(ms, tid) {
+  const C = [0, 1, 2, 3, 4].map(() => ({lb: 0, car: 0}));
+  const lane = y => Math.max(0, Math.min(4, Math.floor(y / 68 * 5)));
+  for (const m of ms) {
+    for (const p of m.ev.passes || []) if (p.tm === tid && p.c && p.br) C[lane(p.y1)].lb++;
+    for (const c of m.ev.carries || []) if (c.tm === tid && c.y1 != null && c.x1 - c.x0 >= 10 && c.x1 >= 52.5) C[lane(c.y1)].car++;
+  }
+  return C;
+}
+function cpaProfile(ms, tid) {
+  const rows = CPA_TY.map(([st, l, pats]) => {
+    let n = 0, sh = 0, xg = 0, gl = 0;
+    for (const m of ms) {
+      for (const e of m.ev.poss || []) if (e.tm === tid && e.st === st && !e.ct) { n++; if (e.xg > 0) sh++; xg += e.xg; }
+      for (const s of m.ev.shots || []) if (s.tm === tid && s.g && pats.includes(s.pat)) gl++;
+    }
+    return {l, n, sh, xg, gl};
+  });
+  let cn = 0, cd = 0, att = 0, short = 0, ins = 0, outs = 0; const takers = {};
+  for (const m of ms) for (const c of m.ev.corners || []) if (c.tm === tid) {
+    cn++; if (c.p) takers[c.p] = (takers[c.p] || 0) + 1;
+    if (c.att != null) { cd++; att += c.att; short += c.sh; if (c.sw === 'in') ins++; if (c.sw === 'out') outs++; }
+  }
+  return {rows, corners: {n: cn, att: cd ? att / cd : null, short: pct(short, cd), ins: pct(ins, ins + outs), outs: pct(outs, ins + outs), takers}};
+}
+function xtByPlayer(ms, tid) { const g = xtGrid(), o = {}; let tot = 0; for (const m of ms) if (xtReady(m)) for (const a of xtActions(m, g)) if (a.tm === tid) { o[a.p] = (o[a.p] || 0) + a.v; tot += a.v; } return {o, tot}; }
+function goalsList(ms, tid, against) {
+  const out = [];
+  for (const m of ms) for (const g of m.ev.goals || []) if ((g.tm === tid) !== !!against) out.push({min: g.min, pat: g.og ? 'csc' : (g.pat || 'jeu'), p: g.p, m});
+  return out;
+}
+
+/* ---------- Petits visuels SVG / HTML ---------- */
+function donutSVG(parts, center, sub, size = 108) {
+  const tot = parts.reduce((a, p) => a + p.v, 0) || 1, r = 40, c = 2 * Math.PI * r;
+  let off = 0;
+  const segs = parts.map(p => { const L = p.v / tot * c; const s = `<circle r="${r}" cx="54" cy="54" fill="none" stroke="${p.c}" stroke-width="13" stroke-dasharray="${L} ${c - L}" stroke-dashoffset="${-off}" transform="rotate(-90 54 54)"/>`; off += L; return s; }).join('');
+  return `<svg viewBox="0 0 108 108" width="${size}" height="${size}" class="donut"><circle r="${r}" cx="54" cy="54" fill="none" stroke="var(--surface-2)" stroke-width="13"/>${segs}<text x="54" y="54" text-anchor="middle" font-size="19" font-weight="750" fill="var(--text)">${center}</text><text x="54" y="70" text-anchor="middle" font-size="9.5" fill="var(--text-3)">${sub}</text></svg>`;
+}
+const shade = (col, k) => `color-mix(in srgb, ${col} ${Math.round(8 + k * 80)}%, var(--surface))`;
+// Grille 3 × 3 (tiers × couloirs), attaque de gauche à droite
+function thirdsGridSVG(pts, col, title) {
+  const G = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+  for (const p of pts) { if (p.x == null || p.y == null) continue; const c = Math.max(0, Math.min(2, Math.floor(p.x / 35))), r = Math.max(0, Math.min(2, Math.floor(p.y / (68 / 3)))); G[r][c]++; }
+  const tot = pts.length || 1, mx = Math.max(1, ...G.flat());
+  let cells = '';
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
+    const v = G[r][c], x = c * 35, y = r * 68 / 3;
+    cells += `<rect x="${x}" y="${y}" width="35" height="${68 / 3}" fill="${shade(col, v / mx)}" stroke="var(--surface)" stroke-width=".5"/>`
+      + `<text x="${x + 17.5}" y="${y + 11.5}" text-anchor="middle" font-size="7" font-weight="750" fill="${v / mx > .55 ? '#fff' : 'var(--text)'}">${v}</text>`
+      + `<text x="${x + 17.5}" y="${y + 17.5}" text-anchor="middle" font-size="3.6" fill="${v / mx > .55 ? '#ffffffcc' : 'var(--text-3)'}">${Math.round(v / tot * 100)} %</text>`;
+  }
+  const thirds = [0, 1, 2].map(c => G.reduce((a, row) => a + row[c], 0));
+  const foot = ['Tiers déf.', 'Tiers médian', 'Tiers off.'].map((l, c) => `<text x="${c * 35 + 17.5}" y="74.5" text-anchor="middle" font-size="3.3" fill="var(--text-2)">${l} · <tspan font-weight="700">${thirds[c]}</tspan> · ${Math.round(thirds[c] / tot * 100)} %</text>`).join('');
+  const side = ['Gauche', 'Axe', 'Droite'].map((l, r) => `<text x="-2" y="${r * 68 / 3 + 12.5}" text-anchor="end" font-size="3.8" fill="var(--text-2)">${l}</text>`).join('');
+  return `<svg class="rgrid" viewBox="-16 -7 123 84"><text x="52.5" y="-2.5" text-anchor="middle" font-size="3.6" fill="var(--text-3)">${title || 'sens d’attaque'} →</text>${cells}<rect x="0" y="0" width="105" height="68" fill="none" stroke="var(--pitch-line)" stroke-width=".4"/>${side}${foot}</svg>`;
+}
+// Zones de tir sur un demi-terrain vertical (but en haut)
+function shotGridSVG(shots, col) {
+  const XS = [0, 13.84, 24.84, 43.16, 54.16, 68], ROWS = [[99.5, 105, '6 m'], [88.5, 99.5, 'Surface'], [75, 88.5, '16-30 m'], [0, 75, 'Loin']];
+  const cnt = {}; let mx = 1;
+  const key = (r, c) => r + '-' + c;
+  for (const s of shots) {
+    if (s.x == null) continue;
+    const r = ROWS.findIndex(([a, b]) => s.x >= a && s.x <= b); if (r < 0) continue;
+    let c = XS.findIndex((v, i) => i < 5 && s.y >= v && s.y < XS[i + 1]); if (c < 0) c = s.y < 0 ? 0 : 4;
+    const k = key(r, c), o = cnt[k] || (cnt[k] = {n: 0, xg: 0, g: []}); o.n++; o.xg += s.xg || 0; if (s.g) o.g.push(s.min);
+    mx = Math.max(mx, o.n);
+  }
+  const H = 40; const yOf = x => (105 - x) / 30 * H; // 105→0, 75→40
+  let out = '';
+  ROWS.forEach(([a, b], r) => {
+    const y0 = r === 3 ? yOf(75) : yOf(b), y1 = r === 3 ? yOf(75) + 12 : yOf(a);
+    for (let c = 0; c < 5; c++) {
+      const o = cnt[key(r, c)] || {n: 0, xg: 0, g: []}, x0 = XS[c], x1 = XS[c + 1];
+      const k = o.n / mx, dark = k > .55;
+      out += `<rect x="${x0}" y="${y0}" width="${x1 - x0}" height="${y1 - y0}" fill="${shade(col, k)}" stroke="var(--surface)" stroke-width=".4"/>`;
+      if (o.n || (r < 3 && c > 0 && c < 4)) out += `<text x="${(x0 + x1) / 2}" y="${(y0 + y1) / 2 + 1.6}" text-anchor="middle" font-size="${r === 0 ? 3.4 : 4.6}" font-weight="750" fill="${dark ? '#fff' : 'var(--text)'}">${o.n}</text>`;
+      if (o.g.length) out += `<text x="${x1 - 1}" y="${y0 + 3.4}" text-anchor="end" font-size="2.6" fill="${dark ? '#fff' : 'var(--text)'}">⚽ ${o.g.length > 2 ? '× ' + o.g.length : o.g.map(m => m + "'").join(' ')}</text>`;
+    }
+  });
+  const lines = `<rect x="0" y="0" width="68" height="52" fill="none" stroke="var(--pitch-line)" stroke-width=".35"/><rect x="13.84" y="0" width="40.32" height="${yOf(88.5)}" fill="none" stroke="var(--pitch-line)" stroke-width=".35"/><rect x="24.84" y="0" width="18.32" height="${yOf(99.5)}" fill="none" stroke="var(--pitch-line)" stroke-width=".35"/><rect x="30.34" y="-1.4" width="7.32" height="1.4" fill="var(--text)"/>`;
+  return `<svg class="rgrid shots" viewBox="-1 -3 70 57">${out}${lines}</svg>`;
+}
+function corridorSVG(C, col, col2) {
+  const L = ['Couloir G', '½ esp. G', 'Axe', '½ esp. D', 'Couloir D'];
+  const tot = C.reduce((a, c) => a + c.lb + c.car, 0) || 1, mx = Math.max(1, ...C.map(c => c.lb + c.car));
+  let out = '';
+  C.forEach((c, i) => {
+    const x = 8 + i * 30, h1 = c.lb / mx * 52, h2 = c.car / mx * 52, base = 62;
+    out += `<rect x="${x}" y="${base - h1}" width="18" height="${h1}" fill="${col}" rx="1"/><rect x="${x}" y="${base - h1 - h2}" width="18" height="${h2}" fill="${col2}" rx="1"/>`
+      + `<text x="${x + 9}" y="${base - h1 - h2 - 2.5}" text-anchor="middle" font-size="5" font-weight="750" fill="var(--text)">${c.lb + c.car}</text>`
+      + `<text x="${x + 9}" y="${base + 6}" text-anchor="middle" font-size="3.9" fill="var(--text-2)">${L[i]}</text>`
+      + `<text x="${x + 9}" y="${base + 10.5}" text-anchor="middle" font-size="3.4" fill="var(--text-3)">${Math.round((c.lb + c.car) / tot * 100)} %</text>`;
+  });
+  return `<svg class="rgrid" viewBox="0 0 160 76"><line x1="4" y1="62" x2="156" y2="62" stroke="var(--text-3)" stroke-width=".4"/>${out}</svg>`;
+}
+const legendHTML = items => `<div class="rleg">${items.map(([c, l]) => `<span><i style="background:${c}"></i>${esc(l)}</span>`).join('')}</div>`;
+function barPair(label, a, b, fa, fb, colA, colB) {
+  const mx = Math.max(a || 0, b || 0) || 1;
+  return `<div class="rbp"><span class="va">${fa}</span><span class="bar ba"><i style="width:${(a || 0) / mx * 100}%;background:${colA}"></i></span><span class="m">${esc(label)}</span><span class="bar bb"><i style="width:${(b || 0) / mx * 100}%;background:${colB}"></i></span><span class="vb">${fb}</span></div>`;
+}
+function slopeSVG(label, a1, a2, b1, b2, d, colA, colB) {
+  const vals = [a1, a2, b1, b2].filter(v => v != null), lo = Math.min(...vals), hi = Math.max(...vals), sp = (hi - lo) || 1;
+  const Y = v => 48 - (v - lo) / sp * 34;
+  const pt = (x, v, c, al) => `<circle cx="${x}" cy="${Y(v)}" r="2.4" fill="${c}"/><text x="${al === 'l' ? x - 4 : x + 4}" y="${Y(v) + 1.6}" text-anchor="${al === 'l' ? 'end' : 'start'}" font-size="5" font-weight="700" fill="${c}">${fmt(v, d)}</text>`;
+  return `<svg viewBox="0 0 80 66" class="slope"><text x="40" y="7" text-anchor="middle" font-size="5.2" font-weight="700" fill="var(--text)">${esc(label)}</text>`
+    + `<line x1="26" y1="12" x2="26" y2="52" stroke="var(--grid)" stroke-width=".6"/><line x1="54" y1="12" x2="54" y2="52" stroke="var(--grid)" stroke-width=".6"/>`
+    + `<line x1="26" y1="${Y(a1)}" x2="54" y2="${Y(a2)}" stroke="${colA}" stroke-width="1.4"/><line x1="26" y1="${Y(b1)}" x2="54" y2="${Y(b2)}" stroke="${colB}" stroke-width="1.4"/>`
+    + pt(26, a1, colA, 'l') + pt(54, a2, colA, 'r') + pt(26, b1, colB, 'l') + pt(54, b2, colB, 'r')
+    + `<text x="26" y="60" text-anchor="middle" font-size="4.2" fill="var(--text-3)">1re</text><text x="54" y="60" text-anchor="middle" font-size="4.2" fill="var(--text-3)">2e</text></svg>`;
+}
+const rnum = n => `<span class="rnum">${n}</span>`;
+const rblk = (n, title, sub, body, cls = '') => `<section class="rblk ${cls}">${n ? rnum(n) : ''}<div class="rbh"><h3>${esc(title)}</h3>${sub ? `<span class="rsub">${sub}</span>` : ''}</div>${body}</section>`;
+const rpage = (num, tot, kicker, title, lead, head, body) => `<article class="rpage"><div class="rkick">PAGE ${num} / ${tot} · ${esc(kicker)}</div><h2 class="rtitle">${esc(title)}</h2><p class="rlead">${esc(lead)}</p>${head}${body}<div class="rfoot">OR Analysis · ${esc(kicker)}<span>${num} / ${tot}</span></div></article>`;
+const vsLine = (A, B, colA, colB) => `<div class="rvs"><b style="color:${colA}">${esc(A)}</b> · <b style="color:${colB}">${esc(B)}</b></div>`;
+
+/* ---------- Bloc « comment on construit » (commun pré / post) ---------- */
+function blkOrigin(ms, tA, tB, nA, nB, cA, cB) {
+  const single = tB == null;
+  const pa = possProfile(ms.a || ms, tA), pb = possProfile(single ? (ms.a || ms) : (ms.b || ms), single ? tA : tB);
+  const SC = {rec: 1, cpa: .7, rel: .45, eng: .25, autre: .12};
+  const parts = (p, col) => ST_ORDER.filter(k => p.g[k].n).map(k => ({v: p.g[k].n, c: `color-mix(in srgb, ${col} ${SC[k] * 100}%, var(--surface))`, l: ST_L[k]}));
+  const list = (p, col) => ST_ORDER.filter(k => p.g[k].n).map(k => `<li><i style="background:color-mix(in srgb, ${col} ${SC[k] * 100}%, var(--surface))"></i>${ST_L[k]}<b>${p.g[k].n}</b></li>`).join('');
+  const nm = (o) => o.n;
+  const div = (ms.a ? (ms.a.length || 1) : 1), divB = (ms.b ? (ms.b.length || 1) : 1);
+  const origin = `<div class="rtwo"><div class="rside">${donutSVG(parts(pa, cA), fmt(nm(pa) / div, div > 1 ? 1 : 0), div > 1 ? 'poss./match' : 'possessions')}<ul class="rlist">${list(pa, cA)}</ul><div class="rname" style="color:${cA}">${esc(nA)}</div></div>`
+    + `<div class="rside">${donutSVG(parts(pb, cB), fmt(nm(pb) / divB, divB > 1 ? 1 : 0), divB > 1 ? 'poss./match' : 'possessions')}<ul class="rlist">${list(pb, cB)}</ul><div class="rname" style="color:${cB}">${esc(nB)}</div></div></div>`;
+  const prod = (p, col) => ST_ORDER.filter(k => p.g[k].n).map(k => { const g = p.g[k], r = pct(g.sh, g.n); return `<div class="rprod"><span>${ST_L[k]}</span><b style="color:${col}">${g.sh}</b><span class="muted">sur ${g.n}${g.n >= 10 ? ' · ' + r + ' %' : ''}</span><span class="rdots">${'<i class="on"></i>'.repeat(Math.min(g.sh, 40))}${'<i></i>'.repeat(Math.min(Math.max(0, g.n - g.sh), 60))}</span></div>`; }).join('');
+  const durB = (p, col) => ['< 10 s', '10-20 s', '20-45 s', '45 s et +'].map((l, i) => `<li><i style="background:color-mix(in srgb, ${col} ${100 - i * 22}%, var(--surface))"></i>${l}<b>${p.bk[i]}</b></li>`).join('');
+  if (single) return {origin: `<div class="rtwo one"><div class="rside">${donutSVG(parts(pa, cA), fmt(nm(pa) / div, div > 1 ? 1 : 0), div > 1 ? 'poss./match' : 'possessions')}<ul class="rlist">${list(pa, cA)}</ul></div></div>`,
+    prod: `<div>${prod(pa, cA)}</div><p class="rnote">Possessions terminées par au moins un tir (totaux sur la période). Pas de pourcentage sous 10 possessions.</p>`, dur: ''};
+  return {origin, prod: `<div class="rtwo"><div>${prod(pa, cA)}</div><div>${prod(pb, cB)}</div></div><p class="rnote">Possessions terminées par au moins un tir. Pas de pourcentage sous 10 possessions.</p>`,
+    dur: `<div class="rtwo"><div class="rside">${donutSVG(pa.bk.map((v, i) => ({v, c: `color-mix(in srgb, ${cA} ${100 - i * 22}%, var(--surface))`})), fmt(pa.med, 0) + ' s', 'médiane')}<ul class="rlist">${durB(pa, cA)}</ul></div><div class="rside">${donutSVG(pb.bk.map((v, i) => ({v, c: `color-mix(in srgb, ${cB} ${100 - i * 22}%, var(--surface))`})), fmt(pb.med, 0) + ' s', 'médiane')}<ul class="rlist">${durB(pb, cB)}</ul></div></div>`};
+}
+function cpaTableHTML(pa, pb, nA, nB, cA, cB, perMatch) {
+  const d = perMatch ? 1 : 0, f = v => fmt(v, d);
+  const head = `<tr><th></th><th colspan="4" style="color:${cA}">${esc(nA)}</th><th colspan="4" style="color:${cB}">${esc(nB)}</th></tr><tr><th></th>${'<th>Séq.</th><th>avec tir</th><th>xG</th><th>buts</th>'.repeat(2)}</tr>`;
+  const rows = pa.rows.map((r, i) => { const b = pb.rows[i]; return `<tr><td class="txt">${r.l}</td><td><b>${f(r.n)}</b></td><td>${f(r.sh)}</td><td>${fmt(r.xg, 2)}</td><td>${f(r.gl)}</td><td><b>${f(b.n)}</b></td><td>${f(b.sh)}</td><td>${fmt(b.xg, 2)}</td><td>${f(b.gl)}</td></tr>`; }).join('');
+  return `<div class="tbl-wrap rtbl"><table>${head}${rows}</table></div>`;
+}
+function cornerHTML(c, name, col, PI) {
+  const tk = Object.entries(c.takers).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([p, n]) => `${esc(PI[p] ? PI[p].name : '?')} (${n})`).join(', ');
+  return `<div class="rcorner"><div class="rname" style="color:${col}">${esc(name)}</div><ul class="rkv"><li>Corners<b>${c.n}</b></li><li>Joués courts<b>${c.short == null ? '—' : c.short + ' %'}</b></li><li>Rentrants / sortants<b>${c.ins == null ? '—' : c.ins + ' % / ' + c.outs + ' %'}</b></li><li>Joueurs dans la surface<b>${c.att == null ? '—' : fmt(c.att, 1)}</b></li><li>Tireurs<b class="small">${tk || '—'}</b></li></ul></div>`;
+}
+
+/* ---------- Rapport post-match ---------- */
+function reportPost(R, TN, PI, SR) {
+  const m = S.matches[R.match]; if (!m || !m.ev) return '<div class="empty">Choisissez un match.</div>';
+  const us = R.side === 'away' ? m.away.id : m.home.id, them = otherSide(m, us);
+  const nA = TN[us], nB = TN[them], cA = css('--s1'), cB = css('--s2');
+  const ms = [m];
+  const {T} = aggTactical(ms, ALLQ); const A = T[us] || newAgg(), B = T[them] || newAgg();
+  const PH = aggPhys(ms, ALLQ).T;
+  const sc = us === m.home.id ? m.score : [m.score[1], m.score[0]];
+  const dt = m.date ? new Date(m.date).toLocaleDateString('fr-FR', {day: 'numeric', month: 'long', year: 'numeric'}) : '';
+  const gl = (tid) => (m.ev.goals || []).filter(g => g.tm === tid).sort((a, b) => a.min - b.min).map(g => `<li>${g.min}' · ${esc(g.og ? 'csc' : (PI[g.p] ? PI[g.p].name : ''))} <span class="muted">${esc(g.og ? '' : PAT_L[g.pat] || '')}</span> ⚽</li>`).join('');
+  const head = `<div class="rhead"><div class="rteam"><span class="rlogo">${logoHTML(us)}</span><b>${esc(nA)}</b><ul class="rgoals">${gl(us)}</ul></div><div class="rscore"><small>J${m.j} · ${esc(dt)}</small><span>${sc[0]} : ${sc[1]}</span><small>${us === m.home.id ? 'domicile' : 'extérieur'}</small></div><div class="rteam b"><span class="rlogo">${logoHTML(them)}</span><b>${esc(nB)}</b><ul class="rgoals">${gl(them)}</ul></div></div>`;
+  const pos = val(TAC, 'possPct', A);
+  const tile = (l, a, b, d = 0, sfx = '') => `<div class="rtile"><span>${esc(l)}</span><div><b style="color:${cA}">${fmt(a, d)}${sfx}</b><b style="color:${cB}">${fmt(b, d)}${sfx}</b></div><div class="rtbar"><i style="width:${(a || 0) / (((a || 0) + (b || 0)) || 1) * 100}%;background:${cA}"></i><i style="width:${(b || 0) / (((a || 0) + (b || 0)) || 1) * 100}%;background:${cB}"></i></div></div>`;
+  const tiles = `<div class="rtiles">${tile('Possession', pos, pos != null ? 100 - pos : null, 0, ' %')}${tile('xG', A.xg, B.xg, 2)}${tile('Tirs (cadrés)', A.sh, B.sh)}${tile('Passes cassant une ligne', A.lb, B.lb)}${tile('Entrées dans la surface', A.box, B.box)}${tile('Récupérations', A.recov, B.recov)}${tile('PPDA (plus bas = plus de pressing)', val(TAC, 'ppda', A), val(TAC, 'ppda', B), 1)}${tile('Distance (km)', PH[us] ? PH[us].dist / 1000 : null, PH[them] ? PH[them].dist / 1000 : null, 1)}${tile('Sprint >25 km/h (m)', PH[us] ? PH[us].spr : null, PH[them] ? PH[them].spr : null)}</div>`;
+  const TOT = 5;
+  // Page 1 : le match en un coup d'œil
+  const p1 = rpage(1, TOT, 'Le match en un coup d’œil', 'Tout le match sur une page.', 'Les chiffres clés, et le match minute par minute : qui pousse, et quand.', head,
+    rblk(1, 'Statistiques clés', vsLine(nA, nB, cA, cB), tiles)
+    + rblk(2, 'Le match minute par minute', 'momentum xT · tirs (hauteur = xG)', `<div class="card-head" style="margin:0"><div><p class="sub" id="momRepSub"></p></div><div class="ctrl"><select id="momRepMode"><option value="bar">Barres par minute</option><option value="smooth">Courbe lissée (5 min)</option></select></div></div><div class="chart-box mom"><canvas id="chMomRep"></canvas></div><div class="mom-sh-head" id="momRepShHead"><b>Tirs</b> · hauteur = xG</div><div class="chart-box mom-sh" id="momRepShBox"><canvas id="chMomRepSh"></canvas></div><p class="note" id="momRepNote"></p>`));
+  // Page 2 : offensif
+  const O = blkOrigin(ms, us, them, nA, nB, cA, cB);
+  const fun = (o, ph) => [['Possessions', o.possN], ['Entrées dernier tiers', o.f3], ['Entrées dans la surface', o.box], ['Tirs', o.sh], ['Buts', o.gf]];
+  const funnel = (o, col, nm) => `<div><div class="rname" style="color:${col}">${esc(nm)}</div>${fun(o).map(([l, v], i, arr) => `<div class="rfun"><span>${l}</span><span class="b"><i style="width:${(v || 0) / (arr[0][1] || 1) * 100}%;background:${col}"></i></span><b>${fmt(v)}</b><span class="muted">${i ? (arr[0][1] ? fmt((v || 0) / arr[0][1] * 100, 0) + ' %' : '') : ''}</span></div>`).join('')}</div>`;
+  const ua = unbalance(ms, us), ub = unbalance(ms, them);
+  const p2 = rpage(2, TOT, 'Offensif', 'Comment on construit ?', 'D’où partent nos attaques, lesquelles produisent, jusqu’où elles vont, et où l’on déséquilibre.', head.replace('rhead', 'rhead mini'),
+    `<div class="rgrid2">${rblk(1, 'D’où partent les attaques', 'hors ballons disputés', O.origin)}${rblk(2, 'Durée des possessions', '', O.dur)}</div>`
+    + rblk(3, 'Lesquelles produisent', 'possessions avec au moins un tir', O.prod)
+    + rblk(4, 'Jusqu’où on va', 'chaque part est calculée sur toutes les possessions', `<div class="rtwo">${funnel(A, cA, nA)}${funnel(B, cB, nB)}</div>`)
+    + `<div class="rgrid2">${rblk(5, 'Où l’on déséquilibre — ' + nA, `${ua.reduce((a, c) => a + c.lb + c.car, 0)} actions · couloir d’arrivée`, corridorSVG(ua, cA, `color-mix(in srgb, ${cA} 45%, var(--surface))`) + legendHTML([[cA, 'passe qui casse une ligne'], [`color-mix(in srgb, ${cA} 45%, var(--surface))`, 'conduite progressive']]))}`
+    + `${rblk(6, 'Où ils déséquilibrent — ' + nB, `${ub.reduce((a, c) => a + c.lb + c.car, 0)} actions · vu de leur attaque`, corridorSVG(ub, cB, `color-mix(in srgb, ${cB} 45%, var(--surface))`) + legendHTML([[cB, 'passe qui casse une ligne'], [`color-mix(in srgb, ${cB} 45%, var(--surface))`, 'conduite progressive']]))}</div>`);
+  // Page 3 : finition
+  const sA = shotsOf(ms, us), sB = shotsOf(ms, them);
+  const outc = (ss, col) => { const g = ss.filter(s => s.g).length, ot = ss.filter(s => s.ot && !s.g).length, off = ss.length - g - ot; return {g, ot, off, parts: [{v: g, c: col}, {v: ot, c: `color-mix(in srgb, ${col} 60%, var(--surface))`}, {v: off, c: `color-mix(in srgb, ${col} 25%, var(--surface))`}]}; };
+  const oa = outc(sA, cA), ob = outc(sB, cB);
+  const ol = (o, col) => `<ul class="rlist"><li><i style="background:${col}"></i>but<b>${o.g}</b></li><li><i style="background:color-mix(in srgb, ${col} 60%, var(--surface))"></i>cadré arrêté<b>${o.ot}</b></li><li><i style="background:color-mix(in srgb, ${col} 25%, var(--surface))"></i>non cadré / contré<b>${o.off}</b></li></ul>`;
+  const cr = (o) => `${o.cross} centres · ${o.crossOk} trouvés${o.cross >= 10 ? ' (' + pct(o.crossOk, o.cross) + ' %)' : ''}`;
+  const pat = (ss) => { const c = {}; ss.forEach(s => { const k = ['cor', 'cfd', 'cfi', 'tou', 'pen'].includes(s.pat) ? 'cpa' : s.pat === 'ctr' ? 'ctr' : 'jeu'; c[k] = (c[k] || 0) + 1; }); return c; };
+  const pa = pat(sA), pb = pat(sB);
+  const p3 = rpage(3, TOT, 'Finition', 'D’où on tire, et comment ça finit.', 'Comment finissent nos tirs, d’où ils partent, et ce qu’a produit l’adversaire.', head.replace('rhead', 'rhead mini'),
+    `<div class="rgrid2">${rblk(1, 'Comment finissent les tirs', '', `<div class="rtwo"><div class="rside">${donutSVG(oa.parts, sA.length, 'tirs')}${ol(oa, cA)}<div class="rname" style="color:${cA}">${esc(nA)}</div></div><div class="rside">${donutSVG(ob.parts, sB.length, 'tirs')}${ol(ob, cB)}<div class="rname" style="color:${cB}">${esc(nB)}</div></div></div>`)}`
+    + `${rblk(2, 'Origine des tirs', '', barPair('Jeu placé', pa.jeu || 0, pb.jeu || 0, pa.jeu || 0, pb.jeu || 0, cA, cB) + barPair('Contre-attaque', pa.ctr || 0, pb.ctr || 0, pa.ctr || 0, pb.ctr || 0, cA, cB) + barPair('Coups de pied arrêtés', pa.cpa || 0, pb.cpa || 0, pa.cpa || 0, pb.cpa || 0, cA, cB) + barPair('xG', A.xg, B.xg, fmt(A.xg, 2), fmt(B.xg, 2), cA, cB) + barPair('xG / tir', val(TAC, 'xgsh', A), val(TAC, 'xgsh', B), fmt(val(TAC, 'xgsh', A), 2), fmt(val(TAC, 'xgsh', B), 2), cA, cB) + `<p class="rnote">${esc(nA)} : ${cr(A)} · ${esc(nB)} : ${cr(B)}</p>`)}</div>`
+    + `<div class="rgrid2">${rblk(3, 'D’où on tire — ' + nA, `${sA.length} tirs · but adverse en haut`, shotGridSVG(sA, cA))}${rblk(4, 'D’où ils tirent — ' + nB, `${sB.length} tirs · notre but en haut`, shotGridSVG(sB, cB))}</div>`);
+  // Page 4 : défensif
+  const rA = recovPts(ms, us), lA = lossPts(ms, us);
+  const hA = mean(rA.map(p => p.x)), hB = mean(recovPts(ms, them).map(p => p.x));
+  const p4 = rpage(4, TOT, 'Défensif', 'Où on récupère, où on perd.', 'Hauteur et zones de récupération, pertes de balle, et intensité du pressing.', head.replace('rhead', 'rhead mini'),
+    rblk(1, 'Pressing et récupération', vsLine(nA, nB, cA, cB), `<div class="rtiles small">${tile('Récupérations', A.recov, B.recov)}${tile('dont camp adverse', A.recovH, B.recovH)}${tile('Hauteur moyenne de récupération (m)', hA, hB, 0)}${tile('PPDA', val(TAC, 'ppda', A), val(TAC, 'ppda', B), 1)}${tile('Interceptions', A.int, B.int)}${tile('Tacles gagnés', A.tkW, B.tkW)}${tile('Duels aériens gagnés', A.aerW, B.aerW)}${tile('Fautes', A.foul, B.foul)}</div>`)
+    + `<div class="rgrid2">${rblk(2, 'Où on récupère', `${rA.length} récupérations, interceptions et tacles gagnés`, thirdsGridSVG(rA, cA, nA + ' attaque'))}${rblk(3, 'Où on perd le ballon', `${lA.length} pertes (passes ratées, dépossessions)`, thirdsGridSVG(lA, cB, nA + ' attaque'))}</div>`
+    + rblk(4, 'Ce qu’a produit l’adversaire', '', barPair('Tirs concédés', A.sha, B.sha, fmt(A.sha), fmt(B.sha), cA, cB) + barPair('xG concédés', A.xga, B.xga, fmt(A.xga, 2), fmt(B.xga, 2), cA, cB) + barPair('Passes adverses cassant une ligne', B.lb, A.lb, fmt(B.lb), fmt(A.lb), cA, cB) + barPair('Entrées adverses dans la surface', B.box, A.box, fmt(B.box), fmt(A.box), cA, cB) + `<p class="rnote">Barre de gauche = ce que ${esc(nA)} a concédé, barre de droite = ce que ${esc(nB)} a concédé.</p>`));
+  // Page 5 : CPA, évolution, discipline
+  const ca = cpaProfile(ms, us), cb = cpaProfile(ms, them);
+  const half = q => aggTactical(ms, new Set(q)).T, h1 = half([0, 1, 2]), h2 = half([3, 4, 5]);
+  const ph1 = aggPhys(ms, new Set([0, 1, 2])).T, ph2 = aggPhys(ms, new Set([3, 4, 5])).T;
+  const g = (o, k) => o ? val(TAC, k, o, 'tot') : null;
+  const slopes = [['Possession %', 'possPct', 0], ['Tirs', 'sh', 0], ['xG', 'xg', 2], ['Cassent la ligne', 'lb', 0], ['Récupérations', 'recov', 0]]
+    .map(([l, k, d]) => slopeSVG(l, g(h1[us], k), g(h2[us], k), g(h1[them], k), g(h2[them], k), d, cA, cB)).join('')
+    + (ph1[us] && ph2[us] ? slopeSVG('Distance (km)', ph1[us].dist / 1000, ph2[us].dist / 1000, ph1[them].dist / 1000, ph2[them].dist / 1000, 1, cA, cB) : '');
+  const disc = (tid) => {
+    const ev = [];
+    for (const e of m.ev.opta || []) if (e.card && e.tm === tid && e.per) ev.push({t: e.per === 1 ? e.mi : 45 + e.mi, h: `<i class="mcard ${e.card}"></i> ${esc(PI[e.p] ? PI[e.p].name : '')}`});
+    const subs = (m.ev.subs || []).filter(x => x.tm === tid);
+    const used = new Set();
+    for (const on of subs.filter(x => x.t === 19)) { const off = subs.find(x => x.t === 18 && !used.has(x) && Math.abs(x.mi - on.mi) < .5 && x.per === on.per); if (off) used.add(off); ev.push({t: on.per === 1 ? on.mi : 45 + on.mi, h: `⇄ ↑ ${esc(PI[on.p] ? PI[on.p].name : '')}${off ? ` ↓ ${esc(PI[off.p] ? PI[off.p].name : '')}` : ''}`}); }
+    return ev.sort((a, b) => a.t - b.t).map(e => `<li><b>${Math.floor(e.t) + 1}'</b> ${e.h}</li>`).join('') || '<li class="muted">—</li>';
+  };
+  const p5 = rpage(5, TOT, 'CPA, évolution et discipline', 'CPA, temps et évolution.', 'Le rendement des coups de pied arrêtés, et ce qui change d’une période à l’autre.', head.replace('rhead', 'rhead mini'),
+    rblk(1, 'Rendement des CPA', 'séquences démarrées sur CPA', cpaTableHTML(ca, cb, nA, nB, cA, cB))
+    + `<div class="rgrid2">${rblk(2, 'Corners — ' + nA, '', cornerHTML(ca.corners, nA, cA, PI))}${rblk(3, 'Corners — ' + nB, '', cornerHTML(cb.corners, nB, cB, PI))}</div>`
+    + rblk(4, '1re contre 2e période', vsLine(nA, nB, cA, cB), `<div class="rslopes">${slopes}</div>`)
+    + rblk(5, 'Discipline et changements', '', `<div class="rtwo"><div><div class="rname" style="color:${cA}">${esc(nA)}</div><ul class="rdisc">${disc(us)}</ul></div><div><div class="rname" style="color:${cB}">${esc(nB)}</div><ul class="rdisc">${disc(them)}</ul></div></div>`));
+  return {html: p1 + p2 + p3 + p4 + p5, after: () => renderMomentum('Rep', ms, TN, PI, {match: m.id, team: '', qs: ALLQ, persp: us})};
+}
+
+/* ---------- Rapport pré-match ---------- */
+function reportPre(R, TN, PI, SR) {
+  const opp = R.opp; if (!opp) return '<div class="empty">Choisissez l’adversaire.</div>';
+  const us = R.us && R.us !== opp ? R.us : '';
+  const jEnd = R.jEnd || null, N = R.n || 5;
+  const mo = teamMatches(opp, jEnd, N); if (!mo.length) return '<div class="empty">Aucun match de cet adversaire sur la période.</div>';
+  const mu = us ? teamMatches(us, jEnd, N) : [];
+  const nO = TN[opp], nU = us ? TN[us] : 'Moyenne L1', cO = css('--s2'), cU = css('--s1'), cL = css('--text-3');
+  // Valeurs de chaque équipe sur ses N derniers matchs (pour les rangs et la moyenne)
+  const teams = [...new Set(Object.values(S.matches).flatMap(m => [m.home.id, m.away.id]))];
+  const win = {}; for (const t of teams) { const ms = teamMatches(t, jEnd, N); win[t] = {ms, A: aggTactical(ms, ALLQ).T[t], P: aggPhys(ms, ALLQ).T[t]}; }
+  const METR = [
+    ['Buts / match', w => w.A && w.A.mp ? w.A.gf / w.A.mp : null, 2, 1], ['Buts encaissés / match', w => w.A && w.A.mp ? w.A.ga / w.A.mp : null, 2, -1],
+    ['xG / match', w => w.A && w.A.mp ? w.A.xg / w.A.mp : null, 2, 1], ['xG concédés / match', w => w.A && w.A.mp ? w.A.xga / w.A.mp : null, 2, -1],
+    ['Possession %', w => val(TAC, 'possPct', w.A), 1, 1], ['PPDA (pressing)', w => val(TAC, 'ppda', w.A), 1, -1],
+    ['Passes cassant une ligne / match', w => w.A && w.A.mp ? w.A.lb / w.A.mp : null, 1, 1], ['Récup. camp adverse / match', w => w.A && w.A.mp ? w.A.recovH / w.A.mp : null, 1, 1],
+    ['Tirs / match', w => w.A && w.A.mp ? w.A.sh / w.A.mp : null, 1, 1], ['Tirs concédés / match', w => w.A && w.A.mp ? w.A.sha / w.A.mp : null, 1, -1],
+    ['Distance / match (km)', w => w.P && w.P.mp ? w.P.dist / w.P.mp / 1000 : null, 1, 1], ['>25 km/h / match (m)', w => w.P && w.P.mp ? w.P.spr / w.P.mp : null, 0, 1]
+  ];
+  const rankOf = (fn, dir, t) => { const vals = teams.map(x => [x, fn(win[x])]).filter(v => v[1] != null).sort((a, b) => dir > 0 ? b[1] - a[1] : a[1] - b[1]); const i = vals.findIndex(v => v[0] === t); return i < 0 ? null : i + 1; };
+  const avgOf = fn => mean(teams.map(x => fn(win[x])));
+  const tiles = METR.map(([l, fn, d, dir]) => {
+    const vo = fn(win[opp]), vu = us ? fn(win[us]) : avgOf(fn), rk = rankOf(fn, dir, opp);
+    return `<div class="rtile"><span>${esc(l)}</span><div><b style="color:${cO}">${fmt(vo, d)}</b><b style="color:${us ? cU : cL}">${fmt(vu, d)}</b></div><small>${rk ? rk + (rk === 1 ? 'er' : 'e') + ' / ' + teams.length + (dir < 0 ? ' (1er = le meilleur)' : '') : ''}</small></div>`;
+  }).join('');
+  const form = mo.map(m => { const h = m.home.id === opp, gf = h ? m.score[0] : m.score[1], ga = h ? m.score[1] : m.score[0], r = gf > ga ? 'V' : gf < ga ? 'D' : 'N'; return `<li><span class="rres ${r}">${r}</span>J${m.j} · ${h ? 'dom.' : 'ext.'} vs <b>${esc(TN[otherSide(m, opp)])}</b> <span class="rsc">${gf}-${ga}</span></li>`; }).join('');
+  const rec = mo.reduce((a, m) => { const h = m.home.id === opp, gf = h ? m.score[0] : m.score[1], ga = h ? m.score[1] : m.score[0]; a[gf > ga ? 0 : gf < ga ? 2 : 1]++; return a; }, [0, 0, 0]);
+  const head = `<div class="rhead pre"><div class="rteam"><span class="rlogo">${logoHTML(opp)}</span><b>${esc(nO)}</b><small>${mo.length} derniers matchs${jEnd ? ' jusqu’à la J' + jEnd : ''} · ${rec[0]} V · ${rec[1]} N · ${rec[2]} D</small></div>${us ? `<div class="rscore"><small>prochain match</small><span class="vs">VS</span><small></small></div><div class="rteam b"><span class="rlogo">${logoHTML(us)}</span><b>${esc(nU)}</b></div>` : ''}</div>`;
+  const TOT = 5, A = win[opp].A || newAgg();
+  const p1 = rpage(1, TOT, 'Profil de l’adversaire', `${nO} en un coup d’œil.`, 'Résultats récents et chiffres clés, comparés au reste du championnat sur la même période.', head,
+    `<div class="rgrid2 w37">${rblk(1, 'Forme', `${mo.length} derniers matchs`, `<ul class="rform">${form}</ul>`)}${rblk(2, 'Chiffres clés', `<b style="color:${cO}">${esc(nO)}</b> · <b style="color:${us ? cU : cL}">${esc(nU)}</b> · rang de ${esc(nO)} en L1`, `<div class="rtiles small">${tiles}</div>`)}</div>`
+    + rblk(3, 'Quand ils marquent, quand ils encaissent', 'par quart d’heure · moyenne par match', `<div class="chart-box short"><canvas id="chRepQ"></canvas></div>`));
+  // Page 2 : comment ils attaquent
+  const O = blkOrigin({a: mo, b: mu}, opp, us || null, nO, nU, cO, cU);
+  const sO = shotsOf(mo, opp), uo = unbalance(mo, opp), xt = xtByPlayer(mo, opp);
+  const gO = goalsList(mo, opp, false), gpat = {}; gO.forEach(g => gpat[g.pat] = (gpat[g.pat] || 0) + 1);
+  const Pt = aggTactical(mo, ALLQ).P;
+  const threats = Object.keys(Pt).filter(id => PI[id] && PI[id].team === opp && Pt[id].secs > 0).map(id => ({id, xg: Pt[id].xg, gf: Pt[id].gf, kp: Pt[id].kp, lb: Pt[id].lb, xt: xt.o[id] || 0, min: Pt[id].secs / 60}))
+    .sort((a, b) => (b.xt + b.xg) - (a.xt + a.xg)).slice(0, 8);
+  const thrRows = threats.map(r => `<tr><td class="txt">${esc(PI[r.id].name)} <span class="muted">${esc(SR[r.id] || '')}</span></td><td>${fmt(r.min)}</td><td>${r.gf}</td><td>${fmt(r.xg, 2)}</td><td>${fmt(r.xt, 2)}</td><td>${r.kp}</td><td>${r.lb}</td></tr>`).join('');
+  const p2 = rpage(2, TOT, 'Offensif', 'Comment ils attaquent.', 'D’où partent leurs attaques, d’où ils tirent, où ils déséquilibrent, et qui est dangereux.', head.replace('rhead', 'rhead mini'),
+    `<div class="rgrid2">${rblk(1, 'D’où partent leurs attaques', us ? `${esc(nO)} · ${esc(nU)} · par match` : 'par match', O.origin)}${rblk(2, 'Lesquelles produisent', 'possessions avec au moins un tir', O.prod)}</div>`
+    + `<div class="rgrid2">${rblk(3, 'D’où ils tirent', `${sO.length} tirs · ${fmt(A.xg, 2)} xG · but adverse en haut`, shotGridSVG(sO, cO))}${rblk(4, 'Où ils déséquilibrent', `${uo.reduce((a, c) => a + c.lb + c.car, 0)} actions · vu de leur attaque`, corridorSVG(uo, cO, `color-mix(in srgb, ${cO} 45%, var(--surface))`) + legendHTML([[cO, 'passe qui casse une ligne'], [`color-mix(in srgb, ${cO} 45%, var(--surface))`, 'conduite progressive']]) + `<p class="rnote">Buts marqués : ${Object.entries(gpat).map(([k, v]) => `${v} ${PAT_L[k] || k}`).join(' · ') || 'aucun'}</p>`)}</div>`
+    + rblk(5, 'Joueurs dangereux', 'classés par xG + xT', `<div class="tbl-wrap rtbl"><table><tr><th class="txt">Joueur</th><th>Min</th><th>Buts</th><th>xG</th><th>xT</th><th>Passes clés</th><th>Cassent la ligne</th></tr>${thrRows}</table></div>`));
+  // Page 3 : comment ils défendent
+  const rO = recovPts(mo, opp), lO = lossPts(mo, opp), sC = []; for (const m of mo) for (const s of m.ev.shots || []) if (s.tm !== opp) sC.push(s);
+  const hO = mean(rO.map(p => p.x)), hL = mean(teams.map(t => mean(recovPts(win[t].ms, t).map(p => p.x))));
+  const gA = goalsList(mo, opp, true), gapat = {}; gA.forEach(g => gapat[g.pat] = (gapat[g.pat] || 0) + 1);
+  const p3 = rpage(3, TOT, 'Défensif', 'Comment ils défendent.', 'Hauteur du pressing, zones de récupération, où ils perdent le ballon (où les presser) et ce qu’ils concèdent.', head.replace('rhead', 'rhead mini'),
+    rblk(1, 'Pressing', '', `<div class="rtiles small"><div class="rtile"><span>Hauteur moyenne de récupération</span><div><b style="color:${cO}">${fmt(hO)} m</b><b style="color:${cL}">${fmt(hL)} m</b></div><small>${esc(nO)} · moyenne L1</small></div><div class="rtile"><span>PPDA</span><div><b style="color:${cO}">${fmt(val(TAC, 'ppda', A), 1)}</b><b style="color:${cL}">${fmt(avgOf(w => val(TAC, 'ppda', w.A)), 1)}</b></div><small>plus bas = pressing plus intense</small></div><div class="rtile"><span>Récup. camp adverse / match</span><div><b style="color:${cO}">${fmt(A.recovH / (A.mp || 1), 1)}</b><b style="color:${cL}">${fmt(avgOf(w => w.A && w.A.mp ? w.A.recovH / w.A.mp : null), 1)}</b></div><small>${esc(nO)} · moyenne L1</small></div><div class="rtile"><span>Buts encaissés</span><div><b style="color:${cO}">${gA.length}</b></div><small>${Object.entries(gapat).map(([k, v]) => `${v} ${PAT_L[k] || k}`).join(' · ') || '—'}</small></div></div>`)
+    + `<div class="rgrid2">${rblk(2, 'Où ils récupèrent', `${rO.length} récupérations`, thirdsGridSVG(rO, cO, nO + ' attaque'))}${rblk(3, 'Où ils perdent le ballon', `${lO.length} pertes · zones à presser`, thirdsGridSVG(lO, cU, nO + ' attaque'))}</div>`
+    + rblk(4, 'D’où on leur tire dessus', `${sC.length} tirs concédés · ${fmt(A.xga, 2)} xG · leur but en haut`, `<div class="rnarrow">${shotGridSVG(sC, cU)}</div>`));
+  // Page 4 : CPA
+  const co = cpaProfile(mo, opp), cc = {rows: CPA_TY.map(([st, l, pats]) => { let n = 0, sh = 0, xg = 0, gl = 0; for (const m of mo) { for (const e of m.ev.poss || []) if (e.tm !== opp && e.st === st && !e.ct) { n++; if (e.xg > 0) sh++; xg += e.xg; } for (const s of m.ev.shots || []) if (s.tm !== opp && s.g && pats.includes(s.pat)) gl++; } return {l, n, sh, xg, gl}; })};
+  const p4 = rpage(4, TOT, 'Coups de pied arrêtés', 'Leurs CPA, pour et contre.', 'Ce qu’ils produisent sur coups de pied arrêtés, leur profil de corners, et ce qu’ils concèdent.', head.replace('rhead', 'rhead mini'),
+    rblk(1, 'Rendement des CPA', `${mo.length} matchs · totaux`, cpaTableHTML(co, cc, nO + ' (pour)', nO + ' (contre)', cO, cU))
+    + `<div class="rgrid2">${rblk(2, 'Profil des corners', '', cornerHTML(co.corners, nO, cO, PI))}${rblk(3, 'À retenir', '', `<ul class="rkv"><li>xG sur CPA / match<b>${fmt(co.rows.reduce((a, r) => a + r.xg, 0) / mo.length, 2)}</b></li><li>xG CPA concédés / match<b>${fmt(cc.rows.reduce((a, r) => a + r.xg, 0) / mo.length, 2)}</b></li><li>Buts sur CPA (pour / contre)<b>${co.rows.reduce((a, r) => a + r.gl, 0)} / ${cc.rows.reduce((a, r) => a + r.gl, 0)}</b></li><li>Part des xG venant des CPA<b>${fmt(val(TAC, 'cpaShare', A), 0)} %</b></li></ul>`)}</div>`);
+  // Page 5 : joueurs clés et physique
+  const PP = aggPhys(mo, ALLQ).P;
+  const pl = Object.entries(Pt).filter(([id, o]) => PI[id] && PI[id].team === opp && o.secs > 0).sort((a, b) => b[1].secs - a[1].secs).slice(0, 16)
+    .map(([id, o]) => { const ph = PP[id]; return `<tr><td class="txt">${esc(PI[id].name)}</td><td>${esc(SR[id] === 'GK' ? 'GB' : SR[id] || '')}</td><td>${fmt(o.secs / 60)}</td><td>${o.gf}</td><td>${fmt(o.xg, 2)}</td><td>${fmt(xt.o[id] || 0, 2)}</td><td>${o.lb}</td><td>${o.recov}</td><td>${ph ? fmt(val(PHY, 'dist', ph, 'p90') / 1000, 1) : '—'}</td><td>${ph ? fmt(val(PHY, 'spr', ph, 'p90')) : '—'}</td><td>${ph ? fmt(ph.vmax, 1) : '—'}</td></tr>`; }).join('');
+  const p5 = rpage(5, TOT, 'Joueurs', 'Qui joue, et à quelle intensité.', 'Les 16 joueurs les plus utilisés sur la période : temps de jeu, production et profil physique.', head.replace('rhead', 'rhead mini'),
+    rblk(1, 'Joueurs les plus utilisés', 'valeurs physiques par 90 min', `<div class="tbl-wrap rtbl"><table><tr><th class="txt">Joueur</th><th>Poste</th><th>Min</th><th>Buts</th><th>xG</th><th>xT</th><th>Cassent la ligne</th><th>Récup.</th><th>Dist. /90 (km)</th><th>&gt;25 km/h /90 (m)</th><th>V. max</th></tr>${pl}</table></div>`));
+  const after = () => {
+    const bq = A.byQ || [], n = A.mp || 1;
+    chart('chRepQ', {type: 'bar', data: {labels: Q_LABELS, datasets: [
+        {label: 'xG produits', data: bq.map(b => b.xg / n), backgroundColor: cO, borderRadius: 3}, {label: 'xG concédés', data: bq.map(b => b.xga / n), backgroundColor: cO + '59', borderRadius: 3},
+        {label: 'Buts marqués', data: bq.map(b => b.gf), type: 'line', borderColor: css('--text'), backgroundColor: css('--text'), pointRadius: 4, showLine: false, yAxisID: 'g'},
+        {label: 'Buts encaissés', data: bq.map(b => b.ga), type: 'line', borderColor: cU, backgroundColor: cU, pointRadius: 4, pointStyle: 'rectRot', showLine: false, yAxisID: 'g'}]},
+      options: {animation: false, plugins: {legend: {position: 'bottom'}}, scales: {y: {title: {display: true, text: 'xG / match'}, grid: {color: css('--grid')}}, g: {position: 'right', beginAtZero: true, ticks: {precision: 0}, title: {display: true, text: 'buts (total)'}, grid: {display: false}}, x: {grid: {display: false}}}}});
+  };
+  return {html: p1 + p2 + p3 + p4 + p5, after};
+}
+
+function renderReport() {
+  const R = repDefaults(), TN = teamNames(), PI = playerInfo(), SR = seasonRoles();
+  const all = Object.values(S.matches).filter(m => m.ev).sort((a, b) => b.j - a.j || String(b.date).localeCompare(String(a.date)));
+  $('#repEmpty').hidden = !!all.length; $('#repBody').hidden = !all.length; if (!all.length) return;
+  const teams = [...new Set(all.flatMap(m => [m.home.id, m.away.id]))].sort((a, b) => (TN[a] || '').localeCompare(TN[b] || ''));
+  const js = [...new Set(all.map(m => m.j))].sort((a, b) => a - b);
+  document.querySelectorAll('#repType .chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.t === R.type));
+  $('#repPostCtl').hidden = R.type !== 'post'; $('#repPreCtl').hidden = R.type !== 'pre';
+  if (R.type === 'post') {
+    if (!S.matches[R.match]) R.match = (S.f.match && S.matches[S.f.match]) ? S.f.match : all[0].id;
+    fillSelect($('#repMatch'), all.map(m => [m.id, `J${m.j} · ${TN[m.home.id]} ${m.score[0]}-${m.score[1]} ${TN[m.away.id]}`]), R.match);
+    const m = S.matches[R.match];
+    if (!R.side || (S.f.team && R._auto !== R.match)) { R.side = S.f.team === m.away.id ? 'away' : 'home'; R._auto = R.match; }
+    fillSelect($('#repSide'), [['home', TN[m.home.id] + ' (domicile)'], ['away', TN[m.away.id] + ' (extérieur)']], R.side);
+  } else {
+    if (!teams.includes(R.opp)) R.opp = teams[0];
+    fillSelect($('#repOpp'), teams.map(t => [t, TN[t]]), R.opp);
+    fillSelect($('#repUs'), [['', '— aucune (comparer à la moyenne L1) —'], ...teams.filter(t => t !== R.opp).map(t => [t, TN[t]])], R.us || '');
+    fillSelect($('#repJ'), [['', 'toutes'], ...js.map(j => [j, 'J' + j])], R.jEnd || '');
+    $('#repN').value = R.n;
+  }
+  const out = R.type === 'post' ? reportPost(R, TN, PI, SR) : reportPre(R, TN, PI, SR);
+  if (typeof out === 'string') { $('#repPages').innerHTML = out; return; }
+  $('#repPages').innerHTML = out.html;
+  const ms = $('#momRepMode'); if (ms) { ms.value = R.momMode || 'bar'; ms.onchange = e => { R.momMode = e.target.value; saveRep(); scheduleRender(); }; }
+  out.after();
+}
+function bindReportUI() {
+  $('#repType').onclick = e => { const b = e.target.closest('[data-t]'); if (!b) return; repDefaults().type = b.dataset.t; saveRep(); scheduleRender(); };
+  const on = (id, k, num) => $(id).onchange = e => { const R = repDefaults(); R[k] = num ? (+e.target.value || null) : e.target.value; saveRep(); scheduleRender(); };
+  on('#repMatch', 'match'); on('#repSide', 'side'); on('#repOpp', 'opp'); on('#repUs', 'us'); on('#repJ', 'jEnd', true); on('#repN', 'n', true);
+}
+
 function exportPDF() {
-  if (S.tab !== 'tac' && S.tab !== 'phy') return;
+  if (!['tac', 'phy', 'rep'].includes(S.tab)) return;
   const root = document.documentElement, prevTheme = root.getAttribute('data-theme'), prevTitle = document.title;
-  const tabL = S.tab === 'tac' ? 'Analyse tactique' : 'Physique';
+  const tabL = S.tab === 'tac' ? 'Analyse tactique' : S.tab === 'phy' ? 'Physique' : 'Rapport';
   const nav = document.querySelector(`.subtabs[data-for="${S.tab}"] button[data-sub="${S.sub[S.tab]}"]`);
-  const subL = nav ? nav.textContent.trim() : '';
+  let subL = nav ? nav.textContent.trim() : '';
+  if (S.tab === 'rep') { const R = repDefaults(), TN0 = teamNames(); if (R.type === 'post' && S.matches[R.match]) { const m = S.matches[R.match]; subL = `post-match J${m.j} ${TN0[m.home.id]}-${TN0[m.away.id]}`; } else subL = `pré-match ${TN0[R.opp] || ''}`; }
   const f = S.f, TN = teamNames(), PI = playerInfo();
   const bits = [];
-  if (f.team) bits.push(TN[f.team]); if (f.player && PI[f.player]) bits.push(PI[f.player].name);
-  if (f.match && S.matches[f.match]) bits.push((() => { const m = S.matches[f.match]; return `J${m.j} ${TN[m.home.id]}-${TN[m.away.id]}`; })()); else if (f.j0 != null || f.j1 != null) bits.push(`J${f.j0 ?? ''}-J${f.j1 ?? ''}`);
+  if (S.tab !== 'rep' && f.team) bits.push(TN[f.team]); if (S.tab !== 'rep' && f.player && PI[f.player]) bits.push(PI[f.player].name);
+  if (S.tab === 'rep') {} else if (f.match && S.matches[f.match]) bits.push((() => { const m = S.matches[f.match]; return `J${m.j} ${TN[m.home.id]}-${TN[m.away.id]}`; })()); else if (f.j0 != null || f.j1 != null) bits.push(`J${f.j0 ?? ''}-J${f.j1 ?? ''}`);
   const today = new Date().toLocaleDateString('fr-FR');
   $('#phTitle').textContent = `${tabL} — ${subL}`;
   $('#phSub').textContent = `Exporté le ${today}${Cloud && Cloud.user ? ' par ' + (Cloud.user.email || '') : ''}`;
@@ -2895,6 +3354,7 @@ function exportPDF() {
 function bindUI() {
   bindSubtabs();
   bindPhyUI();
+  bindReportUI();
   document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => {
     S.tab = b.dataset.tab;
     document.querySelectorAll('nav.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
