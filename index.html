@@ -1040,14 +1040,16 @@ async function importFiles(list) {
       } else if ('frameIdx' in f) { log(`• ${file.name} : tracking brut ignoré`); continue; }
     }
     if (!kind) { log(`✗ ${file.name} : format non reconnu`); continue; }
-    parsed.push({name: file.name, dir, kind, data: p.single || p.rows});
+    parsed.push({name: file.name, dir, kind, size: file.size, data: p.single || p.rows});
   }
+  const before = Object.assign({}, S.matches);           // état avant import
+  const sigs = {}; const sig = (gid, it) => (sigs[gid] = sigs[gid] || []).push(it.kind + ':' + it.size);
 
   // 1) Méta → matchs
   const touched = new Set();
   const metaByGame = {};
   for (const it of parsed.filter(x => x.kind === 'meta' || x.kind === 'metadata')) {
-    const gid = it.kind === 'meta' ? it.data.ssiId : it.data.data.id;
+    const gid = it.kind === 'meta' ? it.data.ssiId : it.data.data.id; sig(gid, it);
     (metaByGame[gid] = metaByGame[gid] || {dirs: new Set()})[it.kind] = it.data;
     metaByGame[gid].dirs.add(it.dir);
   }
@@ -1055,7 +1057,7 @@ async function importFiles(list) {
     const base = baseFromMeta(mm.meta, mm.metadata);
     const prev = S.matches[gid];
     if (prev) { // conserve événements, physique, journée manuelle
-      for (const k of ['ev', 'phys', 'minsQ', 'minsSrc', 'j', 'jManual']) if (prev[k] !== undefined) base[k] = prev[k];
+      for (const k of ['ev', 'phys', 'minsQ', 'minsSrc', 'j', 'jManual', 'comp', 'srcSig']) if (prev[k] !== undefined) base[k] = prev[k];
       for (const [pid, pl] of Object.entries(prev.players)) if (!base.players[pid]) base.players[pid] = pl;
     }
     base.dirs = [...mm.dirs];
@@ -1069,7 +1071,7 @@ async function importFiles(list) {
     for (const r of it.data) { gid = (r['2sMarking'] && r['2sMarking'].gameId) || (r.optaEvent && r.optaEvent.game_id); if (gid) break; }
     const m = S.matches[gid];
     if (!m) { log(`✗ ${it.name} : match introuvable (importez aussi meta.json / metadata.json)`); continue; }
-    procInsight(m, it.data); touched.add(gid);
+    procInsight(m, it.data); touched.add(gid); sig(gid, it);
     log(`✓ ${m.home.name} – ${m.away.name} : ${m.ev.passes.length} passes, ${m.ev.shots.length} tirs, ${m.ev.poss.length} possessions`);
   }
 
@@ -1088,13 +1090,25 @@ async function importFiles(list) {
     if (!cands.length) { log(`✗ ${it.name} : aucun match correspondant (importez la fiche match)`); continue; }
     if (cands.length > 1) { log(`⚠ ${it.name} : plusieurs matchs possibles entre ces équipes. Placez chaque match dans son propre dossier.`); continue; }
     const m = cands[0];
-    procPhys(m, it.kind, it.data); touched.add(m.id);
+    procPhys(m, it.kind, it.data); touched.add(m.id); sig(m.id, it);
     log(`✓ ${m.home.name} – ${m.away.name} : physique (${it.kind === 'summary' ? 'résumé' : it.kind === 'splits' ? 'par 5 min' : 'par minute'})`);
   }
 
   const impComp = ($('#impComp') && $('#impComp').value) || S.comp;
-  for (const id of touched) { finalizeMinutes(S.matches[id]); S.matches[id].comp = impComp; }
-  if (touched.size && impComp !== S.comp) setComp(impComp, true);
+  // Matchs déjà importés avec exactement les mêmes fichiers et la même version : rien à refaire ni à renvoyer
+  let skipped = 0, fresh = 0;
+  for (const id of [...touched]) {
+    const sg = (sigs[id] || []).sort().join(',') + '|v' + EV_VER;
+    const prev = before[id];
+    if (prev && prev.srcSig === sg && prev.ev && prev.ev.v === EV_VER) { S.matches[id] = prev; touched.delete(id); skipped++; continue; }
+    const m = S.matches[id];
+    finalizeMinutes(m);
+    // nouveau match → championnat choisi ; match existant → garde son championnat
+    if (!prev) { m.comp = impComp; fresh++; } else m.comp = prev.comp || 'L1';
+    if ((sigs[id] || []).length >= 3) m.srcSig = sg;
+  }
+  if (skipped) log(`• ${skipped} match(s) déjà à jour (mêmes fichiers) : ignorés, rien n'est renvoyé en ligne.`);
+  if (fresh && impComp !== S.comp) setComp(impComp, true);
   for (const id of autoJournees()) touched.add(id);
   for (const id of touched) persist(S.matches[id]);
   if (CLOUD && touched.size) log(`Envoi en ligne de ${touched.size} match(s)…`);
@@ -1128,6 +1142,7 @@ function baseFromMeta(meta, md) {
 }
 
 /* ---------- Insight : événements Opta + marquages tracking ---------- */
+const EV_VER = 4; // version du traitement des événements (à incrémenter si procInsight change)
 const OPTA_KEEP = new Set([1, 3, 4, 7, 8, 10, 12, 17, 44, 45, 49, 50, 61, 74]);
 function procInsight(m, rows) {
   const L = m.L, W = m.W;
@@ -1231,7 +1246,7 @@ function procInsight(m, rows) {
   if (!optaRaw.length) {
     for (const {k, q} of shotMkList) ev.shots.push({p: k.shooterId, tm: k.attTeamId, q, xg: k.xG || 0, x: nx(k.shotLoc[0]), y: ny(k.shotLoc[1]), g: 0, ot: 0, pen: 0, min: null});
   }
-  ev.v = 4;
+  ev.v = EV_VER;
   m.ev = ev;
   // minutes de repli (si pas de physique)
   m.minsOpta = minutesFromOpta(m, setup, subs);
