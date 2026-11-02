@@ -1910,7 +1910,9 @@ const pointLabels = {
     const ctx = c.ctx; ctx.save(); ctx.font = '11px system-ui,sans-serif'; ctx.fillStyle = css('--text-2');
     c.data.datasets.forEach((ds, i) => {
       if (c.getDatasetMeta(i).hidden) return;
-      c.getDatasetMeta(i).data.forEach((pt, j) => { const d = ds.data[j]; if (d && d.lab) ctx.fillText(d.lab, pt.x + (d.off || 8), pt.y + 4); });
+      c.getDatasetMeta(i).data.forEach((pt, j) => { const d = ds.data[j]; if (!d || !d.lab) return;
+        if (d.hl) { ctx.save(); ctx.font = '700 12.5px system-ui,sans-serif'; ctx.fillStyle = d.hlc || css('--text'); ctx.fillText(d.lab, pt.x + (d.off || 8), pt.y + 4); ctx.restore(); }
+        else ctx.fillText(d.lab, pt.x + (d.off || 8), pt.y + 4); });
     });
     ctx.restore();
   }
@@ -2418,13 +2420,21 @@ function renderTactical() {
       {k: 'bp', l: 'BP', v: r => r.bp}, {k: 'bc', l: 'BC', v: r => r.bc}, {k: 'diff', l: 'Diff', v: r => r.diff}
     ], standRows, {hl: r => r.id === f.team, onRow: id => setFilter('team', id)});
 
-    const pts = teamRows.filter(r => r.o.mp).map(r => ({x: r.o.xg / r.o.mp, y: r.o.xga / r.o.mp, lab: r.name, id: r.id}));
-    pts.forEach(p => { p.img = logoImg(p.id, p.id === f.team ? 34 : 26); if (p.img) p.off = p.id === f.team ? 20 : 16; });
-    chart('chXgScatter', {type: 'scatter', data: {datasets: [{label: 'Équipes', data: pts, pointStyle: pts.map(p => p.img || 'circle'), pointRadius: pts.map(p => p.img ? 13 : (p.id === f.team ? 7 : 5)),
+    // toujours toutes les équipes du championnat (journées et quarts d'heure filtrés) : l'équipe choisie est entourée, pas de zoom
+    const LT = aggTactical(CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1)), f.qs).T;
+    const pts = Object.entries(LT).filter(([, o]) => o.mp).map(([id, o]) => ({x: o.xg / o.mp, y: o.xga / o.mp, lab: TN[id], id}));
+    pts.forEach(p => { p.img = logoImg(p.id, p.id === f.team ? 34 : 26); if (p.img) p.off = p.id === f.team ? 24 : 16; if (p.id === f.team) { p.hl = 1; p.hlc = clubColor(p.id, s2); p.off = 27; } });
+    const ring = {id: 'hlRing', afterDatasetsDraw(c) {
+      if (!f.team) return; const i = pts.findIndex(p => p.id === f.team); if (i < 0) return;
+      const el = c.getDatasetMeta(0).data[i]; if (!el) return; const ctx = c.ctx, col = clubColor(f.team, s2);
+      ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(el.x, el.y, 22, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = .18; ctx.fillStyle = col; ctx.fill(); ctx.restore();
+    }};
+    chart('chXgScatter', {type: 'scatter', data: {datasets: [{label: 'Équipes', data: pts, pointStyle: pts.map(p => p.img || 'circle'), pointRadius: pts.map(p => p.img ? (p.id === f.team ? 16 : 13) : (p.id === f.team ? 8 : 5)),
         backgroundColor: pts.map(p => p.id === f.team ? clubColor(p.id, s2) : s1), borderColor: css('--surface'), borderWidth: 2, pointHoverRadius: 8}]},
       options: {layout: {padding: {right: 90}}, plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${c.raw.lab} : xG ${fmt(c.raw.x, 2)} / xG contre ${fmt(c.raw.y, 2)}`}}},
         scales: {x: {grace: '15%', title: {display: true, text: 'xG produits / match'}, grid: {color: css('--grid')}}, y: {grace: '15%', reverse: true, title: {display: true, text: 'xG concédés / match (inversé)'}, grid: {color: css('--grid')}}}},
-      plugins: [pointLabels, avgLines(mean(pts.map(p => p.x)), mean(pts.map(p => p.y)),
+      plugins: [ring, pointLabels, avgLines(mean(pts.map(p => p.x)), mean(pts.map(p => p.y)),
         {tl: 'Solide, peu offensif', tr: 'Domine les occasions', bl: 'Subit', br: 'Offensif mais fragile'}, v => fmt(v, 2), v => fmt(v, 2))]});
 
     const qm = $('#tacQMetric').value;
