@@ -84,7 +84,7 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .mom-lg{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;color:var(--text-2)}
 .mom-lg .dot{display:inline-block;width:9px;height:9px;border-radius:50%;border:1.5px solid var(--text-2);margin-left:6px}
 .mom-lg .dot.full{background:var(--text-2);width:11px;height:11px}
-.mom-lg .card{display:inline-block;width:7px;height:10px;margin-left:6px}.mom-lg .card.y{background:#f2c21b}.mom-lg .card.r{background:#d62f2f;margin-left:2px}
+.mom-lg .mcard{display:inline-block;width:7px;height:10px;margin-left:6px;border-radius:1px}.mom-lg .mcard.y{background:#f2c21b}.mom-lg .mcard.r{background:#d62f2f;margin-left:2px}
 #printHead,.print-img{display:none}
 @media print{
   @page{size:A4 landscape;margin:9mm}
@@ -1921,7 +1921,7 @@ function renderMomentum(sfx, ms, TN, PI) {
   const note = $(`#mom${sfx}Note`);
   note.innerHTML = (old ? `⚠ ${old} match(s) importés avant l’ajout du momentum ne sont pas comptés : réimportez leurs dossiers dans l’onglet Données. ` : '')
     + 'xT (Expected Threat) : gain de menace apporté par chaque passe ou conduite réussie (modèle de Karun Singh, calculé sur tous les matchs importés). '
-    + (md.single ? '<br><span class="mom-lg"><span class="ball">⚽</span> but · <i class="dot full"></i> occasion dangereuse (xG ≥ 0,20, taille = xG) · <i class="dot"></i> autre tir · <i class="card y"></i><i class="card r"></i> carton · ⇄ entrée en jeu</span>' : 'Choisissez un match pour voir les buts, tirs, cartons et changements.');
+    + (md.single ? '<br><span class="mom-lg"><span class="ball">⚽</span> but · <i class="dot full"></i> occasion dangereuse (xG ≥ 0,20, taille = xG) · <i class="dot"></i> autre tir · <i class="mcard y"></i><i class="mcard r"></i> carton · ⇄ entrée en jeu</span>' : 'Choisissez un match pour voir les buts, tirs, cartons et changements.');
   const kind = md.single ? `${md.la} – ${md.lb}` : f.team ? `${md.la} vs adversaires · moyenne sur ${md.n} match(s)` : `Domicile vs extérieur · moyenne sur ${md.n} match(s)`;
   $(`#mom${sfx}Sub`).innerHTML = md.n ? `${esc(kind)} · xT ${esc(md.la)} <b style="color:var(--s1)">${fmt(md.tA, 2)}</b> – <b style="color:var(--s2)">${fmt(md.tB, 2)}</b> ${esc(md.lb)}` : 'Aucun match avec les données nécessaires';
   const mode = $(`#mom${sfx}Mode`).value;
