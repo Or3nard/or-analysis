@@ -1910,18 +1910,22 @@ function renderMomentum(sfx, ms, TN, PI) {
   const smooth = arr => bins.map((b, k) => { let s = 0, n = 0; for (let j = k - 2; j <= k + 2; j++) if (j >= 0 && j < bins.length && half[j] === half[k]) { s += arr[bins[j]]; n++; } return s / n; });
   const dA = mode === 'smooth' ? smooth(md.A) : bins.map(b => md.A[b]), dB = (mode === 'smooth' ? smooth(md.B) : bins.map(b => md.B[b])).map(v => -v);
   const qa = k => f.qs.has(momQ(bins[k])) ? 'ff' : '44';
-  const showTick = k => { const b = bins[k]; return (b < 45 || (b >= 50 && b < 95)) ? momMin(b) % 5 === 0 : (b === 45 || b === 95); };
+  const showTick = k => { const b = bins[k]; if (b === 50) return e1 === 44; return (b < 45 || (b > 50 && b < 95)) ? momMin(b) % 5 === 0 : (b === 45 || b === 95); };
   const ds = mode === 'smooth'
     ? [{type: 'line', label: md.la, data: dA, borderColor: s1, backgroundColor: s1 + '55', fill: 'origin', pointRadius: 0, borderWidth: 1.6, tension: .35},
        {type: 'line', label: md.lb, data: dB, borderColor: s2, backgroundColor: s2 + '55', fill: 'origin', pointRadius: 0, borderWidth: 1.6, tension: .35}]
     : [{label: md.la, data: dA, backgroundColor: dA.map((_, i) => s1 + qa(i)), borderRadius: 1, barPercentage: .82, categoryPercentage: 1},
        {label: md.lb, data: dB, backgroundColor: dB.map((_, i) => s2 + qa(i)), borderRadius: 1, barPercentage: .82, categoryPercentage: 1}];
-  const lim = Math.max(0.01, ...dA, ...dB.map(v => -v)) * 1.25;
+  // borne symétrique « ronde » (1, 2, 2.5 ou 5 × 10^n)
+  const raw = Math.max(0.005, ...dA, ...dB.map(v => -v)) * 1.2, p10 = Math.pow(10, Math.floor(Math.log10(raw)));
+  const lim = [1, 2, 2.5, 5, 10].map(k => k * p10).find(v => v >= raw);
+  // empilement uniquement pour les barres (positif / négatif) : en courbes, chaque équipe part de 0
+  const stk = mode !== 'smooth';
   chart(`chMom${sfx}`, {type: 'bar', data: {labels, datasets: ds},
     options: {animation: false, interaction: {mode: 'index', intersect: false},
       plugins: {legend: {position: 'top', align: 'end', labels: {boxWidth: 12}}, tooltip: {callbacks: {label: c => `${c.dataset.label} : xT ${fmt(Math.abs(c.raw), 3)}`}}},
-      scales: {x: {stacked: true, grid: {display: false}, ticks: {autoSkip: false, maxRotation: 0, callback: (v, i) => showTick(i) ? labels[i] : ''}},
-        y: {stacked: true, min: -lim, max: lim, title: {display: true, text: md.n > 1 ? 'xT par minute (moyenne)' : 'xT par minute'}, grid: {color: css('--grid')}, ticks: {callback: v => fmt(Math.abs(v), 2)}}}},
+      scales: {x: {stacked: stk, grid: {display: false}, ticks: {autoSkip: false, maxRotation: 0, callback: (v, i) => showTick(i) ? labels[i] : ''}},
+        y: {stacked: stk, min: -lim, max: lim, title: {display: true, text: md.n > 1 ? 'xT par minute (moyenne)' : 'xT par minute'}, grid: {color: css('--grid')}, ticks: {callback: v => fmt(Math.abs(v), 2)}}}},
     plugins: [momMarkers(md, PI)]});
 }
 // Menace créée par joueur et par équipe (onglet Offensif)
