@@ -127,6 +127,7 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .rbp{display:grid;grid-template-columns:50px 1fr 160px 1fr 50px;gap:8px;align-items:center;font-size:12px;margin:5px 0}
 .rbp .m{text-align:center;color:var(--text-2)}.rbp .va{text-align:right;font-weight:700}.rbp .vb{font-weight:700}.rbp .ba i{right:0}.rbp .bb i{left:0}
 .rtiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.keyfig .rtiles{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}.keyfig .rtile b{font-size:24px}.keyfig .rtile{padding:10px 14px;font-size:12.5px}
 .rtile{background:var(--surface-2);border-radius:9px;padding:8px 10px;font-size:11.5px;color:var(--text-2)}
 .rtile div{display:flex;justify-content:space-between;margin-top:2px}.rtile b{font-size:19px;font-weight:800}.rtile small{color:var(--text-3);font-size:10.5px}
 .rtbar{height:4px;display:flex;border-radius:2px;overflow:hidden;margin-top:4px}
@@ -422,7 +423,8 @@ input.j{width:64px}
 
     <!-- Résumé -->
     <div class="subpanel" data-sub="res">
-      <div class="kpis" id="tacKpis"></div>
+      <div class="card keyfig"><div class="card-head"><div><h2>Chiffres clés</h2><p class="sub" id="keyFigSub"></p></div></div><div class="rtiles" id="keyFig"></div></div>
+      <div class="kpis" id="tacKpis" style="margin-top:14px"></div>
       <div class="grid" style="margin-top:14px">
         <div class="card c5">
           <div class="card-head"><div><h2>Classement</h2><p class="sub" id="stdSub"></p></div></div>
@@ -2222,6 +2224,42 @@ function renderXt(ms, TN, PI, P) {
     plugins: [barLogos(tr.map(r => r.id))]});
 }
 
+/* ---------- Chiffres clés (Résumé) : équipe vs moyenne L1, avec rang ---------- */
+const KEY_METR = [
+  ['Buts / match', w => w.A && w.A.mp ? w.A.gf / w.A.mp : null, 2, 1], ['Buts encaissés / match', w => w.A && w.A.mp ? w.A.ga / w.A.mp : null, 2, -1],
+  ['xG / match', w => w.A && w.A.mp ? w.A.xg / w.A.mp : null, 2, 1], ['xG concédés / match', w => w.A && w.A.mp ? w.A.xga / w.A.mp : null, 2, -1],
+  ['Possession %', w => val(TAC, 'possPct', w.A), 1, 1], ['PPDA (pressing)', w => val(TAC, 'ppda', w.A), 1, -1],
+  ['Passes cassant une ligne / match', w => w.A && w.A.mp ? w.A.lb / w.A.mp : null, 1, 1], ['Récup. camp adverse / match', w => w.A && w.A.mp ? w.A.recovH / w.A.mp : null, 1, 1],
+  ['Tirs / match', w => w.A && w.A.mp ? w.A.sh / w.A.mp : null, 1, 1], ['Tirs concédés / match', w => w.A && w.A.mp ? w.A.sha / w.A.mp : null, 1, -1],
+  ['Distance / match (km)', w => w.P && w.P.mp ? w.P.dist / w.P.mp / 1000 : null, 1, 1], ['>25 km/h / match (m)', w => w.P && w.P.mp ? w.P.spr / w.P.mp : null, 0, 1]
+];
+function renderKeyFigures(TN, PI) {
+  const f = S.f;
+  // contexte championnat : journées choisies, quarts d'heure choisis, toutes équipes
+  const lg = Object.values(S.matches).filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1));
+  const T = aggTactical(lg, f.qs).T, PT = aggPhys(lg, f.qs).T;
+  const teams = Object.keys(T).filter(t => T[t].mp);
+  const W = t => ({A: T[t], P: PT[t]});
+  const tid = f.team || (f.player && PI[f.player] ? PI[f.player].team : '');
+  const cT = tid ? clubColor(tid) : css('--s1'), cL = css('--text-3');
+  const ord = n => n + (n === 1 ? 'er' : 'e');
+  const jTxt = (f.j0 != null || f.j1 != null) ? `J${f.j0 ?? ''} à J${f.j1 ?? ''}` : 'toutes les journées';
+  const qTxt = f.qs.size === 6 ? '' : ' · ' + [...f.qs].sort().map(q => Q_LABELS[q]).join(', ');
+  $('#keyFigSub').innerHTML = tid
+    ? `<b style="color:${cT}">${esc(TN[tid])}</b> · <b style="color:${cL}">Moyenne L1</b> · rang de ${esc(TN[tid])} sur ${teams.length} · ${jTxt}${qTxt}`
+    : `<b style="color:${cL}">Moyenne L1</b> et meilleure équipe · ${jTxt}${qTxt} · sélectionnez une équipe pour voir ses chiffres et son rang`;
+  $('#keyFig').innerHTML = KEY_METR.map(([l, fn, d, dir]) => {
+    const vals = teams.map(t => [t, fn(W(t))]).filter(v => v[1] != null).sort((a, b) => dir > 0 ? b[1] - a[1] : a[1] - b[1]);
+    const avg = mean(vals.map(v => v[1]));
+    const note = dir < 0 ? ' (1er = le meilleur)' : '';
+    if (tid) {
+      const v = fn(W(tid)), i = vals.findIndex(x => x[0] === tid);
+      return `<div class="rtile"><span>${esc(l)}</span><div><b style="color:${cT}">${fmt(v, d)}</b><b style="color:${cL}">${fmt(avg, d)}</b></div><small>${i >= 0 ? ord(i + 1) + ' / ' + vals.length + note : '—'}</small></div>`;
+    }
+    const best = vals[0];
+    return `<div class="rtile"><span>${esc(l)}</span><div><b style="color:${cL}">${fmt(avg, d)}</b>${best ? `<b style="color:${clubColor(best[0])}">${fmt(best[1], d)}</b>` : ''}</div><small>${best ? 'meilleur : ' + esc(TN[best[0]]) : ''}</small></div>`;
+  }).join('');
+}
 function renderTactical() {
   const TN = teamNames(), PI = playerInfo();
   const ms = filteredMatches();
@@ -2255,6 +2293,7 @@ function renderTactical() {
       isPl ? {l: 'Minutes', v: fmt(F.secs / 60), s: `${fmt(F.mp)} match(s)`} : null
     ].filter(Boolean) : [];
     $('#tacKpis').innerHTML = kpiHTML(K);
+    renderKeyFigures(TN, PI);
 
     const allQ = f.qs.size === 6, stand = {};
     const stdMs = matchesByBaseFilters(true).filter(m => !f.match || m.id === f.match);
