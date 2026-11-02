@@ -80,6 +80,7 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .chart-box.tall{height:460px}
 .chart-box.short{height:260px}
 .chart-box.xl{height:560px}
+.chart-box.mom{height:380px}
 #printHead,.print-img{display:none}
 @media print{
   @page{size:A4 landscape;margin:9mm}
@@ -350,6 +351,12 @@ input.j{width:64px}
           <div class="chart-box tall"><canvas id="chXgScatter"></canvas></div>
         </div>
         <div class="card c12">
+          <div class="card-head"><div><h2>Momentum du match (xT)</h2><p class="sub" id="momResSub"></p></div>
+          <div class="ctrl"><select id="momResMode"><option value="bar">Barres par minute</option><option value="smooth">Courbe lissée (5 min)</option></select></div></div>
+          <div class="chart-box mom"><canvas id="chMomRes"></canvas></div>
+          <p class="note" id="momResNote"></p>
+        </div>
+        <div class="card c12">
           <div class="card-head"><div><h2>Production par quart d'heure</h2><p class="sub" id="tacQSub"></p></div>
           <div class="ctrl"><select id="tacQMetric"><option value="xg">xG</option><option value="gf">Buts</option><option value="sh">Tirs</option><option value="lb">Passes cassant la ligne</option><option value="pass">Passes</option><option value="possPct">Possession %</option></select></div></div>
           <div class="chart-box short"><canvas id="chTacQ"></canvas></div>
@@ -362,6 +369,21 @@ input.j{width:64px}
     <div class="subpanel" data-sub="off">
       <div class="kpis" id="offKpis"></div>
       <div class="grid" style="margin-top:14px">
+        <div class="card c12">
+          <div class="card-head"><div><h2>Momentum du match (xT)</h2><p class="sub" id="momOffSub"></p></div>
+          <div class="ctrl"><select id="momOffMode"><option value="bar">Barres par minute</option><option value="smooth">Courbe lissée (5 min)</option></select></div></div>
+          <div class="chart-box mom"><canvas id="chMomOff"></canvas></div>
+          <p class="note" id="momOffNote"></p>
+        </div>
+        <div class="card c7">
+          <div class="card-head"><div><h2>Menace créée (xT) — joueurs</h2><p class="sub" id="xtRankSub"></p></div>
+          <div class="ctrl"><select id="xtPlMode"><option value="tot">Total</option><option value="p90">Par 90 min (≥ 90 min)</option></select></div></div>
+          <div class="chart-box tall"><canvas id="chXtRank"></canvas></div>
+        </div>
+        <div class="card c5">
+          <div class="card-head"><div><h2>xT créé vs xT concédé</h2><p class="sub">Par match, par équipe</p></div></div>
+          <div class="chart-box tall"><canvas id="chXtTeams"></canvas></div>
+        </div>
         <div class="card c5">
           <div class="card-head"><div><h2>Carte des tirs</h2><p class="sub" id="shotSub"></p></div>
           <div class="ctrl"><select id="shotType"><option value="all">Tous les tirs</option><option value="jeu">Jeu placé</option><option value="ctr">Contre-attaque</option><option value="cpa">CPA</option></select></div></div>
@@ -987,7 +1009,7 @@ function procInsight(m, rows) {
   for (const [pid, p] of Object.entries(m.players)) if (p.opta) optaToSsi[p.opta] = pid;
   const teamOf = {[m.home.opta]: m.home.id, [m.away.opta]: m.away.id};
   const opp = t => t === m.home.id ? m.away.id : m.home.id;
-  const ev = {passes: [], shots: [], goals: [], carries: [], poss: [], recs: [], corners: [], opta: []};
+  const ev = {passes: [], shots: [], goals: [], carries: [], poss: [], recs: [], corners: [], opta: [], subs: []};
   const shotMk = {}, shotMkList = [], optaRaw = [];
 
   for (const r of rows) {
@@ -1001,13 +1023,13 @@ function procInsight(m, rows) {
           if (!k.passLoc || !k.endLoc) break;
           ev.passes.push({p: k.playerId, tm: k.attTeamId, q, c: k.completed ? 1 : 0, pr: k.passProbability ?? null,
             br: k.breaksOffsideLine ? 1 : 0, by: k.defBypassed || 0,
-            x0: nx(k.passLoc[0]), y0: ny(k.passLoc[1]), x1: nx(k.endLoc[0]), y1: ny(k.endLoc[1]), oid: k.optaId || null});
+            x0: nx(k.passLoc[0]), y0: ny(k.passLoc[1]), x1: nx(k.endLoc[0]), y1: ny(k.endLoc[1]), oid: k.optaId || null, per: k.period, mi: Math.round(clock / 0.6) / 100});
           break;
         case 'reception':
           ev.recs.push({p: k.playerId, tm: k.attTeamId, q, i: k.isInterception ? 1 : 0}); break;
         case 'carry':
           if (!k.startLoc || !k.endLoc) break;
-          ev.carries.push({p: k.playerId, tm: k.attTeamId, q, d: k.distance || 0, x0: nx(k.startLoc[0]), x1: nx(k.endLoc[0])}); break;
+          ev.carries.push({p: k.playerId, tm: k.attTeamId, q, d: k.distance || 0, x0: nx(k.startLoc[0]), x1: nx(k.endLoc[0]), y0: ny(k.startLoc[1]), y1: ny(k.endLoc[1]), per: k.period, mi: Math.round(clock / 0.6) / 100}); break;
         case 'possession':
           ev.poss.push({tm: k.teamId, q, dur: Math.max(0, (k.endClock ?? 0) - (k.startClock ?? 0)), xg: k.teamXg || 0,
             st: k.startType || 'autre', vp: k.verticalPassing || 0, vc: k.verticalCarrying || 0, ct: k.isContested ? 1 : 0}); break;
@@ -1042,11 +1064,12 @@ function procInsight(m, rows) {
     const q = quarter(o.periodId, minIn);
     const qv = {}; (o.qualifier || []).forEach(x => qv[x.qualifierId] = x.value ?? true);
     const abs = o.periodId === 1 ? minIn * 60 : D1 + minIn * 60;
-    if (o.typeId === 18 || o.typeId === 19) subs.push({t: o.typeId, p: pid, abs});
+    const pm = {per: o.periodId, mi: Math.round(minIn * 100) / 100};
+    if (o.typeId === 18 || o.typeId === 19) { subs.push({t: o.typeId, p: pid, abs}); ev.subs.push({t: o.typeId, p: pid, tm, ...pm}); }
     if (o.typeId === 17 && (qv[32] !== undefined || qv[33] !== undefined)) subs.push({t: 18, p: pid, abs});
     if ([13, 14, 15, 16].includes(o.typeId)) {
       if (o.typeId === 16 && qv[28] !== undefined) { // contre son camp
-        ev.goals.push({tm: opp(tm), p: null, og: 1, q, min: o.timeMin, a: null, pat: 'jeu'}); continue;
+        ev.goals.push({tm: opp(tm), p: null, og: 1, q, min: o.timeMin, a: null, pat: 'jeu', ...pm}); continue;
       }
       const mk = shotMk[o.id];
       const x = mk ? nx(mk.shotLoc[0]) : r1(o.x * 1.05), y = mk ? ny(mk.shotLoc[1]) : r1((100 - o.y) * 0.68);
@@ -1055,7 +1078,8 @@ function procInsight(m, rows) {
         min: o.timeMin, rel: (qv[55] !== undefined) ? +qv[55] : null, ast: qv[29] !== undefined,
         pat: qv[9] !== undefined ? 'pen' : qv[25] !== undefined ? 'cor' : qv[26] !== undefined ? 'cfd' : qv[24] !== undefined ? 'cfi' : qv[160] !== undefined ? 'tou' : qv[23] !== undefined ? 'ctr' : 'jeu'};
       ev.shots.push(shot);
-      if (shot.g) ev.goals.push({tm, p: pid, og: 0, q, min: o.timeMin, a: null, _rel: shot.rel, pat: shot.pat});
+      shot.per = pm.per; shot.mi = pm.mi;
+      if (shot.g) ev.goals.push({tm, p: pid, og: 0, q, min: o.timeMin, a: null, _rel: shot.rel, pat: shot.pat, ...pm});
       continue;
     }
     if (!OPTA_KEEP.has(o.typeId)) continue;
@@ -1065,7 +1089,7 @@ function procInsight(m, rows) {
       if (qv[140] !== undefined) { e.ex = +qv[140]; e.ey = +qv[141]; }
       passByEid[tm + '|' + o.eventId] = e;
     }
-    if (o.typeId === 17) e.card = qv[33] !== undefined ? 'r' : qv[32] !== undefined ? 'r' : 'y';
+    if (o.typeId === 17) { e.card = qv[33] !== undefined ? 'r' : qv[32] !== undefined ? 'r' : 'y'; e.per = pm.per; e.mi = pm.mi; }
     ev.opta.push(e);
   }
   // Passes clés & passes décisives
@@ -1079,7 +1103,7 @@ function procInsight(m, rows) {
   if (!optaRaw.length) {
     for (const {k, q} of shotMkList) ev.shots.push({p: k.shooterId, tm: k.attTeamId, q, xg: k.xG || 0, x: nx(k.shotLoc[0]), y: ny(k.shotLoc[1]), g: 0, ot: 0, pen: 0, min: null});
   }
-  ev.v = 2;
+  ev.v = 3;
   m.ev = ev;
   // minutes de repli (si pas de physique)
   m.minsOpta = minutesFromOpta(m, setup, subs);
@@ -1743,6 +1767,194 @@ function teamTable(id, cols, teamRows, mode, defSort, f) {
     teamRows, {defaultSort: defSort, hl: r => r.id === f.team, onRow: id => setFilter('team', id)});
 }
 
+/* =====================================================================
+   xT (Expected Threat) — modèle de Karun Singh, calculé sur les matchs importés
+   Grille 12 × 8. xT(z) = P(tir|z)·xG moyen(z) + P(action|z)·Σ T(z→z')·xT(z')
+   ===================================================================== */
+const XT_NX = 12, XT_NY = 8;
+const xtCell = (x, y) => {
+  const cx = Math.max(0, Math.min(XT_NX - 1, Math.floor(x / 105 * XT_NX)));
+  const cy = Math.max(0, Math.min(XT_NY - 1, Math.floor(y / 68 * XT_NY)));
+  return cy * XT_NX + cx;
+};
+let XT_MEMO = null;
+function xtGrid() {
+  const all = Object.values(S.matches).filter(m => m.ev);
+  if (XT_MEMO && XT_MEMO.ms.length === all.length && XT_MEMO.ms.every((m, i) => m === all[i])) return XT_MEMO.g;
+  const N = XT_NX * XT_NY;
+  const shots = new Float64Array(N), goals = new Float64Array(N), moves = new Float64Array(N);
+  const trans = new Map(); // z*N+z' -> nombre d'actions réussies
+  const addMove = (x0, y0, x1, y1, ok) => {
+    if (x0 == null || y0 == null) return;
+    const z = xtCell(x0, y0); moves[z]++;
+    if (ok && x1 != null && y1 != null) { const k = z * N + xtCell(x1, y1); trans.set(k, (trans.get(k) || 0) + 1); }
+  };
+  for (const m of all) {
+    for (const e of m.ev.passes || []) addMove(e.x0, e.y0, e.x1, e.y1, e.c);
+    for (const e of m.ev.carries || []) if (e.y0 != null) addMove(e.x0, e.y0, e.x1, e.y1, 1);
+    for (const s of m.ev.shots || []) { if (s.pen || s.x == null) continue; const z = xtCell(s.x, s.y); shots[z]++; goals[z] += s.xg || (s.g ? 1 : 0); }
+  }
+  const sP = new Float64Array(N), mP = new Float64Array(N), gP = new Float64Array(N);
+  for (let z = 0; z < N; z++) { const t = shots[z] + moves[z]; if (t) { sP[z] = shots[z] / t; mP[z] = moves[z] / t; } if (shots[z]) gP[z] = goals[z] / shots[z]; }
+  const T = []; for (const [k, n] of trans) { const z = Math.floor(k / N); T.push([z, k % N, n / moves[z]]); }
+  let xt = new Float64Array(N);
+  for (let it = 0; it < 40; it++) {
+    const nx = new Float64Array(N);
+    for (let z = 0; z < N; z++) nx[z] = sP[z] * gP[z];
+    const acc = new Float64Array(N); for (const [z, z2, p] of T) acc[z] += p * xt[z2];
+    let diff = 0; for (let z = 0; z < N; z++) { nx[z] += mP[z] * acc[z]; diff = Math.max(diff, Math.abs(nx[z] - xt[z])); }
+    xt = nx; if (diff < 1e-6) break;
+  }
+  XT_MEMO = {ms: all, g: xt};
+  return xt;
+}
+// (P(but|tir) estimée par l'xG moyen des tirs de la zone : plus stable que le taux de buts)
+// Menace ajoutée par une action réussie (seuls les gains positifs comptent)
+const xtGain = (g, x0, y0, x1, y1) => (x0 == null || y0 == null || x1 == null || y1 == null) ? 0 : Math.max(0, g[xtCell(x1, y1)] - g[xtCell(x0, y0)]);
+function* xtActions(m, g) {
+  for (const e of m.ev.passes || []) if (e.c) { const v = xtGain(g, e.x0, e.y0, e.x1, e.y1); if (v > 0) yield {tm: e.tm, p: e.p, per: e.per, mi: e.mi, q: e.q, v}; }
+  for (const e of m.ev.carries || []) if (e.y0 != null) { const v = xtGain(g, e.x0, e.y0, e.x1, e.y1); if (v > 0) yield {tm: e.tm, p: e.p, per: e.per, mi: e.mi, q: e.q, v}; }
+}
+// Minutes : 1re période dans les cases 0-49 (45 à 49 = temps additionnel), 2e période dans 50-99
+const MOM_N = 100;
+const momBin = (per, mi) => per === 1 ? Math.min(49, Math.floor(mi)) : per === 2 ? 50 + Math.min(49, Math.floor(mi)) : -1;
+const momLabel = i => i < 45 ? `${i}'` : i < 50 ? `45+${i - 44}'` : i < 95 ? `${i - 5}'` : `90+${i - 94}'`;
+const momQ = i => i < 15 ? 0 : i < 30 ? 1 : i < 50 ? 2 : i < 65 ? 3 : i < 80 ? 4 : 5;
+const momMin = i => i < 50 ? i : i - 5; // minute de jeu affichée
+const xtReady = m => m.ev && m.ev.v >= 3;
+
+function momentumData(ms, f, TN) {
+  const g = xtGrid();
+  const A = new Float64Array(MOM_N), B = new Float64Array(MOM_N);
+  let la, lb, n = 0, tA = 0, tB = 0, single = null, ida = null;
+  if (f.match && ms.length === 1) { single = ms[0]; ida = single.home.id; la = TN[single.home.id]; lb = TN[single.away.id]; }
+  else if (f.team) { ida = f.team; la = TN[f.team]; lb = 'Adversaires'; }
+  else { la = 'Domicile'; lb = 'Extérieur'; }
+  for (const m of ms) {
+    if (!xtReady(m)) continue;
+    n++;
+    const sideA = ida || m.home.id;
+    for (const a of xtActions(m, g)) {
+      const b = momBin(a.per, a.mi); if (b < 0) continue;
+      if (a.tm === sideA) { A[b] += a.v; tA += a.v; } else { B[b] += a.v; tB += a.v; }
+    }
+  }
+  if (n > 1) for (let i = 0; i < MOM_N; i++) { A[i] /= n; B[i] /= n; }
+  return {A, B, la, lb, n, tA: n ? tA / n : 0, tB: n ? tB / n : 0, single};
+}
+// Marqueurs : buts, cartons, changements (match unique)
+function momMarkers(md, PI) {
+  const m = md.single;
+  return {id: 'momMarkers', afterDatasetsDraw(c) {
+    const {ctx, chartArea: a, scales: {x, y}} = c;
+    ctx.save();
+    // mi-temps
+    const hx = (x.getPixelForValue(md.h1) + x.getPixelForValue(md.h1 + 1)) / 2;
+    ctx.strokeStyle = css('--text-3'); ctx.setLineDash([4, 4]); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(hx, a.top); ctx.lineTo(hx, a.bottom); ctx.stroke(); ctx.setLineDash([]);
+    ctx.font = '600 10px system-ui,sans-serif'; ctx.fillStyle = css('--text-3'); ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText('MT', hx, a.top + 2);
+    // ligne zéro
+    const y0 = y.getPixelForValue(0); ctx.strokeStyle = css('--text-2'); ctx.beginPath(); ctx.moveTo(a.left, y0); ctx.lineTo(a.right, y0); ctx.stroke();
+    if (m) {
+      const rowA = a.top + 14, rowB = a.bottom - 14;
+      const at = (per, mi) => { const b = momBin(per, mi); const k = b < 0 ? -1 : md.idx[b]; return k < 0 ? null : x.getPixelForValue(k); };
+      const goalIcon = (px, py, col, lbl) => {
+        ctx.fillStyle = css('--surface'); ctx.strokeStyle = col; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = col; ctx.beginPath(); ctx.arc(px, py, 2.6, 0, Math.PI * 2); ctx.fill();
+        ctx.font = '700 10px system-ui,sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillStyle = col; ctx.fillText(lbl, px + 10, py);
+        ctx.strokeStyle = col + '88'; ctx.setLineDash([2, 3]); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, y0); ctx.stroke(); ctx.setLineDash([]);
+      };
+      for (const gl of m.ev.goals || []) {
+        const px = at(gl.per, gl.mi); if (px == null) continue;
+        const isA = gl.tm === m.home.id;
+        goalIcon(px, isA ? rowA : rowB, isA ? css('--s1') : css('--s2'), `${gl.min}'${gl.og ? ' csc' : ''}`);
+      }
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      for (const e of m.ev.opta || []) if (e.card && e.per) {
+        const px = at(e.per, e.mi); if (px == null) continue;
+        const isA = e.tm === m.home.id, py = isA ? rowA + 18 : rowB - 18;
+        ctx.fillStyle = e.card === 'r' ? '#d62f2f' : '#f2c21b'; ctx.fillRect(px - 4, py - 6, 8, 11);
+      }
+      ctx.font = '700 11px system-ui,sans-serif';
+      for (const sb of m.ev.subs || []) if (sb.t === 19) {
+        const px = at(sb.per, sb.mi); if (px == null) continue;
+        const isA = sb.tm === m.home.id; ctx.fillStyle = css('--text-3');
+        ctx.fillText('⇄', px, isA ? rowA + 34 : rowB - 34);
+      }
+    }
+    ctx.restore();
+  }};
+}
+function renderMomentum(sfx, ms, TN, PI) {
+  const f = S.f, s1 = css('--s1'), s2 = css('--s2');
+  const old = ms.filter(m => m.ev && !xtReady(m)).length;
+  const md = momentumData(ms, f, TN);
+  const note = $(`#mom${sfx}Note`);
+  note.innerHTML = (old ? `⚠ ${old} match(s) importés avant l’ajout du momentum ne sont pas comptés : réimportez leurs dossiers dans l’onglet Données. ` : '')
+    + 'xT (Expected Threat) : gain de menace apporté par chaque passe ou conduite réussie (modèle de Karun Singh, calculé sur tous les matchs importés). '
+    + (md.single ? 'Buts, cartons et entrées en jeu à leur minute.' : 'Choisissez un match pour voir les buts, cartons et changements.');
+  const kind = md.single ? `${md.la} – ${md.lb}` : f.team ? `${md.la} vs adversaires · moyenne sur ${md.n} match(s)` : `Domicile vs extérieur · moyenne sur ${md.n} match(s)`;
+  $(`#mom${sfx}Sub`).innerHTML = md.n ? `${esc(kind)} · xT ${esc(md.la)} <b style="color:var(--s1)">${fmt(md.tA, 2)}</b> – <b style="color:var(--s2)">${fmt(md.tB, 2)}</b> ${esc(md.lb)}` : 'Aucun match avec les données nécessaires';
+  const mode = $(`#mom${sfx}Mode`).value;
+  // on ne garde que les minutes de temps additionnel réellement jouées
+  const used = i => md.A[i] > 0 || md.B[i] > 0;
+  let e1 = 44, e2 = 94; for (let i = 45; i < 50; i++) if (used(i)) e1 = i; for (let i = 95; i < 100; i++) if (used(i)) e2 = i;
+  const bins = []; for (let i = 0; i <= e1; i++) bins.push(i); for (let i = 50; i <= e2; i++) bins.push(i);
+  md.idx = new Int16Array(MOM_N).fill(-1); bins.forEach((b, k) => md.idx[b] = k);
+  md.idx.forEach((v, b) => { if (v < 0) md.idx[b] = b < 50 ? bins.indexOf(e1) : bins.length - 1; });
+  md.h1 = e1 + 0;
+  const labels = bins.map(momLabel);
+  const half = bins.map(b => b < 50 ? 1 : 2);
+  const smooth = arr => bins.map((b, k) => { let s = 0, n = 0; for (let j = k - 2; j <= k + 2; j++) if (j >= 0 && j < bins.length && half[j] === half[k]) { s += arr[bins[j]]; n++; } return s / n; });
+  const dA = mode === 'smooth' ? smooth(md.A) : bins.map(b => md.A[b]), dB = (mode === 'smooth' ? smooth(md.B) : bins.map(b => md.B[b])).map(v => -v);
+  const qa = k => f.qs.has(momQ(bins[k])) ? 'ff' : '44';
+  const showTick = k => { const b = bins[k]; return (b < 45 || (b >= 50 && b < 95)) ? momMin(b) % 5 === 0 : (b === 45 || b === 95); };
+  const ds = mode === 'smooth'
+    ? [{type: 'line', label: md.la, data: dA, borderColor: s1, backgroundColor: s1 + '55', fill: 'origin', pointRadius: 0, borderWidth: 1.6, tension: .35},
+       {type: 'line', label: md.lb, data: dB, borderColor: s2, backgroundColor: s2 + '55', fill: 'origin', pointRadius: 0, borderWidth: 1.6, tension: .35}]
+    : [{label: md.la, data: dA, backgroundColor: dA.map((_, i) => s1 + qa(i)), borderRadius: 1, barPercentage: .82, categoryPercentage: 1},
+       {label: md.lb, data: dB, backgroundColor: dB.map((_, i) => s2 + qa(i)), borderRadius: 1, barPercentage: .82, categoryPercentage: 1}];
+  const lim = Math.max(0.01, ...dA, ...dB.map(v => -v)) * 1.25;
+  chart(`chMom${sfx}`, {type: 'bar', data: {labels, datasets: ds},
+    options: {animation: false, interaction: {mode: 'index', intersect: false},
+      plugins: {legend: {position: 'top', align: 'end', labels: {boxWidth: 12}}, tooltip: {callbacks: {label: c => `${c.dataset.label} : xT ${fmt(Math.abs(c.raw), 3)}`}}},
+      scales: {x: {stacked: true, grid: {display: false}, ticks: {autoSkip: false, maxRotation: 0, callback: (v, i) => showTick(i) ? labels[i] : ''}},
+        y: {stacked: true, min: -lim, max: lim, title: {display: true, text: md.n > 1 ? 'xT par minute (moyenne)' : 'xT par minute'}, grid: {color: css('--grid')}, ticks: {callback: v => fmt(Math.abs(v), 2)}}}},
+    plugins: [momMarkers(md, PI)]});
+}
+// Menace créée par joueur et par équipe (onglet Offensif)
+function renderXt(ms, TN, PI, P) {
+  const f = S.f, g = xtGrid(), s1 = css('--s1'), s2 = css('--s2');
+  const byP = {}, byT = {}, conc = {}, mp = {};
+  for (const m of ms) {
+    if (!xtReady(m)) continue;
+    for (const id of [m.home.id, m.away.id]) mp[id] = (mp[id] || 0) + 1;
+    for (const a of xtActions(m, g)) {
+      if (!f.qs.has(a.q)) continue;
+      byP[a.p] = (byP[a.p] || 0) + a.v; byT[a.tm] = (byT[a.tm] || 0) + a.v;
+      const o = a.tm === m.home.id ? m.away.id : m.home.id; conc[o] = (conc[o] || 0) + a.v;
+    }
+  }
+  const pm = $('#xtPlMode').value;
+  let rows = Object.entries(byP).filter(([id]) => PI[id] && (!f.team || PI[id].team === f.team)).map(([id, v]) => {
+    const secs = P[id] ? P[id].secs : 0;
+    return {id, tid: PI[id].team, name: PI[id].name, sub: TN[PI[id].team] || '', v: pm === 'p90' ? (secs >= 5400 ? v / secs * 5400 : null) : v};
+  }).filter(r => r.v != null).sort((a, b) => b.v - a.v);
+  const top = rows.slice(0, 15);
+  if (f.player && !top.some(r => r.id === f.player)) { const r = rows.find(x => x.id === f.player); if (r) top.push(r); }
+  $('#xtRankSub').textContent = `Top 15 · somme des gains de xT (passes et conduites réussies)${pm === 'p90' ? ' par 90 min' : ''}`;
+  rankChart('chXtRank', top, 'xT créé', 2, f.player);
+  const tr = Object.keys(mp).map(id => ({id, name: TN[id], a: (byT[id] || 0) / mp[id], b: (conc[id] || 0) / mp[id]})).sort((x, y) => y.a - x.a);
+  chart('chXtTeams', {type: 'bar', data: {labels: tr.map(r => r.name), datasets: [
+      {label: 'xT créé', data: tr.map(r => r.a), backgroundColor: tr.map(r => !f.team || r.id === f.team ? s1 : s1 + '55'), borderRadius: 3, borderSkipped: 'start'},
+      {label: 'xT concédé', data: tr.map(r => r.b), backgroundColor: tr.map(r => !f.team || r.id === f.team ? s2 : s2 + '55'), borderRadius: 3, borderSkipped: 'start'}]},
+    options: {indexAxis: 'y', layout: {padding: {right: 26}}, plugins: {legend: {position: 'bottom'}, tooltip: {callbacks: {label: c => `${c.dataset.label} : ${fmt(c.raw, 2)} /match`}}},
+      scales: {x: {grid: {color: css('--grid')}}, y: {grid: {display: false}, ticks: {autoSkip: false}}}},
+    plugins: [barLogos(tr.map(r => r.id))]});
+}
+
 function renderTactical() {
   const TN = teamNames(), PI = playerInfo();
   const ms = filteredMatches();
@@ -1764,6 +1976,7 @@ function renderTactical() {
   const focusShot = s => f.player ? s.p === f.player : f.team ? s.tm === f.team : true;
 
   if (sub === 'res') {
+    renderMomentum('Res', ms, TN, PI);
     const K = F ? [
       {l: 'Buts', v: fmt(F.gf), s: isTeam ? `${fmt(F.ga)} encaissé(s)` : isPl ? `${fmt(F.ast)} passe(s) déc.` : ''},
       {l: 'xG', v: fmt(F.xg, 2), s: isTeam ? `xG contre ${fmt(F.xga, 2)}` : `${fmt(F.xg * (per(F) || 0), 2)} ${perLbl}`},
@@ -1837,6 +2050,8 @@ function renderTactical() {
   }
 
   if (sub === 'off') {
+    renderMomentum('Off', ms, TN, PI);
+    renderXt(ms, TN, PI, P);
     $('#offKpis').innerHTML = kpiHTML(F ? [
       {l: 'Buts', v: fmt(F.gf), s: `${fmt(F.gf * (per(F) || 0), 2)} ${perLbl}`},
       {l: 'xG', v: fmt(F.xg, 2), s: `Buts − xG : ${(F.gf - F.xg >= 0 ? '+' : '') + fmt(F.gf - F.xg, 2)}`},
@@ -2638,7 +2853,7 @@ function bindUI() {
     refreshAll();
   };
   $('#fReset').onclick = () => { S.f = {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0, 1, 2, 3, 4, 5])}; refreshAll(); };
-  ['#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#passMapType', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyEvoMetric', '#phyTeamMode', '#phyTX', '#phyTY', '#phyPX', '#phyPY', '#phyPEvoMetric', '#h2hEvoMetric',
+  ['#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#passMapType', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyEvoMetric', '#phyTeamMode', '#phyTX', '#phyTY', '#phyPX', '#phyPY', '#phyPEvoMetric', '#h2hEvoMetric', '#momResMode', '#momOffMode', '#xtPlMode',
    '#shotType', '#offMetric', '#offTeamMode', '#recType', '#defMetric', '#defTeamMode', '#cpaTeamMode']
     .forEach(s => $(s).onchange = render);
   document.querySelectorAll('[data-csv]').forEach(b => b.onclick = () => exportCSV(b.dataset.csv));
