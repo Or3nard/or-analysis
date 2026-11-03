@@ -148,6 +148,13 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .rsc{margin-left:auto;font-weight:700}
 .vs{color:var(--text-3)}
 @media (max-width:900px){.rgrid2,.rgrid2.w37,.rtwo{grid-template-columns:1fr}.rslopes{grid-template-columns:repeat(3,1fr)}.rpage{padding:18px 16px}}
+.tbl-wrap.sqt{max-height:none}.sqt table{font-size:12px;width:100%}.rtbl.sqt th{white-space:normal;font-size:10.5px;line-height:1.15;vertical-align:bottom}.sqt td,.sqt th{padding:4px 5px}.sqt td.txt{white-space:nowrap}
+.sqt tr.grp td{background:var(--surface-2);font-weight:800;font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-2);text-align:left}
+.sqt td.num{color:var(--text-3);width:24px}.sqt .z{color:var(--text-3);font-weight:400}.sqt td.hi{font-weight:800}
+.sqt .sep{border-left:1px solid var(--grid)}
+.sqs{display:inline-flex;gap:2px}.sqs i{width:14px;height:14px;border-radius:3px;font-style:normal;font-size:9px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;color:#fff}
+.sqs i.T{background:#2e7d4f}.sqs i.E{background:#5aa9e6}.sqs i.B{background:#c9c6bd;color:#555}.sqs i.A{background:transparent;border:1px dashed var(--grid);color:var(--text-3)}
+.sqt .mcard{display:inline-block;width:8px;height:11px;vertical-align:-1px;border-radius:1px;margin-right:3px}.sqt .mcard.y{background:#f2c21b}.sqt .mcard.r{background:#d62f2f}
 .chart-box.mom{height:400px}
 .chart-box.mom-sh{height:190px}
 .mom-sh-head{font-size:12px;color:var(--text-3);margin:6px 0 0 4px}
@@ -185,6 +192,7 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
   .rhead{padding:8px 14px}
   .rpage:last-child{break-after:auto;page-break-after:auto}
   .rblk{break-inside:avoid;page-break-inside:avoid}
+  .rblk.sqb{break-inside:auto;page-break-inside:auto}.rpage.sq{zoom:.72}
   .rnum{box-shadow:none}
 }
 .lbl{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;color:var(--text-2);font-weight:600}
@@ -642,7 +650,11 @@ input.j{width:64px}
   <div id="repEmpty" class="empty" hidden><b>Aucun match</b>Importez des matchs dans l'onglet Données.</div>
   <div id="repBody">
     <div class="card rep-ctl" id="repCtl">
-      <div class="chips" id="repType"><button class="chip" data-t="post">Post-match</button><button class="chip" data-t="pre">Pré-match</button></div>
+      <div class="chips" id="repType"><button class="chip" data-t="post">Post-match</button><button class="chip" data-t="pre">Pré-match</button><button class="chip" data-t="squad">Effectif</button></div>
+      <div class="rep-fields" id="repSqCtl" hidden>
+        <label class="lbl">Équipe <select id="repSqTeam"></select></label>
+        <label class="lbl">Jusqu'à <select id="repSqJ"></select></label>
+      </div>
       <div class="rep-fields" id="repPostCtl">
         <label class="lbl">Match <select id="repMatch"></select></label>
         <label class="lbl">Point de vue <select id="repSide"></select></label>
@@ -3571,6 +3583,70 @@ function reportPre(R, TN, PI, SR) {
   return {html: p1 + p2 + p3 + p4 + p5, after};
 }
 
+/* ---------- Effectif : feuilles de match ---------- */
+const SQ_GRP = [['GK', 'Gardiens', ['GK']], ['DF', 'Défenseurs', ['CB', 'FB']], ['MF', 'Milieux', ['CM', 'WM']], ['FW', 'Attaquants', ['FW']], ['NA', 'Poste non déterminé (jamais entré en jeu)', []]];
+const SQ_ROLE_L = {GK: 'GB', CB: 'DC', FB: 'DL', CM: 'MC', WM: 'ML', FW: 'ATT'};
+function squadData(tid, jEnd) {
+  const ms = CM().filter(m => (m.home.id === tid || m.away.id === tid) && (jEnd == null || m.j <= jEnd) && m.players)
+    .sort((a, b) => a.j - b.j || String(a.date).localeCompare(String(b.date)));
+  const P = {}, mins = ms.some(m => m.ev) ? aggTactical(ms.filter(m => m.ev), ALLQ).P : {};
+  const get = id => P[id] || (P[id] = {id, num: null, grp: 0, tit: 0, rem: 0, ent: 0, nent: 0, g: 0, a: 0, y: 0, r: 0, st: {}});
+  for (const m of ms) {
+    const ev = m.ev || {};
+    const on = new Set((ev.subs || []).filter(x => x.t === 19 && x.tm === tid).map(x => x.p));
+    // Feuille de match : un joueur par numéro (metadata.json contient parfois des doublons « Unknown perform »)
+    const byNum = {};
+    for (const [id, pl] of Object.entries(m.players)) {
+      if (pl.team !== tid || !pl.pos) continue; // sans poste = vu uniquement dans les événements
+      const k = pl.num || id, bad = !pl.opta || /unknown/i.test(pl.opta), cur = byNum[k];
+      if (!cur || (cur.bad && !bad)) byNum[k] = {id, pl, bad};
+    }
+    for (const {id, pl} of Object.values(byNum)) {
+      const pos = String(pl.pos).toUpperCase();
+      const o = get(id); o.num = pl.num || o.num; o.grp++;
+      if (pos !== 'SUB') { o.tit++; o.st[m.id] = 'T'; }
+      else {
+        o.rem++;
+        if (on.has(id)) { o.ent++; o.st[m.id] = 'E'; } else { o.nent++; o.st[m.id] = 'B'; }
+      }
+    }
+    for (const g of ev.goals || []) if (g.tm === tid && !g.og) { if (g.p && P[g.p]) P[g.p].g++; if (g.a && P[g.a]) P[g.a].a++; }
+    for (const e of ev.opta || []) if (e.card && e.tm === tid && P[e.p]) P[e.p][e.card === 'r' ? 'r' : 'y']++;
+  }
+  for (const o of Object.values(P)) { o.abs = ms.length - o.grp; o.min = mins[o.id] ? Math.round(mins[o.id].secs / 60) : 0; }
+  return {ms, P};
+}
+function reportSquad(R, TN, PI, SR) {
+  const tid = R.sqTeam; if (!tid) return '<div class="empty">Choisissez une équipe.</div>';
+  const {ms, P} = squadData(tid, R.sqJ || null);
+  if (!ms.length) return '<div class="empty">Aucune feuille de match pour cette équipe.</div>';
+  const col = clubColor(tid);
+  const roleOf = id => { const r = SR[id]; return P[id].tit + P[id].ent > 0 && r ? r : null; };
+  const ordR = ['GK', 'CB', 'FB', 'CM', 'WM', 'FW'];
+  const z = v => v ? `<td class="hi">${v}</td>` : `<td class="z">0</td>`;
+  const strip = o => `<span class="sqs">${ms.map(m => { const s = o.st[m.id] || 'A', opp = TN[otherSide(m, tid)] || ''; const L = {T: 'titulaire', E: 'entré en jeu', B: 'sur le banc, non entré', A: 'pas dans le groupe'}[s]; return `<i class="${s}" title="J${m.j} vs ${esc(opp)} : ${L}">${s === 'A' ? '' : s}</i>`; }).join('')}</span>`;
+  let rows = '';
+  for (const [k, lab, roles] of SQ_GRP) {
+    const list = Object.values(P).filter(o => { const r = roleOf(o.id); return k === 'NA' ? !r : roles.includes(r); })
+      .sort((a, b) => ordR.indexOf(roleOf(a.id)) - ordR.indexOf(roleOf(b.id)) || (b.tit + b.ent) - (a.tit + a.ent) || b.min - a.min || (a.num || 99) - (b.num || 99));
+    if (!list.length) continue;
+    rows += `<tr class="grp"><td colspan="16">${lab} · ${list.length}</td></tr>`;
+    rows += list.map(o => `<tr><td class="num">${o.num ?? ''}</td><td class="txt">${esc(PI[o.id] ? PI[o.id].name : o.id)}</td><td>${SQ_ROLE_L[roleOf(o.id)] || '—'}</td>`
+      + `<td class="sep hi">${o.grp}</td>${z(o.abs)}<td class="sep">${o.tit}</td>${z(o.rem)}${z(o.ent)}${z(o.nent)}<td class="sep">${o.min || '<span class="z">0</span>'}</td>`
+      + `<td class="sep">${o.g || '<span class="z">0</span>'}</td><td>${o.a || '<span class="z">0</span>'}</td><td>${o.y ? `<i class="mcard y"></i>${o.y}` : '<span class="z">0</span>'}</td><td>${o.r ? `<i class="mcard r"></i>${o.r}` : '<span class="z">0</span>'}</td>`
+      + `<td class="sep txt">${strip(o)}</td></tr>`).join('');
+  }
+  const all = Object.values(P), used = all.filter(o => o.tit + o.ent > 0).length;
+  const head = `<div class="rhead pre"><div class="rteam"><span class="rlogo">${logoHTML(tid)}</span><b>${esc(TN[tid])}</b><small>${ms.length} matchs (J${ms[0].j} à J${ms[ms.length - 1].j}) · ${all.length} joueurs sur au moins une feuille · ${used} utilisés</small></div></div>`;
+  const tiles = [['Joueurs convoqués', all.length], ['Joueurs utilisés', used], ['Buteurs différents', all.filter(o => o.g).length], ['Cartons jaunes', all.reduce((a, o) => a + o.y, 0)], ['Cartons rouges', all.reduce((a, o) => a + o.r, 0)]]
+    .map(([l, v]) => `<div class="rtile"><span>${l}</span><div><b style="color:${col}">${v}</b></div></div>`).join('');
+  const leg = `<div class="rleg"><span><span class="sqs"><i class="T">T</i></span> titulaire</span><span><span class="sqs"><i class="E">E</i></span> entré en jeu</span><span><span class="sqs"><i class="B">B</i></span> sur le banc, non entré</span><span><span class="sqs"><i class="A"></i></span> pas dans le groupe</span></div>`;
+  const tbl = `<div class="tbl-wrap rtbl sqt"><table><tr><th>N°</th><th class="txt">Joueur</th><th>Poste</th><th class="sep">Dans le groupe</th><th>Pas dans le groupe</th><th class="sep">Titulaire</th><th>Remplaçant</th><th>Entré en jeu</th><th>Non entré</th><th class="sep">Min</th><th class="sep">Buts</th><th>Passes déc.</th><th>Jaunes</th><th>Rouges</th><th class="sep txt">Match par match</th></tr>${rows}</table></div>`;
+  const html = rpage(1, 1, 'Effectif', 'Feuilles de match.', 'Tous les joueurs inscrits sur au moins une feuille de match, classés par poste : présence dans le groupe, titularisations, entrées en jeu, buts, passes décisives et cartons.', head,
+    rblk(1, 'Synthèse', '', `<div class="rtiles small">${tiles}</div>`) + rblk(2, 'Joueurs', 'Remplaçant = sur la feuille sans être titulaire (entré en jeu + non entré)', tbl + leg, 'sqb'));
+  return {html: html.replace('class="rpage"', 'class="rpage sq"'), after: () => {}};
+}
+
 function renderReport() {
   const R = repDefaults(), TN = teamNames(), PI = playerInfo(), SR = seasonRoles();
   const all = CM().filter(m => m.ev).sort((a, b) => b.j - a.j || String(b.date).localeCompare(String(a.date)));
@@ -3578,8 +3654,13 @@ function renderReport() {
   const teams = [...new Set(all.flatMap(m => [m.home.id, m.away.id]))].sort((a, b) => (TN[a] || '').localeCompare(TN[b] || ''));
   const js = [...new Set(all.map(m => m.j))].sort((a, b) => a - b);
   document.querySelectorAll('#repType .chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.t === R.type));
-  $('#repPostCtl').hidden = R.type !== 'post'; $('#repPreCtl').hidden = R.type !== 'pre';
-  if (R.type === 'post') {
+  $('#repPostCtl').hidden = R.type !== 'post'; $('#repPreCtl').hidden = R.type !== 'pre'; $('#repSqCtl').hidden = R.type !== 'squad';
+  if (R.type === 'squad') {
+    const sqTeams = [...new Set(CM().flatMap(m => [m.home.id, m.away.id]))].sort((a, b) => (TN[a] || '').localeCompare(TN[b] || ''));
+    if (!sqTeams.includes(R.sqTeam)) R.sqTeam = sqTeams.includes(S.f.team) ? S.f.team : sqTeams[0];
+    fillSelect($('#repSqTeam'), sqTeams.map(t => [t, TN[t]]), R.sqTeam);
+    fillSelect($('#repSqJ'), [['', 'toutes'], ...js.map(j => [j, 'J' + j])], R.sqJ || '');
+  } else if (R.type === 'post') {
     if (!S.matches[R.match]) R.match = (S.f.match && S.matches[S.f.match]) ? S.f.match : all[0].id;
     fillSelect($('#repMatch'), all.map(m => [m.id, `J${m.j} · ${TN[m.home.id]} ${m.score[0]}-${m.score[1]} ${TN[m.away.id]}`]), R.match);
     const m = S.matches[R.match];
@@ -3592,7 +3673,7 @@ function renderReport() {
     fillSelect($('#repJ'), [['', 'toutes'], ...js.map(j => [j, 'J' + j])], R.jEnd || '');
     $('#repN').value = R.n;
   }
-  const out = R.type === 'post' ? reportPost(R, TN, PI, SR) : reportPre(R, TN, PI, SR);
+  const out = R.type === 'squad' ? reportSquad(R, TN, PI, SR) : R.type === 'post' ? reportPost(R, TN, PI, SR) : reportPre(R, TN, PI, SR);
   if (typeof out === 'string') { $('#repPages').innerHTML = out; return; }
   $('#repPages').innerHTML = out.html;
   const ms = $('#momRepMode'); if (ms) { ms.value = R.momMode || 'bar'; ms.onchange = e => { R.momMode = e.target.value; saveRep(); scheduleRender(); }; }
@@ -3601,7 +3682,7 @@ function renderReport() {
 function bindReportUI() {
   $('#repType').onclick = e => { const b = e.target.closest('[data-t]'); if (!b) return; repDefaults().type = b.dataset.t; saveRep(); scheduleRender(); };
   const on = (id, k, num) => $(id).onchange = e => { const R = repDefaults(); R[k] = num ? (+e.target.value || null) : e.target.value; saveRep(); scheduleRender(); };
-  on('#repMatch', 'match'); on('#repSide', 'side'); on('#repOpp', 'opp'); on('#repUs', 'us'); on('#repJ', 'jEnd', true); on('#repN', 'n', true);
+  on('#repMatch', 'match'); on('#repSide', 'side'); on('#repOpp', 'opp'); on('#repUs', 'us'); on('#repJ', 'jEnd', true); on('#repN', 'n', true); on('#repSqTeam', 'sqTeam'); on('#repSqJ', 'sqJ', true);
 }
 
 function exportPDF() {
@@ -3610,7 +3691,7 @@ function exportPDF() {
   const tabL = S.tab === 'tac' ? 'Analyse tactique' : S.tab === 'phy' ? 'Physique' : 'Rapport';
   const nav = document.querySelector(`.subtabs[data-for="${S.tab}"] button[data-sub="${S.sub[S.tab]}"]`);
   let subL = nav ? nav.textContent.trim() : '';
-  if (S.tab === 'rep') { const R = repDefaults(), TN0 = teamNames(); if (R.type === 'post' && S.matches[R.match]) { const m = S.matches[R.match]; subL = `post-match J${m.j} ${TN0[m.home.id]}-${TN0[m.away.id]}`; } else subL = `pré-match ${TN0[R.opp] || ''}`; }
+  if (S.tab === 'rep') { const R = repDefaults(), TN0 = teamNames(); if (R.type === 'squad') subL = `effectif ${TN0[R.sqTeam] || ''}`; else if (R.type === 'post' && S.matches[R.match]) { const m = S.matches[R.match]; subL = `post-match J${m.j} ${TN0[m.home.id]}-${TN0[m.away.id]}`; } else subL = `pré-match ${TN0[R.opp] || ''}`; }
   const f = S.f, TN = teamNames(), PI = playerInfo();
   const bits = [];
   if (S.tab !== 'rep' && f.team) bits.push(TN[f.team]); if (S.tab !== 'rep' && f.player && PI[f.player]) bits.push(PI[f.player].name);
