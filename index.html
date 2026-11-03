@@ -148,7 +148,12 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .rsc{margin-left:auto;font-weight:700}
 .vs{color:var(--text-3)}
 @media (max-width:900px){.rgrid2,.rgrid2.w37,.rtwo{grid-template-columns:1fr}.rslopes{grid-template-columns:repeat(3,1fr)}.rpage{padding:18px 16px}}
-.tbl-wrap.sqt{max-height:none}.sqt table{font-size:12px;width:100%}.rtbl.sqt th{white-space:normal;font-size:10.5px;line-height:1.15;vertical-align:bottom}.sqt td,.sqt th{padding:4px 5px}.sqt td.txt{white-space:nowrap}
+.tbl-wrap.sqt{max-height:none;overflow:visible}
+.sqtip{position:relative;cursor:help;border-bottom:1px dotted var(--text-3);padding-bottom:1px}
+.sqpop{display:none;position:absolute;z-index:30;right:-8px;top:calc(100% + 6px);min-width:240px;max-width:340px;background:var(--text);color:var(--surface);border-radius:8px;padding:8px 10px;font-size:11.5px;font-weight:400;line-height:1.45;text-align:left;white-space:normal;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.sqpop b{display:block;font-weight:700;margin-bottom:3px}.sqpop span{display:block}
+.sqtip:hover .sqpop,.sqtip:focus .sqpop{display:block}
+@media print{.sqpop{display:none!important}.sqtip{border:0}}.sqt table{font-size:12px;width:100%}.rtbl.sqt th{white-space:normal;font-size:10.5px;line-height:1.15;vertical-align:bottom}.sqt td,.sqt th{padding:4px 5px}.sqt td.txt{white-space:nowrap}
 .sqt tr.grp td{background:var(--surface-2);font-weight:800;font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--text-2);text-align:left}
 .sqt td.num{color:var(--text-3);width:24px}.sqt .z{color:var(--text-3);font-weight:400}.sqt td.hi{font-weight:800}
 .sqt .sep{border-left:1px solid var(--grid)}
@@ -3586,11 +3591,14 @@ function reportPre(R, TN, PI, SR) {
 /* ---------- Effectif : feuilles de match ---------- */
 const SQ_GRP = [['GK', 'Gardiens', ['GK']], ['DF', 'Défenseurs', ['CB', 'FB']], ['MF', 'Milieux', ['CM', 'WM']], ['FW', 'Attaquants', ['FW']], ['NA', 'Poste non déterminé (jamais entré en jeu)', []]];
 const SQ_ROLE_L = {GK: 'GB', CB: 'DC', FB: 'DL', CM: 'MC', WM: 'ML', FW: 'ATT'};
+const sqMin = (per, mi, fb) => { if (!per || mi == null) return fb != null ? (fb + 1) + "'" : '';
+  const t = Math.floor(mi) + 1; return per === 1 ? (t > 45 ? `45+${t - 45}'` : t + "'") : (t > 45 ? `90+${t - 45}'` : (45 + t) + "'"); };
 function squadData(tid, jEnd) {
   const ms = CM().filter(m => (m.home.id === tid || m.away.id === tid) && (jEnd == null || m.j <= jEnd) && m.players)
     .sort((a, b) => a.j - b.j || String(a.date).localeCompare(String(b.date)));
   const P = {}, mins = ms.some(m => m.ev) ? aggTactical(ms.filter(m => m.ev), ALLQ).P : {};
-  const get = id => P[id] || (P[id] = {id, num: null, grp: 0, tit: 0, rem: 0, ent: 0, nent: 0, g: 0, a: 0, y: 0, r: 0, st: {}});
+  const TNS = teamNames(), PI0 = playerInfo();
+  const get = id => P[id] || (P[id] = {id, num: null, grp: 0, tit: 0, rem: 0, ent: 0, nent: 0, g: 0, a: 0, y: 0, r: 0, st: {}, d: {}});
   for (const m of ms) {
     const ev = m.ev || {};
     const on = new Set((ev.subs || []).filter(x => x.t === 19 && x.tm === tid).map(x => x.p));
@@ -3610,8 +3618,14 @@ function squadData(tid, jEnd) {
         if (on.has(id)) { o.ent++; o.st[m.id] = 'E'; } else { o.nent++; o.st[m.id] = 'B'; }
       }
     }
-    for (const g of ev.goals || []) if (g.tm === tid && !g.og) { if (g.p && P[g.p]) P[g.p].g++; if (g.a && P[g.a]) P[g.a].a++; }
-    for (const e of ev.opta || []) if (e.card && e.tm === tid && P[e.p]) P[e.p][e.card === 'r' ? 'r' : 'y']++;
+    const opp = (TNS[otherSide(m, tid)] || ''), ha = m.home.id === tid ? 'dom.' : 'ext.';
+    const at = (x, k, extra) => { const o = P[x]; if (!o) return false; o[k]++; (o.d[k] || (o.d[k] = [])).push(`J${m.j} vs ${opp} (${ha}) : ${extra}`); return true; };
+    for (const g of ev.goals || []) if (g.tm === tid && !g.og) {
+      const mn = sqMin(g.per, g.mi, g.min), sc = PI0[g.a] ? ` (passe de ${PI0[g.a].name})` : '';
+      if (g.p) at(g.p, 'g', mn + (g.pat === 'pen' ? ' sur penalty' : '') + sc);
+      if (g.a) at(g.a, 'a', mn + (PI0[g.p] ? ` (but de ${PI0[g.p].name})` : ''));
+    }
+    for (const e of ev.opta || []) if (e.card && e.tm === tid) at(e.p, e.card === 'r' ? 'r' : 'y', sqMin(e.per, e.mi));
   }
   for (const o of Object.values(P)) { o.abs = ms.length - o.grp; o.min = mins[o.id] ? Math.round(mins[o.id].secs / 60) : 0; }
   return {ms, P};
@@ -3625,6 +3639,11 @@ function reportSquad(R, TN, PI, SR) {
   const ordR = ['GK', 'CB', 'FB', 'CM', 'WM', 'FW'];
   const z = v => v ? `<td class="hi">${v}</td>` : `<td class="z">0</td>`;
   const strip = o => `<span class="sqs">${ms.map(m => { const s = o.st[m.id] || 'A', opp = TN[otherSide(m, tid)] || ''; const L = {T: 'titulaire', E: 'entré en jeu', B: 'sur le banc, non entré', A: 'pas dans le groupe'}[s]; return `<i class="${s}" title="J${m.j} vs ${esc(opp)} : ${L}">${s === 'A' ? '' : s}</i>`; }).join('')}</span>`;
+  const tip = (o, k, v, lab, ic = '') => {
+    if (!v) return '<span class="z">0</span>';
+    const L = o.d[k] || [];
+    return `<span class="sqtip" tabindex="0">${ic}${v}<span class="sqpop"><b>${esc(lab)} · ${esc(PI[o.id] ? PI[o.id].name : '')}</b>${L.map(x => `<span>${esc(x)}</span>`).join('')}</span></span>`;
+  };
   let rows = '';
   for (const [k, lab, roles] of SQ_GRP) {
     const list = Object.values(P).filter(o => { const r = roleOf(o.id); return k === 'NA' ? !r : roles.includes(r); })
@@ -3633,7 +3652,7 @@ function reportSquad(R, TN, PI, SR) {
     rows += `<tr class="grp"><td colspan="16">${lab} · ${list.length}</td></tr>`;
     rows += list.map(o => `<tr><td class="num">${o.num ?? ''}</td><td class="txt">${esc(PI[o.id] ? PI[o.id].name : o.id)}</td><td>${SQ_ROLE_L[roleOf(o.id)] || '—'}</td>`
       + `<td class="sep hi">${o.grp}</td>${z(o.abs)}<td class="sep">${o.tit}</td>${z(o.rem)}${z(o.ent)}${z(o.nent)}<td class="sep">${o.min || '<span class="z">0</span>'}</td>`
-      + `<td class="sep">${o.g || '<span class="z">0</span>'}</td><td>${o.a || '<span class="z">0</span>'}</td><td>${o.y ? `<i class="mcard y"></i>${o.y}` : '<span class="z">0</span>'}</td><td>${o.r ? `<i class="mcard r"></i>${o.r}` : '<span class="z">0</span>'}</td>`
+      + `<td class="sep">${tip(o, 'g', o.g, 'Buts')}</td><td>${tip(o, 'a', o.a, 'Passes décisives')}</td><td>${tip(o, 'y', o.y, 'Cartons jaunes', '<i class="mcard y"></i>')}</td><td>${tip(o, 'r', o.r, 'Cartons rouges', '<i class="mcard r"></i>')}</td>`
       + `<td class="sep txt">${strip(o)}</td></tr>`).join('');
   }
   const all = Object.values(P), used = all.filter(o => o.tit + o.ent > 0).length;
