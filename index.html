@@ -149,6 +149,9 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .vs{color:var(--text-3)}
 @media (max-width:900px){.rgrid2,.rgrid2.w37,.rtwo{grid-template-columns:1fr}.rslopes{grid-template-columns:repeat(3,1fr)}.rpage{padding:18px 16px}}
 .tbl-wrap.sqt{max-height:none;overflow:visible}
+.ppl{display:inline-flex;flex-wrap:wrap;gap:3px;max-width:300px;white-space:normal}.sqtip.pp{border:1px solid var(--border);border-radius:5px;padding:0 4px;font-weight:700;font-size:11px;background:var(--surface-2);white-space:nowrap}.pp small{font-weight:400;color:var(--text-3);margin-left:3px;font-size:10px}.pp em{font-style:normal;color:var(--text-2);margin-left:3px;font-weight:600;font-size:10px}.sqpop .muted2{opacity:.7;margin-top:3px}
+.sysbar{display:inline-block;width:120px;height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden;vertical-align:middle}.sysbar i{display:block;height:100%}
+.sysic{color:var(--text-3)}
 .sqtip{position:relative;cursor:help;border-bottom:1px dotted var(--text-3);padding-bottom:1px}
 .sqpop{display:none;position:absolute;z-index:30;right:-8px;top:calc(100% + 6px);min-width:240px;max-width:340px;background:var(--text);color:var(--surface);border-radius:8px;padding:8px 10px;font-size:11.5px;font-weight:400;line-height:1.45;text-align:left;white-space:normal;box-shadow:0 6px 18px rgba(0,0,0,.18)}
 .sqpop b{display:block;font-weight:700;margin-bottom:3px}.sqpop span{display:block}
@@ -1159,7 +1162,7 @@ function baseFromMeta(meta, md) {
 }
 
 /* ---------- Insight : événements Opta + marquages tracking ---------- */
-const EV_VER = 4; // version du traitement des événements (à incrémenter si procInsight change)
+const EV_VER = 5; // version du traitement des événements (à incrémenter si procInsight change)
 const OPTA_KEEP = new Set([1, 3, 4, 7, 8, 10, 12, 17, 44, 45, 49, 50, 61, 74]);
 function procInsight(m, rows) {
   const L = m.L, W = m.W;
@@ -1262,6 +1265,31 @@ function procInsight(m, rows) {
   // Pas d'événements Opta : tirs depuis le tracking
   if (!optaRaw.length) {
     for (const {k, q} of shotMkList) ev.shots.push({p: k.shooterId, tm: k.attTeamId, q, xg: k.xG || 0, x: nx(k.shotLoc[0]), y: ny(k.shotLoc[1]), g: 0, ot: 0, pen: 0, min: null});
+  }
+  // Systèmes (Opta 34 = composition, 40 = changement de système) et postes occupés (case du système, qualif. 131 / 145)
+  {
+    const D2 = (m.periods.find(p => p.n === 2) || {dur: 2940}).dur, END = D1 + D2;
+    const absOf = o => o.typeId === 34 ? -1 : (o.periodId === 1 ? 0 : D1) + ((o.periodId === 1 ? o.timeMin : o.timeMin - 45) + (o.timeSec || 0) / 60) * 60;
+    const lst = optaRaw.filter(o => teamOf[o.contestantId] && (o.typeId === 34 || ((o.periodId === 1 || o.periodId === 2) && [40, 18, 19, 17].includes(o.typeId))))
+      .map((o, i) => ({o, i, t: absOf(o)})).sort((a, b) => a.t - b.t || a.i - b.i);
+    const form = {}, pos = {}, cur = {}, curF = {};
+    const close = (pid, t) => { const c = cur[pid]; if (!c) return; const d = Math.max(0, t - c.t0) / 60; const L = pos[pid] || (pos[pid] = []); const x = L.find(y => y[0] === c.f && y[1] === c.s); if (x) x[2] += d; else L.push([c.f, c.s, d, c.t0 <= 0 ? 1 : 0]); delete cur[pid]; };
+    const open = (pid, f, s, t) => { const c = cur[pid]; if (c && c.f === f && c.s === s) return; close(pid, t); cur[pid] = {f, s, t0: Math.max(0, t), tm: null}; };
+    for (const {o, t} of lst) {
+      const tm = teamOf[o.contestantId], qv = {}; (o.qualifier || []).forEach(x => qv[x.qualifierId] = x.value);
+      if (o.typeId === 34 || o.typeId === 40) {
+        const f = +qv[130] || 0; if (!f) continue;
+        const F = form[tm] || (form[tm] = []);
+        if (!F.length || F[F.length - 1][0] !== f) F.push([f, o.typeId === 34 ? 1 : o.periodId, o.typeId === 34 ? 0 : Math.round(((o.periodId === 1 ? o.timeMin : o.timeMin - 45) + (o.timeSec || 0) / 60) * 100) / 100]);
+        curF[tm] = f;
+        const ids = String(qv[30] || '').split(',').map(s => s.trim()), sl = String(qv[131] || '').split(',').map(s => +s);
+        ids.forEach((u, i) => { if (!u || !(sl[i] > 0)) return; const pid = optaToSsi[u]; if (pid) open(pid, f, sl[i], t); });
+      } else if (o.typeId === 19 && qv[145]) { const pid = optaToSsi[o.playerId]; if (pid && curF[tm]) open(pid, curF[tm], +qv[145], t); }
+      else if (o.typeId === 18 || (o.typeId === 17 && (qv[32] !== undefined || qv[33] !== undefined))) { const pid = optaToSsi[o.playerId]; if (pid) close(pid, t); }
+    }
+    for (const pid of Object.keys(cur)) close(pid, END);
+    for (const L of Object.values(pos)) L.forEach(x => x[2] = Math.round(x[2]));
+    ev.form = form; ev.pos = pos;
   }
   ev.v = EV_VER;
   m.ev = ev;
@@ -3498,17 +3526,18 @@ function reportPost(R, TN, PI, SR) {
     + (ph1[us] && ph2[us] ? slopeSVG('Distance (km)', ph1[us].dist / 1000, ph2[us].dist / 1000, ph1[them].dist / 1000, ph2[them].dist / 1000, 1, cA, cB) : '');
   const disc = (tid) => {
     const ev = [];
-    for (const e of m.ev.opta || []) if (e.card && e.tm === tid && e.per) ev.push({t: e.per === 1 ? e.mi : 45 + e.mi, h: `<i class="mcard ${e.card}"></i> ${esc(PI[e.p] ? PI[e.p].name : '')}`});
+    for (const e of m.ev.opta || []) if (e.card && e.tm === tid && e.per) ev.push({t: e.per === 1 ? e.mi : 45 + e.mi, h: `<i class="mcard ${e.card}"></i> ${esc(PI[e.p] ? PI[e.p].name : 'banc / staff')}`});
     const subs = (m.ev.subs || []).filter(x => x.tm === tid);
+    ((m.ev.form || {})[tid] || []).forEach(([f, per, mi], i) => ev.push({t: i ? minAbs(m, per, mi) : -1, h: `<span class="sysic">▦</span> ${i ? 'Passage en' : 'Système de départ :'} <strong>${esc(formName(f))}</strong> <span class="muted">${esc(defOf(f))}</span>`, ko: !i}));
     const used = new Set();
     for (const on of subs.filter(x => x.t === 19)) { const off = subs.find(x => x.t === 18 && !used.has(x) && Math.abs(x.mi - on.mi) < .5 && x.per === on.per); if (off) used.add(off); ev.push({t: on.per === 1 ? on.mi : 45 + on.mi, h: `⇄ ↑ ${esc(PI[on.p] ? PI[on.p].name : '')}${off ? ` ↓ ${esc(PI[off.p] ? PI[off.p].name : '')}` : ''}`}); }
-    return ev.sort((a, b) => a.t - b.t).map(e => `<li><b>${Math.floor(e.t) + 1}'</b> ${e.h}</li>`).join('') || '<li class="muted">—</li>';
+    return ev.sort((a, b) => a.t - b.t).map(e => `<li><b>${e.ko ? '0\'' : Math.floor(e.t) + 1 + "'"}</b> ${e.h}</li>`).join('') || '<li class="muted">—</li>';
   };
   const p5 = rpage(5, TOT, 'CPA, évolution et discipline', 'CPA, temps et évolution.', 'Le rendement des coups de pied arrêtés, et ce qui change d’une période à l’autre.', head.replace('rhead', 'rhead mini'),
     rblk(1, 'Rendement des CPA', 'séquences démarrées sur CPA', cpaTableHTML(ca, cb, nA, nB, cA, cB))
     + `<div class="rgrid2">${rblk(2, 'Corners — ' + nA, '', cornerHTML(ca.corners, nA, cA, PI))}${rblk(3, 'Corners — ' + nB, '', cornerHTML(cb.corners, nB, cB, PI))}</div>`
     + rblk(4, '1re contre 2e période', vsLine(nA, nB, cA, cB), `<div class="rslopes">${slopes}</div>`)
-    + rblk(5, 'Discipline et changements', '', `<div class="rtwo"><div><div class="rname" style="color:${cA}">${esc(nA)}</div><ul class="rdisc">${disc(us)}</ul></div><div><div class="rname" style="color:${cB}">${esc(nB)}</div><ul class="rdisc">${disc(them)}</ul></div></div>`));
+    + rblk(5, 'Systèmes, changements et discipline', '', `<div class="rtwo"><div><div class="rname" style="color:${cA}">${esc(nA)}</div><ul class="rdisc">${disc(us)}</ul></div><div><div class="rname" style="color:${cB}">${esc(nB)}</div><ul class="rdisc">${disc(them)}</ul></div></div>`));
   return {html: p1 + p2 + p3 + p4 + p5, after: () => renderMomentum('Rep', ms, TN, PI, {match: m.id, team: '', qs: ALLQ, persp: us})};
 }
 
@@ -3556,8 +3585,8 @@ function reportPre(R, TN, PI, SR) {
   const p2 = rpage(2, TOT, 'Offensif', 'Comment ils attaquent.', 'D’où partent leurs attaques, d’où ils tirent, où ils déséquilibrent, et qui est dangereux.', head.replace('rhead', 'rhead mini'),
     `<div class="rgrid2">${rblk(1, 'D’où partent leurs attaques', us ? `${esc(nO)} · ${esc(nU)} · par match` : 'par match', O.origin)}${rblk(2, 'Lesquelles produisent', 'possessions avec au moins un tir', O.prod)}</div>`
     + `<div class="rgrid2">${rblk(3, 'D’où ils tirent', `${sO.length} tirs · ${fmt(A.xg, 2)} xG · but adverse en haut`, shotGridSVG(sO, cO))}${rblk(4, 'Où ils déséquilibrent', `${uo.reduce((a, c) => a + c.lb + c.car, 0)} actions · vu de leur attaque`, corridorSVG(uo, cO, `color-mix(in srgb, ${cO} 45%, var(--surface))`) + legendHTML([[cO, 'passe qui casse une ligne'], [`color-mix(in srgb, ${cO} 45%, var(--surface))`, 'conduite progressive']]) + `<p class="rnote">Buts marqués : ${Object.entries(gpat).map(([k, v]) => `${v} ${PAT_L[k] || k}`).join(' · ') || 'aucun'}</p>`)}</div>`
-    + (() => { const c = cageSVG(sO, cO); return rblk(5, 'Où ils tirent dans la cage', c.sub, `<div class="rnarrow wide">${c.svg}</div>`); })()
-    + rblk(6, 'Joueurs dangereux', 'classés par xG + xT', `<div class="tbl-wrap rtbl"><table><tr><th class="txt">Joueur</th><th>Min</th><th>Buts</th><th>xG</th><th>xT</th><th>Passes clés</th><th>Cassent la ligne</th></tr>${thrRows}</table></div>`));
+    + `<div class="rgrid2">${(() => { const c = cageSVG(sO, cO); return rblk(5, 'Où ils tirent dans la cage', c.sub, c.svg); })()}`
+    + rblk(6, 'Joueurs dangereux', 'classés par xG + xT', `<div class="tbl-wrap rtbl"><table><tr><th class="txt">Joueur</th><th>Min</th><th>Buts</th><th>xG</th><th>xT</th><th>Passes clés</th><th>Cassent la ligne</th></tr>${thrRows}</table></div>`) + '</div>');
   // Page 3 : comment ils défendent
   const rO = recovPts(mo, opp), lO = lossPts(mo, opp), sC = []; for (const m of mo) for (const s of m.ev.shots || []) if (s.tm !== opp) sC.push(s);
   const hO = mean(rO.map(p => p.x)), hL = mean(teams.map(t => mean(recovPts(win[t].ms, t).map(p => p.x))));
@@ -3575,8 +3604,9 @@ function reportPre(R, TN, PI, SR) {
   const PP = aggPhys(mo, ALLQ).P;
   const pl = Object.entries(Pt).filter(([id, o]) => PI[id] && PI[id].team === opp && o.secs > 0).sort((a, b) => b[1].secs - a[1].secs).slice(0, 16)
     .map(([id, o]) => { const ph = PP[id]; return `<tr><td class="txt">${esc(PI[id].name)}</td><td>${esc(SR[id] === 'GK' ? 'GB' : SR[id] || '')}</td><td>${fmt(o.secs / 60)}</td><td>${o.gf}</td><td>${fmt(o.xg, 2)}</td><td>${fmt(xt.o[id] || 0, 2)}</td><td>${o.lb}</td><td>${o.recov}</td><td>${ph ? fmt(val(PHY, 'dist', ph, 'p90') / 1000, 1) : '—'}</td><td>${ph ? fmt(val(PHY, 'spr', ph, 'p90')) : '—'}</td><td>${ph ? fmt(ph.vmax, 1) : '—'}</td></tr>`; }).join('');
-  const p5 = rpage(5, TOT, 'Joueurs', 'Qui joue, et à quelle intensité.', 'Les 16 joueurs les plus utilisés sur la période : temps de jeu, production et profil physique.', head.replace('rhead', 'rhead mini'),
-    rblk(1, 'Joueurs les plus utilisés', 'valeurs physiques par 90 min', `<div class="tbl-wrap rtbl"><table><tr><th class="txt">Joueur</th><th>Poste</th><th>Min</th><th>Buts</th><th>xG</th><th>xT</th><th>Cassent la ligne</th><th>Récup.</th><th>Dist. /90 (km)</th><th>&gt;25 km/h /90 (m)</th><th>V. max</th></tr>${pl}</table></div>`));
+  const p5 = rpage(5, TOT, 'Systèmes et joueurs', 'Comment ils se disposent, qui joue.', 'Les systèmes utilisés, puis les 16 joueurs les plus utilisés sur la période : temps de jeu, production et profil physique.', head.replace('rhead', 'rhead mini'),
+    rblk(1, 'Systèmes utilisés', `${esc(nO)} · ${mo.length} derniers matchs`, systemsHTML(mo, opp, TN, cO))
+    + rblk(2, 'Joueurs les plus utilisés', 'valeurs physiques par 90 min', `<div class="tbl-wrap rtbl"><table><tr><th class="txt">Joueur</th><th>Poste</th><th>Min</th><th>Buts</th><th>xG</th><th>xT</th><th>Cassent la ligne</th><th>Récup.</th><th>Dist. /90 (km)</th><th>&gt;25 km/h /90 (m)</th><th>V. max</th></tr>${pl}</table></div>`));
   const after = () => {
     const bq = A.byQ || [], n = A.mp || 1;
     chart('chRepQ', {type: 'bar', data: {labels: Q_LABELS, datasets: [
@@ -3586,6 +3616,76 @@ function reportPre(R, TN, PI, SR) {
       options: {animation: false, plugins: {legend: {position: 'bottom'}}, scales: {y: {title: {display: true, text: 'xG / match'}, grid: {color: css('--grid')}}, g: {position: 'right', beginAtZero: true, ticks: {precision: 0}, title: {display: true, text: 'buts (total)'}, grid: {display: false}}, x: {grid: {display: false}}}}});
   };
   return {html: p1 + p2 + p3 + p4 + p5, after};
+}
+
+/* ---------- Systèmes et postes (formations Opta) ---------- */
+const FORM_N = {2: '4-4-2', 3: '4-1-2-1-2', 4: '4-3-3', 5: '4-5-1', 6: '4-4-1-1', 7: '4-1-4-1', 8: '4-2-3-1', 9: '4-3-2-1', 10: '5-3-2', 11: '5-4-1', 12: '3-5-2', 13: '3-4-3',
+  14: '3-1-3-1-2', 15: '4-2-2-2', 16: '3-5-1-1', 17: '3-4-2-1', 18: '3-4-1-2', 19: '3-1-4-2', 20: '3-4-3 losange', 21: '4-1-3-2', 22: '4-2-4-0', 23: '4-3-1-2', 24: '3-2-4-1', 25: '3-3-3-1'};
+const formName = f => FORM_N[f] || ('système ' + f);
+const defOf = f => { const n = parseInt(FORM_N[f], 10); return n ? `défense à ${n}` : ''; };
+const POS_FR = {GK: ['GB', 'Gardien'], CB: ['DC', 'Défenseur central'], LCB: ['DCG', 'Défenseur central gauche'], RCB: ['DCD', 'Défenseur central droit'], SW: ['LIB', 'Libéro'],
+  LB: ['DG', 'Latéral gauche'], RB: ['DD', 'Latéral droit'], LWB: ['PG', 'Piston gauche'], RWB: ['PD', 'Piston droit'],
+  DM: ['MDC', 'Milieu défensif'], CDM: ['MDC', 'Milieu défensif'], LDM: ['MDG', 'Milieu défensif gauche'], RDM: ['MDD', 'Milieu défensif droit'],
+  CM: ['MC', 'Milieu central'], LCM: ['MCG', 'Milieu central gauche'], RCM: ['MCD', 'Milieu central droit'], LM: ['MG', 'Milieu gauche'], RM: ['MD', 'Milieu droit'],
+  AM: ['MOC', 'Milieu offensif'], CAM: ['MOC', 'Milieu offensif'], LAM: ['MOG', 'Milieu offensif gauche'], RAM: ['MOD', 'Milieu offensif droit'],
+  LW: ['AG', 'Ailier gauche'], RW: ['AD', 'Ailier droit'], ST: ['AC', 'Avant-centre'], CF: ['AC', 'Avant-centre'], SS: ['SA', 'Second attaquant'],
+  LS: ['ATG', 'Attaquant gauche'], RS: ['ATD', 'Attaquant droit'], LF: ['ATG', 'Attaquant gauche'], RF: ['ATD', 'Attaquant droit'], LCF: ['ATG', 'Attaquant gauche'], RCF: ['ATD', 'Attaquant droit']};
+// Nom de chaque case de chaque système, appris sur les titulaires (poste détaillé de meta.json)
+let SLOT_MEMO = null;
+function slotNames() {
+  if (SLOT_MEMO && SLOT_MEMO.v === DATA_VER) return SLOT_MEMO.r;
+  const t = {};
+  for (const m of Object.values(S.matches)) for (const [pid, L] of Object.entries((m.ev && m.ev.pos) || {})) {
+    const p = String((m.players[pid] || {}).pos || '').toUpperCase(); if (!POS_FR[p]) continue;
+    for (const [f, s, , st] of L) if (st) { const k = f + '|' + s, x = t[k] || (t[k] = {}); x[p] = (x[p] || 0) + 1; }
+  }
+  const r = {}; for (const [k, x] of Object.entries(t)) r[k] = Object.entries(x).sort((a, b) => b[1] - a[1])[0][0];
+  SLOT_MEMO = {v: DATA_VER, r}; return r;
+}
+const slotPos = (f, s) => s === 1 ? 'GK' : slotNames()[f + '|' + s] || null;
+const minAbs = (m, per, mi) => per === 1 ? mi : 45 + mi;
+function matchMins(m) { return (m.periods || []).reduce((a, p) => a + (p.dur || 0), 0) / 60 || 95; }
+// Systèmes d'une équipe sur une liste de matchs
+function systemsOf(ms, tid, TN) {
+  const R = {}; const rows = [];
+  for (const m of ms) {
+    const F = m.ev && m.ev.form && m.ev.form[tid]; if (!F || !F.length) continue;
+    const h = m.home.id === tid, gf = h ? m.score[0] : m.score[1], ga = h ? m.score[1] : m.score[0], res = gf > ga ? 'V' : gf < ga ? 'D' : 'N';
+    const end = matchMins(m), opp = TN[otherSide(m, tid)] || '';
+    F.forEach(([f, per, mi], i) => {
+      const t0 = i ? minAbs(m, per, mi) : 0, t1 = F[i + 1] ? minAbs(m, F[i + 1][1], F[i + 1][2]) : end;
+      const o = R[f] || (R[f] = {f, st: 0, V: 0, N: 0, D: 0, gf: 0, ga: 0, min: 0, used: 0, L: []});
+      o.min += Math.max(0, t1 - t0);
+      if (!i) { o.st++; o[res]++; o.gf += gf; o.ga += ga; }
+      if (!o.L.some(x => x.m === m)) { o.used++; o.L.push({m, s: `J${m.j} vs ${opp} (${h ? 'dom.' : 'ext.'}) ${gf}-${ga} : ${i ? 'à partir de ' + sqMin(per, mi) : 'au coup d’envoi'}${F.length > 1 ? ' · ' + F.map(([g, p2, m2], k) => formName(g) + (k ? ` (${sqMin(p2, m2)})` : '')).join(' → ') : ''}`}); }
+    });
+    rows.push({m, F});
+  }
+  return {list: Object.values(R).sort((a, b) => b.st - a.st || b.min - a.min), n: rows.length};
+}
+function systemsHTML(ms, tid, TN, col) {
+  const {list, n} = systemsOf(ms, tid, TN);
+  if (!n) return '<p class="rnote">Pas de données de système (réimportez les fichiers insight pour les calculer).</p>';
+  const tot = list.reduce((a, o) => a + o.min, 0) || 1;
+  const pop = (o, lab) => `<span class="sqtip" tabindex="0">${lab}<span class="sqpop"><b>${esc(formName(o.f))} · ${o.used} match(s)</b>${o.L.map(x => `<span>${esc(x.s)}</span>`).join('')}</span></span>`;
+  const rows = list.map(o => `<tr><td class="txt"><b>${esc(formName(o.f))}</b> <span class="muted">${esc(defOf(o.f))}</span></td><td>${pop(o, o.st)}</td><td>${o.used - o.st ? o.used - o.st : '<span class="z">0</span>'}</td><td>${o.st ? `${o.V}-${o.N}-${o.D}` : '—'}</td><td>${o.st ? `${o.gf}-${o.ga}` : '—'}</td><td>${Math.round(o.min)}</td><td class="txt"><span class="sysbar"><i style="width:${Math.round(o.min / tot * 100)}%;background:${col}"></i></span> ${Math.round(o.min / tot * 100)} %</td></tr>`).join('');
+  return `<div class="tbl-wrap rtbl sqt"><table><tr><th class="txt">Système</th><th>Au coup d’envoi</th><th>En cours de match</th><th>V-N-D (départ)</th><th>Buts p.-c. (départ)</th><th>Minutes</th><th class="txt">Part du temps de jeu</th></tr>${rows}</table></div><p class="rnote">${n} match(s) · survolez le nombre de matchs pour voir le détail et les changements de système.</p>`;
+}
+// Postes occupés par un joueur, match par match
+function playerPosts(ms, pid, TN, tid) {
+  const G = {};
+  for (const m of ms) {
+    const L = m.ev && m.ev.pos && m.ev.pos[pid]; if (!L) continue;
+    const opp = TN[otherSide(m, tid)] || '', h = m.home.id === tid;
+    for (const [f, s, d, st] of L) {
+      if (d < 1) continue;
+      const p = slotPos(f, s), fr = POS_FR[p] || ['?', 'Poste ' + s], dn = p === 'GK' ? 0 : (parseInt(FORM_N[f], 10) || 0), k = fr[1] + '|' + dn;
+      const o = G[k] || (G[k] = {ab: fr[0], nm: fr[1], dn, n: 0, min: 0, L: [], ms: new Set()});
+      if (!o.ms.has(m)) { o.ms.add(m); o.n++; }
+      o.min += d; o.L.push(`J${m.j} vs ${opp} (${h ? 'dom.' : 'ext.'}) : ${formName(f)}, ${d} min${st ? '' : ' (entré en jeu)'}`);
+    }
+  }
+  return Object.values(G).sort((a, b) => b.min - a.min);
 }
 
 /* ---------- Effectif : feuilles de match ---------- */
@@ -3644,13 +3744,18 @@ function reportSquad(R, TN, PI, SR) {
     const L = o.d[k] || [];
     return `<span class="sqtip" tabindex="0">${ic}${v}<span class="sqpop"><b>${esc(lab)} · ${esc(PI[o.id] ? PI[o.id].name : '')}</b>${L.map(x => `<span>${esc(x)}</span>`).join('')}</span></span>`;
   };
+  const postsCell = o => {
+    const L = playerPosts(ms, o.id, TN, tid);
+    if (!L.length) return `<span class="muted">${SQ_ROLE_L[roleOf(o.id)] || '—'}</span>`;
+    return `<span class="ppl">${L.map(x => `<span class="sqtip pp" tabindex="0">${esc(x.ab)}${x.dn ? `<small>à ${x.dn}</small>` : ''}<em>×${x.n}</em><span class="sqpop"><b>${esc(x.nm)}${x.dn ? ` · défense à ${x.dn}` : ''}</b>${x.L.map(y => `<span>${esc(y)}</span>`).join('')}<span class="muted2">${x.n} match(s) · ${Math.round(x.min)} min</span></span></span>`).join('')}</span>`;
+  };
   let rows = '';
   for (const [k, lab, roles] of SQ_GRP) {
     const list = Object.values(P).filter(o => { const r = roleOf(o.id); return k === 'NA' ? !r : roles.includes(r); })
       .sort((a, b) => ordR.indexOf(roleOf(a.id)) - ordR.indexOf(roleOf(b.id)) || (b.tit + b.ent) - (a.tit + a.ent) || b.min - a.min || (a.num || 99) - (b.num || 99));
     if (!list.length) continue;
     rows += `<tr class="grp"><td colspan="16">${lab} · ${list.length}</td></tr>`;
-    rows += list.map(o => `<tr><td class="num">${o.num ?? ''}</td><td class="txt">${esc(PI[o.id] ? PI[o.id].name : o.id)}</td><td>${SQ_ROLE_L[roleOf(o.id)] || '—'}</td>`
+    rows += list.map(o => `<tr><td class="num">${o.num ?? ''}</td><td class="txt">${esc(PI[o.id] ? PI[o.id].name : o.id)}</td><td class="txt">${postsCell(o)}</td>`
       + `<td class="sep hi">${o.grp}</td>${z(o.abs)}<td class="sep">${o.tit}</td>${z(o.rem)}${z(o.ent)}${z(o.nent)}<td class="sep">${o.min || '<span class="z">0</span>'}</td>`
       + `<td class="sep">${tip(o, 'g', o.g, 'Buts')}</td><td>${tip(o, 'a', o.a, 'Passes décisives')}</td><td>${tip(o, 'y', o.y, 'Cartons jaunes', '<i class="mcard y"></i>')}</td><td>${tip(o, 'r', o.r, 'Cartons rouges', '<i class="mcard r"></i>')}</td>`
       + `<td class="sep txt">${strip(o)}</td></tr>`).join('');
@@ -3660,9 +3765,9 @@ function reportSquad(R, TN, PI, SR) {
   const tiles = [['Joueurs convoqués', all.length], ['Joueurs utilisés', used], ['Buteurs différents', all.filter(o => o.g).length], ['Cartons jaunes', all.reduce((a, o) => a + o.y, 0)], ['Cartons rouges', all.reduce((a, o) => a + o.r, 0)]]
     .map(([l, v]) => `<div class="rtile"><span>${l}</span><div><b style="color:${col}">${v}</b></div></div>`).join('');
   const leg = `<div class="rleg"><span><span class="sqs"><i class="T">T</i></span> titulaire</span><span><span class="sqs"><i class="E">E</i></span> entré en jeu</span><span><span class="sqs"><i class="B">B</i></span> sur le banc, non entré</span><span><span class="sqs"><i class="A"></i></span> pas dans le groupe</span></div>`;
-  const tbl = `<div class="tbl-wrap rtbl sqt"><table><tr><th>N°</th><th class="txt">Joueur</th><th>Poste</th><th class="sep">Dans le groupe</th><th>Pas dans le groupe</th><th class="sep">Titulaire</th><th>Remplaçant</th><th>Entré en jeu</th><th>Non entré</th><th class="sep">Min</th><th class="sep">Buts</th><th>Passes déc.</th><th>Jaunes</th><th>Rouges</th><th class="sep txt">Match par match</th></tr>${rows}</table></div>`;
+  const tbl = `<div class="tbl-wrap rtbl sqt"><table><tr><th>N°</th><th class="txt">Joueur</th><th class="txt">Postes joués</th><th class="sep">Dans le groupe</th><th>Pas dans le groupe</th><th class="sep">Titulaire</th><th>Remplaçant</th><th>Entré en jeu</th><th>Non entré</th><th class="sep">Min</th><th class="sep">Buts</th><th>Passes déc.</th><th>Jaunes</th><th>Rouges</th><th class="sep txt">Match par match</th></tr>${rows}</table></div>`;
   const html = rpage(1, 1, 'Effectif', 'Feuilles de match.', 'Tous les joueurs inscrits sur au moins une feuille de match, classés par poste : présence dans le groupe, titularisations, entrées en jeu, buts, passes décisives et cartons.', head,
-    rblk(1, 'Synthèse', '', `<div class="rtiles small">${tiles}</div>`) + rblk(2, 'Joueurs', 'Remplaçant = sur la feuille sans être titulaire (entré en jeu + non entré)', tbl + leg, 'sqb'));
+    rblk(1, 'Synthèse', '', `<div class="rtiles small">${tiles}</div>`) + rblk(2, 'Systèmes utilisés', `${ms.length} matchs`, systemsHTML(ms, tid, TN, col)) + rblk(3, 'Joueurs', 'Remplaçant = sur la feuille sans être titulaire (entré en jeu + non entré)', tbl + leg, 'sqb'));
   return {html: html.replace('class="rpage"', 'class="rpage sq"'), after: () => {}};
 }
 
