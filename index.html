@@ -157,6 +157,9 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .pzm{width:100%;border-collapse:separate;border-spacing:3px;font-size:12px}.pzm th{font-size:11px;color:var(--text-2);font-weight:700;padding:2px 4px}.pzm th.txt{text-align:left}.pzm th small{display:block;font-weight:400;color:var(--text-3)}
 .pzm td{border-radius:7px;padding:7px 6px;text-align:center;vertical-align:top}.pzm td b{display:block;font-size:17px;font-weight:800}.pzm td span{font-size:11px;opacity:.8}.pzm td small{display:block;font-size:10px;opacity:.8;margin-top:2px;line-height:1.2}
 .pzb{margin-top:12px;font-size:12px}.pzbh{font-weight:700;margin-bottom:6px}.pzbh small{font-weight:400;color:var(--text-3)}.pzbr{display:grid;grid-template-columns:58px 1fr 92px;gap:8px;align-items:center;margin:3px 0}.pzbr span{color:var(--text-2)}.pzbr i{height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden;display:block}.pzbr b{display:block;height:100%}.pzbr em{font-style:normal;font-weight:700;font-size:11.5px}
+.gk-ctl{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:10px 14px}.gk-ctl select{min-width:280px}.gk-ctl .tlogo{height:18px;vertical-align:-4px}
+.gkz{width:100%;font-size:12.5px;margin-top:10px;border-collapse:collapse}.gkz th{font-size:11px;color:var(--text-2);text-align:right;padding:4px 6px;border-bottom:1px solid var(--border)}.gkz td{text-align:right;padding:5px 6px;border-bottom:1px solid var(--grid)}.gkz .txt{text-align:left}
+.gkd{font-size:12px}.gkdr{display:grid;grid-template-columns:130px 1fr 74px;gap:8px;align-items:center;margin:6px 0}.gkdr span{color:var(--text-2)}.gkdr i{position:relative;height:12px;background:var(--surface-2);border-radius:6px;overflow:hidden;display:block}.gkdr i b{position:absolute;left:0;top:0;height:100%;border-radius:6px}.gkdr em{font-style:normal;font-weight:700}
 .sysic{color:var(--text-3)}
 .sqtip{position:relative;cursor:help;border-bottom:1px dotted var(--text-3);padding-bottom:1px}
 .sqpop{display:none;position:absolute;z-index:30;right:-8px;top:calc(100% + 6px);min-width:240px;max-width:340px;background:var(--text);color:var(--surface);border-radius:8px;padding:8px 10px;font-size:11.5px;font-weight:400;line-height:1.45;text-align:left;white-space:normal;box-shadow:0 6px 18px rgba(0,0,0,.18)}
@@ -445,7 +448,7 @@ input.j{width:64px}
   <div id="tacEmpty" class="empty" hidden><b>Aucune donnée d'événements</b>Importez des fichiers <code>insight.jsonl</code> dans l'onglet Données.</div>
   <div id="tacBody">
     <nav class="subtabs" data-for="tac">
-      <button data-sub="res">Résumé</button><button data-sub="off">Offensif</button><button data-sub="def">Défensif</button><button data-sub="cpa">CPA</button><button data-sub="cls">Classements</button>
+      <button data-sub="res">Résumé</button><button data-sub="off">Offensif</button><button data-sub="def">Défensif</button><button data-sub="cpa">CPA</button><button data-sub="gk">Gardien</button><button data-sub="cls">Classements</button>
     </nav>
     <p class="focus-line" id="tacFocus"></p>
 
@@ -599,6 +602,52 @@ input.j{width:64px}
             <div class="ctrl"><select id="cpaTeamMode"><option value="pm">Moyenne par match</option><option value="tot">Total</option></select><button class="btn" data-csv="tblCpaTeams">CSV</button></div>
           </div>
           <div class="tbl-wrap" id="tblCpaTeams"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gardien -->
+    <div class="subpanel" data-sub="gk">
+      <div class="card gk-ctl"><label class="lbl">Gardien <select id="gkSel"></select></label><span class="sub" id="gkInfo"></span></div>
+      <div class="kpis" id="gkKpis" style="margin-top:12px"></div>
+      <div class="grid" style="margin-top:14px">
+        <div class="card c7">
+          <div class="card-head"><div><h2>Tirs cadrés concédés : où ils arrivent</h2><p class="sub" id="gkCageSub"></p></div></div>
+          <div id="gkCage" class="cage-wrap"></div>
+          <div id="gkZones"></div>
+        </div>
+        <div class="card c5">
+          <div class="card-head"><div><h2>D’où on lui tire dessus</h2><p class="sub" id="gkShotSub"></p></div>
+          <div class="ctrl"><select id="gkShotType"><option value="all">Tous les tirs</option><option value="ot">Cadrés</option><option value="g">Buts</option></select></div></div>
+          <div id="gkShotMap"></div>
+          <div class="legend"><span><i style="background:var(--s1)"></i>But</span><span><i style="border:2px solid var(--s1);background:transparent"></i>Tir (taille = xG)</span></div>
+        </div>
+        <div class="card c12">
+          <div class="card-head"><div><h2>Buts évités, match par match</h2><p class="sub" id="gkMatchSub"></p></div></div>
+          <div class="chart-box"><canvas id="chGkMatch"></canvas></div>
+        </div>
+        <div class="card c7">
+          <div class="card-head"><div><h2>Jeu au pied : où vont ses passes</h2><p class="sub" id="gkPassSub"></p></div>
+          <div class="ctrl"><select id="gkPassType"><option value="all">Toutes les passes</option><option value="long">Longues (≥ 35 m)</option><option value="short">Courtes (&lt; 35 m)</option><option value="gk">Dégagements six mètres</option></select></div></div>
+          <div id="gkPassMap" style="max-width:820px;margin:0 auto"></div>
+          <div class="legend"><span><i style="background:var(--s1)"></i>Réussie</span><span><i style="background:#d0453f"></i>Ratée</span></div>
+        </div>
+        <div class="card c5">
+          <div class="card-head"><div><h2>Profil de distribution</h2><p class="sub">Répartition et réussite selon la longueur</p></div></div>
+          <div id="gkDist"></div>
+        </div>
+        <div class="card c12">
+          <div class="card-head"><div><h2>Classement des gardiens</h2><p class="sub" id="gkTblSub">Cliquez sur un gardien pour l’afficher</p></div>
+          <div class="ctrl"><select id="gkTblMode"><option value="tot">Total</option><option value="p90">Par 90 min</option></select><label class="lbl" style="margin:0">Min. <input type="number" id="gkMinMin" value="270" min="0" step="90" style="width:64px"></label><button class="btn" data-csv="tblGk">CSV</button></div></div>
+          <div class="tbl-wrap" id="tblGk"></div>
+        </div>
+        <div class="card c6">
+          <div class="card-head"><div><h2>Buts évités / 90 min</h2><p class="sub" id="gkRankSub"></p></div></div>
+          <div class="chart-box tall"><canvas id="chGkRank"></canvas></div>
+        </div>
+        <div class="card c6">
+          <div class="card-head"><div><h2>Arrêts et qualité des tirs subis</h2><p class="sub">% d’arrêts selon la difficulté moyenne des tirs cadrés subis</p></div></div>
+          <div class="chart-box tall"><canvas id="chGkScatter"></canvas></div>
         </div>
       </div>
     </div>
@@ -1173,8 +1222,8 @@ function baseFromMeta(meta, md) {
 }
 
 /* ---------- Insight : événements Opta + marquages tracking ---------- */
-const EV_VER = 6; // version du traitement des événements (à incrémenter si procInsight change)
-const OPTA_KEEP = new Set([1, 3, 4, 7, 8, 10, 12, 17, 44, 45, 49, 50, 61, 74]);
+const EV_VER = 7; // version du traitement des événements (à incrémenter si procInsight change)
+const OPTA_KEEP = new Set([1, 3, 4, 7, 8, 10, 11, 12, 17, 41, 44, 45, 49, 50, 52, 53, 59, 61, 74]);
 function procInsight(m, rows) {
   const L = m.L, W = m.W;
   const nx = x => r1((x + L / 2) / L * 105), ny = y => r1((W / 2 - y) / W * 68);
@@ -1256,13 +1305,14 @@ function procInsight(m, rows) {
         pat: qv[9] !== undefined ? 'pen' : qv[25] !== undefined ? 'cor' : qv[26] !== undefined ? 'cfd' : qv[24] !== undefined ? 'cfi' : qv[160] !== undefined ? 'tou' : qv[23] !== undefined ? 'ctr' : 'jeu'};
       ev.shots.push(shot);
       shot.per = pm.per; shot.mi = pm.mi;
+      if (mk && mk.gkLoc) { const gx = 52.5 - mk.gkLoc[0], gy = mk.gkLoc[1]; shot.gkd = Math.round(Math.hypot(gx, gy) * 10) / 10; shot.gkl = Math.round(gx * 10) / 10; }
       if (shot.g) ev.goals.push({tm, p: pid, og: 0, q, min: o.timeMin, a: null, _rel: shot.rel, pat: shot.pat, ...pm});
       continue;
     }
     if (!OPTA_KEEP.has(o.typeId)) continue;
     const e = {t: o.typeId, o: o.outcome, p: pid, tm, q, x: o.x, y: o.y};
     if (o.typeId === 1) {
-      e.cr = qv[2] !== undefined ? 1 : 0;
+      e.cr = qv[2] !== undefined ? 1 : 0; if (qv[124] !== undefined) e.gk = 1; if (qv[1] !== undefined) e.lg = 1;
       if (qv[140] !== undefined) { e.ex = +qv[140]; e.ey = +qv[141]; }
       passByEid[tm + '|' + o.eventId] = e;
     }
@@ -2672,6 +2722,8 @@ function renderTactical() {
       teamRows, $('#cpaTeamMode').value, 'cpaXgP', f);
   }
 
+  if (sub === 'gk') renderGK(TN, PI, f);
+
   if (sub === 'cls') {
     const tm = $('#tacTeamMode').value;
     teamTable('tblTacTeams', ['mp', 'gf', 'ga', 'xg', 'xga', 'xgd', 'sh', 'sot', 'sha', 'possPct', 'pass', 'passPct', 'xpd', 'lb', 'prog', 'f3', 'box', 'kp', 'carryProg', 'ppda', 'recov', 'int', 'tkW', 'aerPct', 'foul', 'yc', 'rc', 'corners', 'vert', 'xgPoss'],
@@ -2682,6 +2734,198 @@ function renderTactical() {
       plRows, {defaultSort: 'xg', hl: r => r.id === f.player, onRow: id => setFilter('player', id)});
     rankPlayers('chTacRank', '#tacRankSub', $('#tacMetric').value, TAC, plRows, pmP, minMin, f.player);
   }
+}
+
+/* =====================================================================
+   Gardien de but
+   ===================================================================== */
+// Gardien(s) d'une équipe dans un match : [{p, t0}] (t0 en minutes de jeu, 0 = coup d'envoi)
+function gkTimeline(m, tid) {
+  const out = [], pos = (m.ev && m.ev.pos) || {};
+  for (const [pid, L] of Object.entries(pos)) {
+    if ((m.players[pid] || {}).team !== tid) continue;
+    for (const [, sl, d, st] of L) if (sl === 1 && d > 0) {
+      if (st) out.push({p: pid, t0: 0, d});
+      else { const su = (m.ev.subs || []).find(x => x.t === 19 && x.p === pid); out.push({p: pid, t0: su ? minAbs(m, su.per, su.mi) : 45, d}); }
+    }
+  }
+  if (!out.length) { // anciens imports : poste GK de la feuille de match
+    const g = Object.entries(m.players).filter(([, p]) => p.team === tid && String(p.pos).toUpperCase() === 'GK').sort((a, b) => (/unknown/i.test(a[1].opta || '') ? 1 : 0) - (/unknown/i.test(b[1].opta || '') ? 1 : 0));
+    if (g.length) out.push({p: g[0][0], t0: 0, d: matchMins(m)});
+  }
+  return out.sort((a, b) => a.t0 - b.t0);
+}
+// Modèle « post-tir » : probabilité qu'un tir cadré soit un but selon sa qualité (xG) et son placement dans le cadre,
+// ajusté par régression logistique sur tous les tirs cadrés du championnat chargé.
+let PS_MEMO = null;
+function psModel() {
+  if (PS_MEMO && PS_MEMO.v === DATA_VER && PS_MEMO.c === S.comp) return PS_MEMO.f;
+  const feat = s => { const xg = Math.min(.97, Math.max(.01, s.xg || .01)), lg = Math.log(xg / (1 - xg));
+    if (s.gy == null || s.gz == null) return [lg, .45, .35, .15, s.pen ? 1 : 0];
+    const h = Math.min(1.2, Math.abs(s.gy - 50) / 4.8), z = Math.min(1.1, Math.max(0, s.gz) / 38); return [lg, h, z, h * z, s.pen ? 1 : 0]; };
+  const X = [], Y = [];
+  for (const m of CM()) for (const s of (m.ev && m.ev.shots) || []) if ((s.ot || s.g) && !s.blk) { X.push(feat(s)); Y.push(s.g ? 1 : 0); }
+  let f;
+  if (X.length >= 150) {
+    const k = X[0].length, mu = [], sd = [];
+    for (let j = 0; j < k; j++) { const c = X.map(r => r[j]); mu[j] = mean(c); sd[j] = Math.sqrt(mean(c.map(v => (v - mu[j]) ** 2))) || 1; }
+    const Z = X.map(r => r.map((v, j) => (v - mu[j]) / sd[j]));
+    const w = new Array(k).fill(0); let b = Math.log(mean(Y) / (1 - mean(Y)));
+    for (let it = 0; it < 600; it++) {
+      const gw = new Array(k).fill(0); let gb = 0;
+      for (let i = 0; i < Z.length; i++) { let t = b; for (let j = 0; j < k; j++) t += w[j] * Z[i][j]; const e = 1 / (1 + Math.exp(-t)) - Y[i]; gb += e; for (let j = 0; j < k; j++) gw[j] += e * Z[i][j]; }
+      b -= .5 * gb / Z.length; for (let j = 0; j < k; j++) w[j] -= .5 * (gw[j] / Z.length + .01 * w[j]);
+    }
+    f = s => { const r = feat(s); let t = b; for (let j = 0; j < k; j++) t += w[j] * (r[j] - mu[j]) / sd[j]; return 1 / (1 + Math.exp(-t)); };
+    f.n = X.length;
+  } else { // trop peu de tirs : xG recalibré sur le taux de réussite des tirs cadrés
+    const r = X.length ? Y.reduce((a, v) => a + v, 0) / Math.max(.01, X.reduce((a, x) => a + 1 / (1 + Math.exp(-x[0])), 0)) : 3;
+    f = s => Math.min(.99, (s.xg || 0) * r); f.n = X.length; f.simple = 1;
+  }
+  PS_MEMO = {v: DATA_VER, c: S.comp, f}; return f;
+}
+
+const gkAt = (TL, t) => { let p = TL.length ? TL[0].p : null; for (const x of TL) if (x.t0 <= t) p = x.p; return p; };
+const shotT = s => s.per ? minAbs(null, s.per, s.mi) : (s.min || 0);
+const newGk = (id, tid) => ({id, tid, mp: 0, min: 0, sh: 0, sot: 0, ga: 0, og: 0, xg: 0, xgot: 0, ps: 0, pen: 0, penG: 0, cs: 0, cl: 0, pu: 0, pk: 0, nc: 0, sw: 0, crF: 0,
+  pas: 0, pasOk: 0, lg: 0, lgOk: 0, len: 0, gkk: 0, gkkOk: 0, gkkLg: 0, gkd: 0, gkdN: 0, Z: {six: [0, 0], box: [0, 0], out: [0, 0]}, M: [], shots: [], passes: [], gkKicks: []});
+let GK_MEMO = null;
+function gkStats(ms, qs) {
+  const key = DATA_VER + '|' + [...qs].join('') + '|' + ms.map(m => m.id).join(',');
+  if (GK_MEMO && GK_MEMO.k === key) return GK_MEMO.r;
+  const G = {}, TN = teamNames(), PS = psModel();
+  const get = (id, tid) => G[id] || (G[id] = newGk(id, tid));
+  for (const m of ms) {
+    if (!m.ev) continue;
+    const end = matchMins(m);
+    for (const tid of [m.home.id, m.away.id]) {
+      const TL = gkTimeline(m, tid); if (!TL.length) continue;
+      const opp = otherSide(m, tid), h = m.home.id === tid, conc = h ? m.score[1] : m.score[0];
+      const main = TL.slice().sort((a, b) => b.d - a.d)[0].p;
+      const per = {};
+      for (const x of TL) { const o = get(x.p, tid); if (!per[x.p]) { per[x.p] = {m, opp, ga: 0, xgot: 0, ps: 0, sot: 0, og: 0, min: 0}; o.mp++; } o.min += x.d; per[x.p].min += x.d; }
+      for (const s of m.ev.shots || []) {
+        if (s.tm !== opp || (qs && !qs.has(s.q))) continue;
+        const g = gkAt(TL, shotT(s)), o = G[g]; if (!o) continue;
+        o.sh++; o.xg += s.xg; o.shots.push(s);
+        if (s.pen) { o.pen++; if (s.g) o.penG++; }
+        if (s.ot || s.g) {
+          const ps = s.blk ? 0 : PS(s); s.ps = ps;
+          o.sot++; o.xgot += s.xg; o.ps += ps; per[g].sot++; per[g].xgot += s.xg; per[g].ps += ps;
+          if (s.g) { o.ga++; per[g].ga++; }
+          const z = s.x >= 99.5 && Math.abs(s.y - 34) <= 9.16 ? 'six' : s.x >= 88.5 && Math.abs(s.y - 34) <= 20.16 ? 'box' : 'out';
+          o.Z[z][0]++; if (s.g) o.Z[z][1]++;
+        }
+        if (s.gkd != null && !s.pen) { o.gkd += s.gkd; o.gkdN++; }
+      }
+      for (const g of m.ev.goals || []) if (g.og && g.tm === opp && (!qs || qs.has(g.q))) { const p = gkAt(TL, g.per ? minAbs(m, g.per, g.mi) : g.min || 0); if (G[p]) { G[p].og++; per[p].og++; } }
+      for (const e of m.ev.opta || []) {
+        if (qs && !qs.has(e.q)) continue;
+        if (e.tm === opp && e.t === 1 && e.cr) { if (G[main]) G[main].crF++; continue; }
+        const o = G[e.p]; if (!o || e.tm !== tid) continue;
+        if (e.t === 11) o.cl++; else if (e.t === 41) o.pu++; else if (e.t === 52) o.pk++; else if (e.t === 53) o.nc++; else if (e.t === 59) o.sw++;
+        else if (e.t === 1 && e.gk) { o.gkk++; if (e.o) o.gkkOk++; if (e.lg) o.gkkLg++; if (e.ex != null) o.gkKicks.push({x0: ox(e), y0: oy(e), x1: e.ex * 1.05, y1: (100 - e.ey) * .68, c: e.o ? 1 : 0}); }
+      }
+      for (const p of m.ev.passes || []) {
+        const o = G[p.p]; if (!o || p.tm !== tid || (qs && !qs.has(p.q))) continue;
+        const L = Math.hypot(p.x1 - p.x0, p.y1 - p.y0);
+        o.pas++; if (p.c) o.pasOk++; o.len += L; if (L >= 35) { o.lg++; if (p.c) o.lgOk++; }
+        o.passes.push({x0: p.x0, y0: p.y0, x1: p.x1, y1: p.y1, c: p.c, L});
+      }
+      for (const [pid, r] of Object.entries(per)) {
+        if (r.min >= end * .9 && conc === 0 && qs.size === 6) G[pid].cs++;
+        G[pid].M.push({...r, lab: `J${m.j} ${TN[opp] || ''}`, h});
+      }
+    }
+  }
+  GK_MEMO = {k: key, r: G}; return G;
+}
+const gkVal = {
+  sv: o => o.sot - o.ga, svPct: o => o.sot ? (o.sot - o.ga) / o.sot * 100 : null,
+  gp: o => o.ps - o.ga, gp90: o => o.min ? (o.ps - o.ga) / o.min * 90 : null,
+  xgSot: o => o.sot ? o.xgot / o.sot : null, psSot: o => o.sot ? o.ps / o.sot : null, crPct: o => o.crF ? (o.cl + o.pu) / o.crF * 100 : null,
+  pasPct: o => o.pas ? o.pasOk / o.pas * 100 : null, lgShare: o => o.pas ? o.lg / o.pas * 100 : null, lgPct: o => o.lg ? o.lgOk / o.lg * 100 : null,
+  avgLen: o => o.pas ? o.len / o.pas : null, gkd: o => o.gkdN ? o.gkd / o.gkdN : null
+};
+function renderGK(TN, PI, f) {
+  const ms0 = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1) && (!f.match || m.id === f.match));
+  const G = gkStats(ms0, f.qs);
+  const list = Object.values(G).filter(o => o.min > 0 && PI[o.id]);
+  const cand = list.filter(o => !f.team || o.tid === f.team).sort((a, b) => b.min - a.min);
+  let sel = S.gkSel;
+  if (f.player && G[f.player] && S._gkPl !== f.player) sel = f.player; S._gkPl = f.player;
+  if (!cand.some(o => o.id === sel)) sel = cand.length ? cand[0].id : '';
+  S.gkSel = sel;
+  fillSelect($('#gkSel'), cand.map(o => [o.id, `${PI[o.id].name} · ${TN[o.tid] || ''} · ${Math.round(o.min)} min`]), sel);
+  const o = G[sel];
+  if (!o) { $('#gkKpis').innerHTML = ''; $('#gkInfo').textContent = 'Aucun gardien pour cette sélection.'; return; }
+  const col = clubColor(o.tid), p90 = v => o.min ? v / o.min * 90 : null;
+  $('#gkInfo').innerHTML = `${logoHTML(o.tid)} ${esc(TN[o.tid] || '')} · ${o.mp} match(s) · ${Math.round(o.min)} min${f.qs.size < 6 ? ' · quarts d’heure filtrés' : ''}`;
+  const gp = gkVal.gp(o), sgn = v => (v >= 0 ? '+' : '') + fmt(v, 2);
+  $('#gkKpis').innerHTML = kpiHTML([
+    {l: 'Buts encaissés', v: fmt(o.ga + o.og), s: `${fmt(p90(o.ga + o.og), 2)} /90${o.og ? ` · dont ${o.og} CSC` : ''}${o.penG ? ` · ${o.penG} pen.` : ''}`},
+    {l: 'Arrêts', v: fmt(gkVal.sv(o)), s: `${fmt(gkVal.svPct(o), 1)} % des ${o.sot} tirs cadrés`},
+    {l: 'xG post-tir subis', v: fmt(o.ps, 2), s: `${fmt(gkVal.psSot(o), 2)} par tir cadré · xG avant tir ${fmt(o.xgot, 2)}`},
+    {l: 'Buts évités', v: `<span style="color:${gp >= 0 ? '#2e9e5b' : '#d0453f'}">${sgn(gp)}</span>`, s: `${sgn(gkVal.gp90(o) || 0)} /90 · xG post-tir − buts`},
+    {l: 'Clean sheets', v: fmt(o.cs), s: f.qs.size < 6 ? 'match entier uniquement' : `sur ${o.mp} match(s)`},
+    {l: 'Penaltys', v: `${o.pen - o.penG} / ${o.pen}`, s: 'arrêtés ou manqués / subis'},
+    {l: 'Sorties sur centres', v: fmt(o.cl + o.pu), s: `${o.cl} captés · ${o.pu} boxés · ${fmt(gkVal.crPct(o), 1)} % des ${o.crF} centres`},
+    {l: 'Jeu au pied', v: fmt(gkVal.pasPct(o), 1) + ' %', s: `${o.pas} passes · ${fmt(gkVal.lgShare(o), 0)} % longues (${fmt(gkVal.lgPct(o), 0)} % réussies)`}
+  ]);
+  // Cage et zones
+  const sot = o.shots.filter(s => s.ot || s.g), c = cageSVG(sot, col);
+  $('#gkCage').innerHTML = c.svg; $('#gkCageSub').textContent = `${sot.length} tirs cadrés · ${o.ga} buts · taille = xG`;
+  const ZL = {six: 'Dans les 5,5 m', box: 'Dans la surface', out: 'Hors de la surface'};
+  $('#gkZones').innerHTML = `<table class="gkz"><tr><th class="txt">Distance du tir</th><th>Tirs cadrés</th><th>Buts</th><th>% arrêts</th></tr>${Object.entries(ZL).map(([k, l]) => { const [n, g] = o.Z[k]; return `<tr><td class="txt">${l}</td><td>${n}</td><td>${g}</td><td>${n ? fmt((n - g) / n * 100, 0) + ' %' : '—'}</td></tr>`; }).join('')}</table>`
+    + `<p class="note">Position moyenne au moment des tirs (hors penaltys) : ${gkVal.gkd(o) != null ? fmt(gkVal.gkd(o), 1) + ' m du centre du but' : '—'}${o.sw ? ` · ${o.sw} sortie(s) hors de la surface (gardien libéro)` : ''}${o.pk ? ` · ${o.pk} ballon(s) ramassé(s)` : ''}${o.nc ? ` · ${o.nc} centre(s) manqué(s)` : ''}</p>`;
+  // Carte des tirs
+  const stp = $('#gkShotType').value, sh = o.shots.filter(s => stp === 'all' || (stp === 'g' ? s.g : (s.ot || s.g)));
+  $('#gkShotSub').textContent = `${sh.length} tirs · ${sh.filter(s => s.g).length} buts · ${fmt(sh.reduce((a, s) => a + s.xg, 0), 2)} xG · son but en haut`;
+  $('#gkShotMap').innerHTML = shotMapColored(sh, PI, TN, col);
+  // Match par match
+  { const PSm = psModel(); $('#gkMatchSub').textContent = `xG post-tir subis − buts encaissés (hors CSC). Positif = moins de buts que ne le laissaient prévoir les tirs cadrés. Modèle post-tir ${PSm.simple ? 'simplifié (xG recalibré, peu de données)' : 'ajusté sur les ' + PSm.n + ' tirs cadrés du championnat (qualité du tir + placement dans le cadre)'}.`; }
+  const M = o.M.slice().sort((a, b) => a.m.j - b.m.j); let cum = 0;
+  const cumL = M.map(r => cum += r.ps - r.ga);
+  chart('chGkMatch', {type: 'bar', data: {labels: M.map(r => r.lab), datasets: [
+      {label: 'Buts évités sur le match', data: M.map(r => r.ps - r.ga), backgroundColor: M.map(r => r.ps - r.ga >= 0 ? '#2e9e5b' : '#d0453f'), borderRadius: 4, order: 2},
+      {label: 'Cumul', type: 'line', data: cumL, borderColor: col, backgroundColor: col, pointRadius: 3, tension: .25, order: 1}]},
+    options: {plugins: {legend: {position: 'bottom'}, tooltip: {callbacks: {afterLabel: c => { const r = M[c.dataIndex]; return c.datasetIndex ? '' : `${r.sot} tirs cadrés · ${fmt(r.ps, 2)} xG post-tir · ${r.ga} but(s)${r.og ? ` + ${r.og} CSC` : ''}`; }}}},
+      scales: {y: {grid: {color: css('--grid')}, title: {display: true, text: 'buts évités'}}, x: {grid: {display: false}}}}});
+  // Passes
+  const pt = $('#gkPassType').value, PS = pt === 'gk' ? o.gkKicks : o.passes.filter(p => pt === 'all' || (pt === 'long' ? p.L >= 35 : p.L < 35));
+  const ok = PS.filter(p => p.c).length;
+  $('#gkPassSub').textContent = `${PS.length} ${pt === 'gk' ? 'six mètres' : 'passes'} · ${PS.length ? fmt(ok / PS.length * 100, 0) : 0} % réussies · sens d’attaque →`;
+  const ln = PS.slice(0, 500).map(p => `<line x1="${r1(p.x0)}" y1="${r1(p.y0)}" x2="${r1(p.x1)}" y2="${r1(p.y1)}" stroke="${p.c ? col : '#d0453f'}" stroke-width=".34" stroke-opacity="${p.c ? .65 : .8}"/><circle cx="${r1(p.x1)}" cy="${r1(p.y1)}" r=".7" fill="${p.c ? col : '#d0453f'}"/>`).join('');
+  $('#gkPassMap').innerHTML = `<svg class="pitch" viewBox="-2 -2 109 72">${pitchLines(true)}${ln}</svg>`;
+  const bins = [[0, 15, 'Courte (< 15 m)'], [15, 35, 'Moyenne (15-35 m)'], [35, 55, 'Longue (35-55 m)'], [55, 200, 'Très longue (≥ 55 m)']].map(([a, b, l]) => { const L = o.passes.filter(p => p.L >= a && p.L < b); return {l, n: L.length, ok: L.filter(p => p.c).length}; });
+  const mxb = Math.max(1, ...bins.map(b => b.n));
+  $('#gkDist').innerHTML = `<div class="gkd">${bins.map(b => `<div class="gkdr"><span>${b.l}</span><i><b style="width:${b.n / mxb * 100}%;background:${col}55"></b><b class="ok" style="width:${b.ok / mxb * 100}%;background:${col}"></b></i><em>${b.n} · ${b.n ? Math.round(b.ok / b.n * 100) : 0} %</em></div>`).join('')}</div>`
+    + `<p class="note">Barre pleine = passes réussies, barre claire = total.</p><ul class="rkv"><li>Longueur moyenne des passes<b>${fmt(gkVal.avgLen(o), 1)} m</b></li><li>Six mètres joués<b>${o.gkk}</b></li><li>Six mètres joués long<b>${o.gkk ? fmt(o.gkkLg / o.gkk * 100, 0) : '—'} %</b></li><li>Six mètres réussis<b>${o.gkk ? fmt(o.gkkOk / o.gkk * 100, 0) : '—'} %</b></li><li>Passes longues réussies<b>${o.lgOk} / ${o.lg}</b></li></ul>`;
+  // Classement
+  const mode = $('#gkTblMode').value, minMin = +$('#gkMinMin').value || 0;
+  const rows = list.filter(x => x.min >= minMin).map(x => ({id: x.id, tid: x.tid, name: PI[x.id].name, team: TN[x.tid] || '', o: x}));
+  const P = (fn, d = 0, per90) => ({d, v: r => { const v = fn(r.o); return v == null ? null : per90 && mode === 'p90' ? (r.o.min ? v / r.o.min * 90 : null) : v; }});
+  renderTable('tblGk', [{k: 'name', l: 'Gardien', txt: 1, v: r => r.name}, {k: 'team', l: 'Équipe', txt: 1, v: r => r.team, html: r => logoHTML(r.tid) + esc(r.team)},
+    {k: 'mp', l: 'Matchs', ...P(x => x.mp)}, {k: 'min', l: 'Min', ...P(x => x.min)},
+    {k: 'ga', l: 'Buts enc.', h: 'Buts encaissés hors CSC', ...P(x => x.ga, mode === 'p90' ? 2 : 0, 1)}, {k: 'sot', l: 'Tirs cadrés subis', ...P(x => x.sot, mode === 'p90' ? 2 : 0, 1)},
+    {k: 'sv', l: 'Arrêts', ...P(gkVal.sv, mode === 'p90' ? 2 : 0, 1)}, {k: 'svPct', l: '% arrêts', ...P(gkVal.svPct, 1)},
+    {k: 'xgot', l: 'xG cadrés (avant tir)', ...P(x => x.xgot, 2, 1)}, {k: 'ps', l: 'xG post-tir', h: 'Probabilité de but des tirs cadrés selon leur qualité et leur placement', ...P(x => x.ps, 2, 1)}, {k: 'psSot', l: 'xG post-tir / tir cadré', ...P(gkVal.psSot, 2)},
+    {k: 'gp', l: 'Buts évités', h: 'xG post-tir − buts encaissés (hors CSC)', ...P(gkVal.gp, 2, 1)}, {k: 'cs', l: 'Clean sheets', ...P(x => x.cs)},
+    {k: 'pen', l: 'Pen. subis', ...P(x => x.pen)}, {k: 'penS', l: 'Pen. arrêtés/manqués', ...P(x => x.pen - x.penG)},
+    {k: 'cr', l: 'Sorties centres', ...P(x => x.cl + x.pu, mode === 'p90' ? 2 : 0, 1)}, {k: 'crPct', l: '% centres', h: 'Centres captés ou boxés / centres adverses', ...P(gkVal.crPct, 1)},
+    {k: 'sw', l: 'Sorties hors surface', ...P(x => x.sw, mode === 'p90' ? 2 : 0, 1)},
+    {k: 'pas', l: 'Passes', ...P(x => x.pas, mode === 'p90' ? 1 : 0, 1)}, {k: 'pasPct', l: '% passes', ...P(gkVal.pasPct, 1)},
+    {k: 'lgShare', l: '% longues', ...P(gkVal.lgShare, 0)}, {k: 'lgPct', l: '% longues réussies', ...P(gkVal.lgPct, 0)}, {k: 'avgLen', l: 'Long. moy. (m)', ...P(gkVal.avgLen, 1)}],
+    rows, {defaultSort: 'gp', hl: r => r.id === sel, onRow: id => { S.gkSel = id; scheduleRender(); }});
+  $('#gkTblSub').textContent = `${rows.length} gardiens · ≥ ${minMin} min · ${mode === 'p90' ? 'volumes par 90 min' : 'totaux'} · cliquez sur un gardien pour l’afficher`;
+  const top = rows.map(r => ({id: r.id, tid: r.tid, name: r.name, sub: r.team, v: gkVal.gp90(r.o)})).filter(x => x.v != null).sort((a, b) => b.v - a.v);
+  $('#gkRankSub').textContent = `${top.length} gardiens · ≥ ${minMin} min`;
+  rankChart('chGkRank', top.slice(0, 20), 'Buts évités /90', 2, sel);
+  const pts = rows.filter(r => r.o.sot >= 5).map(r => ({x: gkVal.psSot(r.o), y: gkVal.svPct(r.o), lab: r.name, id: r.id, hl: r.id === sel, hlc: col}));
+  chart('chGkScatter', {type: 'scatter', data: {datasets: [{label: 'Gardiens', data: pts, pointRadius: pts.map(p => p.id === sel ? 8 : 5), backgroundColor: pts.map(p => p.id === sel ? col : css('--text-3')), borderColor: css('--surface'), borderWidth: 1.5}]},
+    options: {layout: {padding: {right: 70}}, plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${c.raw.lab} : ${fmt(c.raw.y, 1)} % d’arrêts · ${fmt(c.raw.x, 2)} xG post-tir par tir cadré`}}},
+      scales: {x: {grace: '8%', title: {display: true, text: 'xG post-tir moyen par tir cadré subi (difficulté →)'}, grid: {color: css('--grid')}}, y: {grace: '8%', title: {display: true, text: '% d’arrêts'}, grid: {color: css('--grid')}}}},
+    plugins: [pointLabels, avgLines(mean(pts.map(p => p.x)), mean(pts.map(p => p.y)), {tl: 'Tirs faciles, bien arrêtés', tr: 'Tirs difficiles, bien arrêtés', bl: 'Tirs faciles, mal arrêtés', br: 'Tirs difficiles, peu arrêtés'}, v => fmt(v, 2), v => fmt(v, 0) + ' %')]});
 }
 
 /* =====================================================================
@@ -3949,6 +4193,7 @@ function bindUI() {
   bindSubtabs();
   bindPhyUI();
   bindReportUI();
+  $('#gkSel').onchange = e => { S.gkSel = e.target.value; scheduleRender(); };
   document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => {
     S.tab = b.dataset.tab;
     document.querySelectorAll('nav.tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
@@ -3977,7 +4222,7 @@ function bindUI() {
     refreshAll();
   };
   $('#fReset').onclick = () => { S.f = {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0, 1, 2, 3, 4, 5])}; refreshAll(); };
-  ['#pzMode', '#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#passMapType', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyEvoMetric', '#phyTeamMode', '#phyTX', '#phyTY', '#phyPX', '#phyPY', '#phyPEvoMetric', '#h2hEvoMetric', '#momResMode', '#momOffMode', '#xtPlMode',
+  ['#gkShotType', '#gkPassType', '#gkTblMode', '#gkMinMin', '#pzMode', '#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#passMapType', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyEvoMetric', '#phyTeamMode', '#phyTX', '#phyTY', '#phyPX', '#phyPY', '#phyPEvoMetric', '#h2hEvoMetric', '#momResMode', '#momOffMode', '#xtPlMode',
    '#shotType', '#offMetric', '#offTeamMode', '#recType', '#defMetric', '#defTeamMode', '#cpaTeamMode']
     .forEach(s => $(s).onchange = () => scheduleRender());
   document.querySelectorAll('[data-csv]').forEach(b => b.onclick = () => exportCSV(b.dataset.csv));
