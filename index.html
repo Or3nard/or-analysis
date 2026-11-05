@@ -1601,7 +1601,7 @@ function refreshFilters() {
 /* =====================================================================
    Agrégations
    ===================================================================== */
-const TAC_FIELDS = ['mp', 'secs', 'gf', 'ga', 'xg', 'xga', 'sh', 'sha', 'sot', 'pass', 'passOk', 'xpass', 'npr', 'lb', 'byp', 'prog', 'f3', 'box', 'kp', 'ast',
+const TAC_FIELDS = ['mp', 'secs', 'gf', 'ga', 'xg', 'xga', 'xgot', 'xgota', 'gfot', 'sh', 'sha', 'sot', 'pass', 'passOk', 'xpass', 'npr', 'lb', 'byp', 'prog', 'f3', 'box', 'kp', 'ast',
   'cross', 'crossOk', 'carry', 'carryD', 'carryProg', 'rec', 'intc', 'possN', 'possT', 'possTot', 'possXg', 'vp', 'vc', 'tk', 'tkW', 'int', 'recov', 'clr',
   'aer', 'aerW', 'foul', 'fouled', 'drb', 'drbOk', 'lost', 'yc', 'rc', 'saves', 'blk', 'opp60', 'defAct', 'corners',
   'recovH', 'shCtr', 'xgCtr', 'shCpa', 'xgCpa', 'gfCpa', 'gaCpa', 'shaCpa', 'xgaCpa', 'pen', 'penG', 'cpaPoss', 'cpaXgP', 'cpaXgaP', 'cornD', 'cornAtt', 'cornShort', 'cornIn', 'cornOut', 'mV2'];
@@ -1623,7 +1623,7 @@ function aggTactical(ms, qsOverride) { return memoAgg('T', aggTacticalRaw, ms, q
 function aggPhys(ms, qsOverride) { return memoAgg('P', aggPhysRaw, ms, qsOverride || S.f.qs); }
 function aggTacticalRaw(ms, qsOverride) {
   const qs = qsOverride || S.f.qs;
-  const T = {}, P = {};
+  const T = {}, P = {}, PSM = psModel();
   const t = id => T[id] || (T[id] = newAgg());
   const p = id => P[id] || (P[id] = newAgg());
   for (const m of ms) {
@@ -1641,15 +1641,16 @@ function aggTacticalRaw(ms, qsOverride) {
       const bq = t(s.tm).byQ[s.q], bo = t(opp(s.tm)).byQ[s.q];
       if (bq) { bq.xg += s.xg; bq.sh++; bo.xga += s.xg; }
       if (!qs.has(s.q)) continue;
-      for (const o of [t(s.tm), s.p && p(s.p)]) if (o) { o.sh++; o.xg += s.xg; o.sot += s.ot; }
-      const d = t(opp(s.tm)); d.sha++; d.xga += s.xg;
+      const xo = (s.ot || s.g) && !s.blk ? PSM(s) : 0;
+      for (const o of [t(s.tm), s.p && p(s.p)]) if (o) { o.sh++; o.xg += s.xg; o.sot += s.ot; o.xgot += xo; }
+      const d = t(opp(s.tm)); d.sha++; d.xga += s.xg; d.xgota += xo;
     }
     for (const g of E.goals) { if (!ok(g)) continue;
       if (t(g.tm).byQ[g.q]) { t(g.tm).byQ[g.q].gf++; t(opp(g.tm)).byQ[g.q].ga++; }
       if (!qs.has(g.q)) continue;
       t(g.tm).gf++; t(opp(g.tm)).ga++;
       if (g.p && !g.og) p(g.p).gf++;
-      if (g.a) p(g.a).ast++;
+      if (g.a) { p(g.a).ast++; t(g.tm).ast++; }
     }
     for (const e of E.passes) { if (!ok(e)) continue;
       if (t(e.tm).byQ[e.q]) { t(e.tm).byQ[e.q].pass++; if (e.c && e.br) t(e.tm).byQ[e.q].lb++; }
@@ -1764,6 +1765,11 @@ const TAC = {
   gf: {l: 'Buts', t: 'add'}, ga: {l: 'Enc.', t: 'add', h: 'Buts encaissés'}, ast: {l: 'Passes déc.', t: 'add'},
   xg: {l: 'xG', t: 'add', d: 2, h: 'Expected goals'}, xga: {l: 'xG contre', t: 'add', d: 2}, xgd: {l: 'Diff. xG', t: 'add', d: 2, f: o => o.xg - o.xga},
   gmx: {l: 'Buts − xG', t: 'add', d: 2, f: o => o.gf - o.xg, h: 'Finition au-dessus (+) ou en dessous (−) de l’attendu'},
+  xgot: {l: 'xGOT', t: 'add', d: 2, h: 'xG on target : probabilité de but des tirs cadrés selon leur qualité et leur placement dans le cadre'},
+  xgota: {l: 'xGOT contre', t: 'add', d: 2, h: 'xGOT des tirs cadrés concédés'},
+  xgotmxg: {l: 'xGOT − xG', t: 'add', d: 2, f: o => o.xgot - o.xg, h: 'Qualité de frappe : le placement des tirs ajoute (+) ou retire (−) de la valeur aux occasions'},
+  gmxgot: {l: 'Buts − xGOT', t: 'add', d: 2, f: o => o.gf - o.xgot, h: 'Buts marqués au-dessus (+) ou en dessous (−) de l’xGOT (performance du gardien adverse comprise)'},
+  xgotsot: {l: 'xGOT / tir cadré', t: 'ratio', d: 2, f: o => o.sot ? o.xgot / o.sot : null},
   sh: {l: 'Tirs', t: 'add'}, sot: {l: 'Tirs cadrés', t: 'add'}, sha: {l: 'Tirs concédés', t: 'add'},
   xgsh: {l: 'xG / tir', t: 'ratio', d: 2, f: o => o.sh ? o.xg / o.sh : null},
   possPct: {l: 'Possession %', t: 'ratio', d: 1, f: o => o.possTot ? o.possT / o.possTot * 100 : null, h: 'Part du temps de possession (hors ballons disputés)'},
@@ -2106,9 +2112,10 @@ function shotMapSVG(shots, PI, TN) {
   // demi-terrain vertical, but en haut : X_svg = y, Y_svg = 105 - x
   // but = ballon sur disque blanc cerclé ; tir cadré = disque plein ; tir non cadré / contré = cercle vide
   const sorted = shots.slice().sort((a, b) => (a.g - b.g) || ((a.ot || 0) - (b.ot || 0)) || (b.xg - a.xg)); // buts dessinés au-dessus
+  const PSM = psModel();
   const pts = sorted.map(s => {
     const r = 0.7 + Math.sqrt(Math.max(s.xg, 0.005)) * 3.4, cx = s.y.toFixed(1), cy = (105 - s.x).toFixed(1);
-    const tip = `${PI[s.p] ? PI[s.p].name : '—'} (${TN[s.tm] || ''})\n${s.min != null ? s.min + "' · " : ''}xG ${fmt(s.xg, 2)}${s.g ? ' · BUT' : s.ot ? ' · cadré, arrêté' : s.blk ? ' · contré' : ' · non cadré'}${s.pen ? ' · penalty' : ''}`;
+    const tip = `${PI[s.p] ? PI[s.p].name : '—'} (${TN[s.tm] || ''})\n${s.min != null ? s.min + "' · " : ''}xG ${fmt(s.xg, 2)}${(s.ot || s.g) && !s.blk ? ' · xGOT ' + fmt(PSM(s), 2) : ''}${s.g ? ' · BUT' : s.ot ? ' · cadré, arrêté' : s.blk ? ' · contré' : ' · non cadré'}${s.pen ? ' · penalty' : ''}`;
     if (s.g) { const R = Math.max(1.5, r); return `<g data-tip="${esc(tip)}"><circle cx="${cx}" cy="${cy}" r="${(R + .25).toFixed(2)}" fill="#fff" stroke="var(--s1)" stroke-width=".55"/><text x="${cx}" y="${(+cy + R * .52).toFixed(2)}" text-anchor="middle" font-size="${(R * 1.55).toFixed(2)}">⚽</text></g>`; }
     if (s.ot) return `<circle cx="${cx}" cy="${cy}" r="${r.toFixed(2)}" fill="var(--s1)" fill-opacity=".45" stroke="var(--s1)" stroke-width=".3" data-tip="${esc(tip)}"/>`;
     return `<circle cx="${cx}" cy="${cy}" r="${r.toFixed(2)}" fill="var(--surface)" fill-opacity=".5" stroke="var(--s1)" stroke-width=".3" stroke-opacity=".8" data-tip="${esc(tip)}"/>`;
@@ -2219,10 +2226,11 @@ function cageSVG(shots, col) {
     cells += `<rect x="${x0}" y="${z0}" width="${x1 - x0}" height="${z1 - z0}" fill="${v ? `color-mix(in srgb, ${col} ${Math.round(10 + v / mx * 45)}%, var(--surface))` : 'var(--surface)'}" stroke="var(--grid)" stroke-width=".02"/>`
       + `<text x="${(x0 + x1) / 2}" y="${(z0 + z1) / 2 + .09}" text-anchor="middle" font-size=".26" font-weight="700" fill="var(--text-3)">${v || ''}</text>`;
   }
+  const PSC = psModel();
   const dots = ok.slice().sort((a, b) => (a.g - b.g) || ((a.ot || 0) - (b.ot || 0))).map(s => {
     const x = Math.max(.08, Math.min(W - .08, X(s.gy))), z = Math.max(.08, Math.min(H - .02, Z(s.gz)));
     const r = .07 + Math.sqrt(Math.max(s.xg || 0, .01)) * .16;
-    const tip = `${s.min != null ? s.min + "' · " : ''}xG ${fmt(s.xg, 2)}${s.g ? ' · BUT' : s.ot ? ' · arrêté' : s.post ? ' · poteau' : ' · non cadré'}`;
+    const tip = `${s.min != null ? s.min + "' · " : ''}xG ${fmt(s.xg, 2)}${s.ot || s.g ? ' · xGOT ' + fmt(PSC(s), 2) : ''}${s.g ? ' · BUT' : s.ot ? ' · arrêté' : s.post ? ' · poteau' : ' · non cadré'}`;
     if (s.g) return `<g data-tip="${esc(tip)}"><circle cx="${x}" cy="${z}" r="${r + .03}" fill="#fff" stroke="${col}" stroke-width=".035"/><text x="${x}" y="${z + .07}" text-anchor="middle" font-size="${(r + .03) * 1.55}">⚽</text></g>`;
     if (s.ot) return `<circle cx="${x}" cy="${z}" r="${r}" fill="${col}" stroke="var(--surface)" stroke-width=".02" data-tip="${esc(tip)}"/>`;
     return `<circle cx="${x}" cy="${z}" r="${r}" fill="var(--surface)" stroke="${col}" stroke-width=".03" stroke-dasharray="${s.post ? '0' : '.05 .03'}" data-tip="${esc(tip)}"/>`;
@@ -2232,7 +2240,7 @@ function cageSVG(shots, col) {
   const gl = ok.filter(s => s.g).length, sv = ok.filter(s => s.ot && !s.g).length, off = ok.length - gl - sv;
   return {svg: `<svg class="cage" viewBox="-.1 -.1 ${W + .2} ${H + .35}"><rect x="-.1" y="-.1" width="${W + .2}" height="${H + .35}" fill="var(--pitch)"/>${cells}${frame}${lab}${dots}<text x="${W / 2}" y="${H + .25}" text-anchor="middle" font-size=".16" fill="var(--text-3)">vue depuis le tireur</text></svg>`
     + `<div class="cage-leg"><span>⚽ but (${gl})</span><span><i style="background:${col}"></i>arrêté (${sv})</span><span><i style="border:1.5px dashed ${col}"></i>non cadré (${off})</span>${blk ? `<span>${blk} contré(s), non placés</span>` : ''}</div>`,
-    sub: `${shots.length} tirs · ${inF} cadrés placés dans le cadre · taille = xG${miss ? ` · ${miss} tir(s) sans position (réimportez les matchs)` : ''}`};
+    sub: `${shots.length} tirs · ${inF} cadrés placés dans le cadre · xGOT ${fmt(ok.filter(s => s.ot || s.g).reduce((a, s) => a + PSC(s), 0), 2)} · taille = xG${miss ? ` · ${miss} tir(s) sans position (réimportez les matchs)` : ''}`};
 }
 /* =====================================================================
    xT (Expected Threat) — modèle de Karun Singh, calculé sur les matchs importés
@@ -2488,6 +2496,7 @@ function renderXt(ms, TN, PI, P) {
 const KEY_METR = [
   ['Buts / match', w => w.A && w.A.mp ? w.A.gf / w.A.mp : null, 2, 1], ['Buts encaissés / match', w => w.A && w.A.mp ? w.A.ga / w.A.mp : null, 2, -1],
   ['xG / match', w => w.A && w.A.mp ? w.A.xg / w.A.mp : null, 2, 1], ['xG concédés / match', w => w.A && w.A.mp ? w.A.xga / w.A.mp : null, 2, -1],
+  ['xGOT / match', w => w.A && w.A.mp ? w.A.xgot / w.A.mp : null, 2, 1], ['xGOT concédés / match', w => w.A && w.A.mp ? w.A.xgota / w.A.mp : null, 2, -1],
   ['Possession %', w => val(TAC, 'possPct', w.A), 1, 1], ['PPDA (pressing)', w => val(TAC, 'ppda', w.A), 1, -1],
   ['Passes cassant une ligne / match', w => w.A && w.A.mp ? w.A.lb / w.A.mp : null, 1, 1], ['Récup. camp adverse / match', w => w.A && w.A.mp ? w.A.recovH / w.A.mp : null, 1, 1],
   ['Tirs / match', w => w.A && w.A.mp ? w.A.sh / w.A.mp : null, 1, 1], ['Tirs concédés / match', w => w.A && w.A.mp ? w.A.sha / w.A.mp : null, 1, -1],
@@ -2630,6 +2639,7 @@ function renderTactical() {
     $('#offKpis').innerHTML = kpiHTML(F ? [
       {l: 'Buts', v: fmt(F.gf), s: `${fmt(F.gf * (per(F) || 0), 2)} ${perLbl}`},
       {l: 'xG', v: fmt(F.xg, 2), s: `Buts − xG : ${(F.gf - F.xg >= 0 ? '+' : '') + fmt(F.gf - F.xg, 2)}`},
+      {l: 'xGOT', v: fmt(F.xgot, 2), s: `xGOT − xG : ${(F.xgot - F.xg >= 0 ? '+' : '') + fmt(F.xgot - F.xg, 2)} · ${fmt(TAC.xgotsot.f(F), 2)} / tir cadré`},
       {l: 'Tirs', v: fmt(F.sh), s: `${fmt(TAC.sotPct.f(F), 1)} % cadrés · ${fmt(TAC.xgsh.f(F), 2)} xG/tir`},
       {l: 'Passes clés', v: fmt(F.kp), s: `${fmt(F.ast)} passe(s) décisive(s)`},
       {l: 'Entrées surface', v: fmt(F.box), s: `${fmt(F.f3)} entrées dernier tiers`},
@@ -2644,7 +2654,7 @@ function renderTactical() {
     $('#shotMap').innerHTML = shotMapSVG(shots, PI, TN);
     { const c = cageSVG(shots, f.team ? clubColor(f.team) : css('--s1')); $('#cageOff').innerHTML = c.svg; $('#cageSub').textContent = c.sub; }
     rankPlayers('chOffRank', '#offRankSub', $('#offMetric').value, TAC, plRows, pmP, minMin, f.player);
-    teamTable('tblOffTeams', ['mp', 'gf', 'xg', 'gmx', 'sh', 'sot', 'sotPct', 'xgsh', 'shCtr', 'xgCtr', 'possPct', 'pass', 'passPct', 'xpd', 'lb', 'byp', 'prog', 'f3', 'box', 'kp', 'cross', 'crossPct', 'carryProg', 'drbOk', 'vert', 'xgPoss'],
+    teamTable('tblOffTeams', ['mp', 'gf', 'xg', 'xgot', 'xgotmxg', 'gmx', 'sh', 'sot', 'sotPct', 'xgsh', 'xgotsot', 'shCtr', 'xgCtr', 'possPct', 'pass', 'passPct', 'xpd', 'lb', 'byp', 'prog', 'f3', 'box', 'kp', 'cross', 'crossPct', 'carryProg', 'drbOk', 'vert', 'xgPoss'],
       teamRows, $('#offTeamMode').value, 'xg', f);
     const STL = {interception: 'Interception', throw_in: 'Touche', tackle: 'Tacle', free_kick: 'Coup franc', goal_kick: 'Six mètres', corner_kick: 'Corner', shot_recovered: 'Tir récupéré (gardien/rebond)', kick_off: "Coup d'envoi", recovery: 'Récupération', penalty: 'Penalty', drop_ball: 'Balle à terre'};
     const stc = {}; (f.team ? [T[f.team]] : Object.values(T)).forEach(o => o && Object.entries(o.starts).forEach(([k, v]) => stc[k] = (stc[k] || 0) + v));
@@ -2755,9 +2765,9 @@ function renderTactical() {
 
   if (sub === 'cls') {
     const tm = $('#tacTeamMode').value;
-    teamTable('tblTacTeams', ['mp', 'gf', 'ga', 'xg', 'xga', 'xgd', 'sh', 'sot', 'sha', 'possPct', 'pass', 'passPct', 'xpd', 'lb', 'prog', 'f3', 'box', 'kp', 'carryProg', 'ppda', 'recov', 'int', 'tkW', 'aerPct', 'foul', 'yc', 'rc', 'corners', 'vert', 'xgPoss'],
+    teamTable('tblTacTeams', ['mp', 'gf', 'ga', 'xg', 'xga', 'xgd', 'xgot', 'xgota', 'sh', 'sot', 'sha', 'possPct', 'pass', 'passPct', 'xpd', 'lb', 'prog', 'f3', 'box', 'kp', 'carryProg', 'ppda', 'recov', 'int', 'tkW', 'aerPct', 'foul', 'yc', 'rc', 'corners', 'vert', 'xgPoss'],
       teamRows, tm, 'xgd', f);
-    const plCols = ['mp', 'min', 'gf', 'ast', 'xg', 'gmx', 'sh', 'sot', 'pass', 'passPct', 'xpd', 'lb', 'byp', 'prog', 'kp', 'f3', 'box', 'cross', 'carryProg', 'drbOk', 'recov', 'recovH', 'int', 'tkW', 'aerW', 'aerPct', 'lost', 'foul', 'fouled', 'yc', 'saves'];
+    const plCols = ['mp', 'min', 'gf', 'ast', 'xg', 'xgot', 'xgotmxg', 'gmx', 'sh', 'sot', 'pass', 'passPct', 'xpd', 'lb', 'byp', 'prog', 'kp', 'f3', 'box', 'cross', 'carryProg', 'drbOk', 'recov', 'recovH', 'int', 'tkW', 'aerW', 'aerPct', 'lost', 'foul', 'fouled', 'yc', 'saves'];
     renderTable('tblTacPlayers', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'team', l: 'Équipe', txt: 1, v: r => r.team, html: r => logoHTML(r.tid) + esc(r.team)}, {k: 'pos', l: 'Poste', txt: 1, v: r => r.pos},
       ...plCols.map(k => ({k, l: TAC[k].l, h: TAC[k].h, d: dec(TAC, k, pmP), v: r => val(TAC, k, r.o, pmP)}))],
       plRows, {defaultSort: 'xg', hl: r => r.id === f.player, onRow: id => setFilter('player', id)});
@@ -2784,7 +2794,7 @@ function gkTimeline(m, tid) {
   }
   return out.sort((a, b) => a.t0 - b.t0);
 }
-// Modèle « post-tir » : probabilité qu'un tir cadré soit un but selon sa qualité (xG) et son placement dans le cadre,
+// Modèle xGOT (« post-tir ») : probabilité qu'un tir cadré soit un but selon sa qualité (xG) et son placement dans le cadre,
 // ajusté par régression logistique sur tous les tirs cadrés du championnat chargé.
 let PS_MEMO = null;
 function psModel() {
@@ -2902,8 +2912,8 @@ function renderGK(TN, PI, f) {
   $('#gkKpis').innerHTML = kpiHTML([
     {l: 'Buts encaissés', v: fmt(o.ga + o.og), s: `${fmt(p90(o.ga + o.og), 2)} /90${o.og ? ` · dont ${o.og} CSC` : ''}${o.penG ? ` · ${o.penG} pen.` : ''}`},
     {l: 'Arrêts', v: fmt(gkVal.sv(o)), s: `${fmt(gkVal.svPct(o), 1)} % des ${o.sot} tirs cadrés`},
-    {l: 'xG post-tir subis', v: fmt(o.ps, 2), s: `${fmt(gkVal.psSot(o), 2)} par tir cadré · xG avant tir ${fmt(o.xgot, 2)}`},
-    {l: 'Buts évités', v: `<span style="color:${gp >= 0 ? '#2e9e5b' : '#d0453f'}">${sgn(gp)}</span>`, s: `${sgn(gkVal.gp90(o) || 0)} /90 · xG post-tir − buts`},
+    {l: 'xGOT subis', v: fmt(o.ps, 2), s: `${fmt(gkVal.psSot(o), 2)} par tir cadré · xG des mêmes tirs ${fmt(o.xgot, 2)}`},
+    {l: 'Buts évités', v: `<span style="color:${gp >= 0 ? '#2e9e5b' : '#d0453f'}">${sgn(gp)}</span>`, s: `${sgn(gkVal.gp90(o) || 0)} /90 · xGOT − buts`},
     {l: 'Clean sheets', v: fmt(o.cs), s: f.qs.size < 6 ? 'match entier uniquement' : `sur ${o.mp} match(s)`},
     {l: 'Penaltys', v: `${o.pen - o.penG} / ${o.pen}`, s: 'arrêtés ou manqués / subis'},
     {l: 'Sorties sur centres', v: fmt(o.cl + o.pu), s: `${o.cl} captés · ${o.pu} boxés · ${fmt(gkVal.crPct(o), 1)} % des ${o.crF} centres`},
@@ -2962,13 +2972,13 @@ function renderGK(TN, PI, f) {
       + `<p class="note">« Passe dans le dos » = passe adverse d’au moins 15 m qui casse la dernière ligne et arrive dans l’axe, aux abords ou dans la surface. Plus le gardien couvre la profondeur, plus ces passes sont coupées (✕ gris) et plus ses actions sont hautes.</p>`;
   }
   // Match par match
-  { const PSm = psModel(); $('#gkMatchSub').textContent = `xG post-tir subis − buts encaissés (hors CSC). Positif = moins de buts que ne le laissaient prévoir les tirs cadrés. Modèle post-tir ${PSm.simple ? 'simplifié (xG recalibré, peu de données)' : 'ajusté sur les ' + PSm.n + ' tirs cadrés du championnat (qualité du tir + placement dans le cadre)'}.`; }
+  { const PSm = psModel(); $('#gkMatchSub').textContent = `xGOT subis − buts encaissés (hors CSC). Positif = moins de buts que ne le laissaient prévoir les tirs cadrés. Modèle xGOT ${PSm.simple ? 'simplifié (xG recalibré, peu de données)' : 'ajusté sur les ' + PSm.n + ' tirs cadrés du championnat (qualité du tir + placement dans le cadre)'}.`; }
   const M = o.M.slice().sort((a, b) => a.m.j - b.m.j); let cum = 0;
   const cumL = M.map(r => cum += r.ps - r.ga);
   chart('chGkMatch', {type: 'bar', data: {labels: M.map(r => r.lab), datasets: [
       {label: 'Buts évités sur le match', data: M.map(r => r.ps - r.ga), backgroundColor: M.map(r => r.ps - r.ga >= 0 ? '#2e9e5b' : '#d0453f'), borderRadius: 4, order: 2},
       {label: 'Cumul', type: 'line', data: cumL, borderColor: col, backgroundColor: col, pointRadius: 3, tension: .25, order: 1}]},
-    options: {plugins: {legend: {position: 'bottom'}, tooltip: {callbacks: {afterLabel: c => { const r = M[c.dataIndex]; return c.datasetIndex ? '' : `${r.sot} tirs cadrés · ${fmt(r.ps, 2)} xG post-tir · ${r.ga} but(s)${r.og ? ` + ${r.og} CSC` : ''}`; }}}},
+    options: {plugins: {legend: {position: 'bottom'}, tooltip: {callbacks: {afterLabel: c => { const r = M[c.dataIndex]; return c.datasetIndex ? '' : `${r.sot} tirs cadrés · ${fmt(r.ps, 2)} xGOT · ${r.ga} but(s)${r.og ? ` + ${r.og} CSC` : ''}`; }}}},
       scales: {y: {grid: {color: css('--grid')}, title: {display: true, text: 'buts évités'}}, x: {grid: {display: false}}}}});
   // Passes
   const pt = $('#gkPassType').value, PS = pt === 'gk' ? o.gkKicks : o.passes.filter(p => pt === 'all' || (pt === 'long' ? p.L >= 35 : p.L < 35));
@@ -2988,8 +2998,8 @@ function renderGK(TN, PI, f) {
     {k: 'mp', l: 'Matchs', ...P(x => x.mp)}, {k: 'min', l: 'Min', ...P(x => x.min)},
     {k: 'ga', l: 'Buts enc.', h: 'Buts encaissés hors CSC', ...P(x => x.ga, mode === 'p90' ? 2 : 0, 1)}, {k: 'sot', l: 'Tirs cadrés subis', ...P(x => x.sot, mode === 'p90' ? 2 : 0, 1)},
     {k: 'sv', l: 'Arrêts', ...P(gkVal.sv, mode === 'p90' ? 2 : 0, 1)}, {k: 'svPct', l: '% arrêts', ...P(gkVal.svPct, 1)},
-    {k: 'xgot', l: 'xG cadrés (avant tir)', ...P(x => x.xgot, 2, 1)}, {k: 'ps', l: 'xG post-tir', h: 'Probabilité de but des tirs cadrés selon leur qualité et leur placement', ...P(x => x.ps, 2, 1)}, {k: 'psSot', l: 'xG post-tir / tir cadré', ...P(gkVal.psSot, 2)},
-    {k: 'gp', l: 'Buts évités', h: 'xG post-tir − buts encaissés (hors CSC)', ...P(gkVal.gp, 2, 1)}, {k: 'cs', l: 'Clean sheets', ...P(x => x.cs)},
+    {k: 'xgot', l: 'xG des tirs cadrés', ...P(x => x.xgot, 2, 1)}, {k: 'ps', l: 'xGOT subis', h: 'xG on target : probabilité de but des tirs cadrés selon leur qualité et leur placement', ...P(x => x.ps, 2, 1)}, {k: 'psSot', l: 'xGOT / tir cadré', ...P(gkVal.psSot, 2)},
+    {k: 'gp', l: 'Buts évités', h: 'xGOT subis − buts encaissés (hors CSC)', ...P(gkVal.gp, 2, 1)}, {k: 'cs', l: 'Clean sheets', ...P(x => x.cs)},
     {k: 'pen', l: 'Pen. subis', ...P(x => x.pen)}, {k: 'penS', l: 'Pen. arrêtés/manqués', ...P(x => x.pen - x.penG)},
     {k: 'cr', l: 'Sorties centres', ...P(x => x.cl + x.pu, mode === 'p90' ? 2 : 0, 1)}, {k: 'crPct', l: '% centres', h: 'Centres captés ou boxés / centres adverses', ...P(gkVal.crPct, 1)},
     {k: 'sw', l: 'Sorties hors surface', ...P(x => x.sw, mode === 'p90' ? 2 : 0, 1)},
@@ -3002,8 +3012,8 @@ function renderGK(TN, PI, f) {
   rankChart('chGkRank', top.slice(0, 20), 'Buts évités /90', 2, sel);
   const pts = rows.filter(r => r.o.sot >= 5).map(r => ({x: gkVal.psSot(r.o), y: gkVal.svPct(r.o), lab: r.name, id: r.id, hl: r.id === sel, hlc: col}));
   chart('chGkScatter', {type: 'scatter', data: {datasets: [{label: 'Gardiens', data: pts, pointRadius: pts.map(p => p.id === sel ? 8 : 5), backgroundColor: pts.map(p => p.id === sel ? col : css('--text-3')), borderColor: css('--surface'), borderWidth: 1.5}]},
-    options: {layout: {padding: {right: 70}}, plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${c.raw.lab} : ${fmt(c.raw.y, 1)} % d’arrêts · ${fmt(c.raw.x, 2)} xG post-tir par tir cadré`}}},
-      scales: {x: {grace: '8%', title: {display: true, text: 'xG post-tir moyen par tir cadré subi (difficulté →)'}, grid: {color: css('--grid')}}, y: {grace: '8%', title: {display: true, text: '% d’arrêts'}, grid: {color: css('--grid')}}}},
+    options: {layout: {padding: {right: 70}}, plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${c.raw.lab} : ${fmt(c.raw.y, 1)} % d’arrêts · ${fmt(c.raw.x, 2)} xGOT par tir cadré`}}},
+      scales: {x: {grace: '8%', title: {display: true, text: 'xGOT moyen par tir cadré subi (difficulté →)'}, grid: {color: css('--grid')}}, y: {grace: '8%', title: {display: true, text: '% d’arrêts'}, grid: {color: css('--grid')}}}},
     plugins: [pointLabels, avgLines(mean(pts.map(p => p.x)), mean(pts.map(p => p.y)), {tl: 'Tirs faciles, bien arrêtés', tr: 'Tirs difficiles, bien arrêtés', bl: 'Tirs faciles, mal arrêtés', br: 'Tirs difficiles, peu arrêtés'}, v => fmt(v, 2), v => fmt(v, 0) + ' %')]});
 }
 
@@ -3600,9 +3610,9 @@ function showRenderError(e) {
 }
 
 function fillMetricSelects() {
-  const tacOpts = ['xg', 'gf', 'ast', 'sh', 'sot', 'gmx', 'pass', 'passPct', 'xpd', 'lb', 'byp', 'prog', 'kp', 'f3', 'box', 'carryProg', 'drbOk', 'recov', 'recovH', 'int', 'tkW', 'aerW', 'lost', 'shCpa'];
+  const tacOpts = ['xg', 'xgot', 'xgotmxg', 'gf', 'ast', 'sh', 'sot', 'gmx', 'pass', 'passPct', 'xpd', 'lb', 'byp', 'prog', 'kp', 'f3', 'box', 'carryProg', 'drbOk', 'recov', 'recovH', 'int', 'tkW', 'aerW', 'lost', 'shCpa'];
   $('#tacMetric').innerHTML = tacOpts.map(k => `<option value="${k}">${TAC[k].l}</option>`).join('');
-  const offOpts = ['xg', 'gf', 'ast', 'sh', 'sot', 'gmx', 'kp', 'box', 'f3', 'lb', 'byp', 'prog', 'carryProg', 'drbOk', 'cross', 'shCtr'];
+  const offOpts = ['xg', 'xgot', 'xgotmxg', 'gmxgot', 'gf', 'ast', 'sh', 'sot', 'gmx', 'kp', 'box', 'f3', 'lb', 'byp', 'prog', 'carryProg', 'drbOk', 'cross', 'shCtr'];
   $('#offMetric').innerHTML = offOpts.map(k => `<option value="${k}">${TAC[k].l}</option>`).join('');
   const defOpts = ['recov', 'recovH', 'int', 'tkW', 'tk', 'aerW', 'clr', 'blk', 'foul'];
   $('#defMetric').innerHTML = defOpts.map(k => `<option value="${k}">${TAC[k].l}</option>`).join('');
@@ -3928,7 +3938,7 @@ function reportPost(R, TN, PI, SR) {
   const pa = pat(sA), pb = pat(sB);
   const p3 = rpage(3, TOT, 'Finition', 'D’où on tire, et comment ça finit.', 'Comment finissent nos tirs, d’où ils partent, et ce qu’a produit l’adversaire.', head.replace('rhead', 'rhead mini'),
     `<div class="rgrid2">${rblk(1, 'Comment finissent les tirs', '', `<div class="rtwo"><div class="rside">${donutSVG(oa.parts, sA.length, 'tirs')}${ol(oa, cA)}<div class="rname" style="color:${cA}">${esc(nA)}</div></div><div class="rside">${donutSVG(ob.parts, sB.length, 'tirs')}${ol(ob, cB)}<div class="rname" style="color:${cB}">${esc(nB)}</div></div></div>`)}`
-    + `${rblk(2, 'Origine des tirs', '', barPair('Jeu placé', pa.jeu || 0, pb.jeu || 0, pa.jeu || 0, pb.jeu || 0, cA, cB) + barPair('Contre-attaque', pa.ctr || 0, pb.ctr || 0, pa.ctr || 0, pb.ctr || 0, cA, cB) + barPair('Coups de pied arrêtés', pa.cpa || 0, pb.cpa || 0, pa.cpa || 0, pb.cpa || 0, cA, cB) + barPair('xG', A.xg, B.xg, fmt(A.xg, 2), fmt(B.xg, 2), cA, cB) + barPair('xG / tir', val(TAC, 'xgsh', A), val(TAC, 'xgsh', B), fmt(val(TAC, 'xgsh', A), 2), fmt(val(TAC, 'xgsh', B), 2), cA, cB) + `<p class="rnote">${esc(nA)} : ${cr(A)} · ${esc(nB)} : ${cr(B)}</p>`)}</div>`
+    + `${rblk(2, 'Origine des tirs', '', barPair('Jeu placé', pa.jeu || 0, pb.jeu || 0, pa.jeu || 0, pb.jeu || 0, cA, cB) + barPair('Contre-attaque', pa.ctr || 0, pb.ctr || 0, pa.ctr || 0, pb.ctr || 0, cA, cB) + barPair('Coups de pied arrêtés', pa.cpa || 0, pb.cpa || 0, pa.cpa || 0, pb.cpa || 0, cA, cB) + barPair('xG', A.xg, B.xg, fmt(A.xg, 2), fmt(B.xg, 2), cA, cB) + barPair('xGOT', A.xgot, B.xgot, fmt(A.xgot, 2), fmt(B.xgot, 2), cA, cB) + barPair('xG / tir', val(TAC, 'xgsh', A), val(TAC, 'xgsh', B), fmt(val(TAC, 'xgsh', A), 2), fmt(val(TAC, 'xgsh', B), 2), cA, cB) + `<p class="rnote">${esc(nA)} : ${cr(A)} · ${esc(nB)} : ${cr(B)}</p>`)}</div>`
     + `<div class="rgrid2">${rblk(3, 'D’où on tire — ' + nA, `${sA.length} tirs · but adverse en haut`, shotGridSVG(sA, cA))}${rblk(4, 'D’où ils tirent — ' + nB, `${sB.length} tirs · notre but en haut`, shotGridSVG(sB, cB))}</div>`
     + `<div class="rgrid2">${(() => { const c = cageSVG(sA, cA); return rblk(5, 'Où ça va dans la cage — ' + nA, c.sub, c.svg); })()}${(() => { const c = cageSVG(sB, cB); return rblk(6, 'Où ça va dans notre cage — ' + nB, c.sub, c.svg); })()}</div>`);
   // Page 4 : défensif
@@ -3978,6 +3988,7 @@ function reportPre(R, TN, PI, SR) {
   const METR = [
     ['Buts / match', w => w.A && w.A.mp ? w.A.gf / w.A.mp : null, 2, 1], ['Buts encaissés / match', w => w.A && w.A.mp ? w.A.ga / w.A.mp : null, 2, -1],
     ['xG / match', w => w.A && w.A.mp ? w.A.xg / w.A.mp : null, 2, 1], ['xG concédés / match', w => w.A && w.A.mp ? w.A.xga / w.A.mp : null, 2, -1],
+  ['xGOT / match', w => w.A && w.A.mp ? w.A.xgot / w.A.mp : null, 2, 1], ['xGOT concédés / match', w => w.A && w.A.mp ? w.A.xgota / w.A.mp : null, 2, -1],
     ['Possession %', w => val(TAC, 'possPct', w.A), 1, 1], ['PPDA (pressing)', w => val(TAC, 'ppda', w.A), 1, -1],
     ['Passes cassant une ligne / match', w => w.A && w.A.mp ? w.A.lb / w.A.mp : null, 1, 1], ['Récup. camp adverse / match', w => w.A && w.A.mp ? w.A.recovH / w.A.mp : null, 1, 1],
     ['Tirs / match', w => w.A && w.A.mp ? w.A.sh / w.A.mp : null, 1, 1], ['Tirs concédés / match', w => w.A && w.A.mp ? w.A.sha / w.A.mp : null, 1, -1],
