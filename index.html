@@ -151,6 +151,10 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .tbl-wrap.sqt{max-height:none;overflow:visible}
 .ppl{display:inline-flex;flex-wrap:wrap;gap:3px;max-width:300px;white-space:normal}.sqtip.pp{border:1px solid var(--border);border-radius:5px;padding:0 4px;font-weight:700;font-size:11px;background:var(--surface-2);white-space:nowrap}.pp small{font-weight:400;color:var(--text-3);margin-left:3px;font-size:10px}.pp em{font-style:normal;color:var(--text-2);margin-left:3px;font-weight:600;font-size:10px}.sqpop .muted2{opacity:.7;margin-top:3px}
 .sysbar{display:inline-block;width:120px;height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden;vertical-align:middle}.sysbar i{display:block;height:100%}
+.pzsvg{max-width:640px;margin:0 auto}.pzw{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}@media (max-width:900px){.pzw{grid-template-columns:1fr}}
+.pzm{width:100%;border-collapse:separate;border-spacing:3px;font-size:12px}.pzm th{font-size:11px;color:var(--text-2);font-weight:700;padding:2px 4px}.pzm th.txt{text-align:left}.pzm th small{display:block;font-weight:400;color:var(--text-3)}
+.pzm td{border-radius:7px;padding:7px 6px;text-align:center;vertical-align:top}.pzm td b{display:block;font-size:17px;font-weight:800}.pzm td span{font-size:11px;opacity:.8}.pzm td small{display:block;font-size:10px;opacity:.8;margin-top:2px;line-height:1.2}
+.pzb{margin-top:12px;font-size:12px}.pzbh{font-weight:700;margin-bottom:6px}.pzbh small{font-weight:400;color:var(--text-3)}.pzbr{display:grid;grid-template-columns:58px 1fr 92px;gap:8px;align-items:center;margin:3px 0}.pzbr span{color:var(--text-2)}.pzbr i{height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden;display:block}.pzbr b{display:block;height:100%}.pzbr em{font-style:normal;font-weight:700;font-size:11.5px}
 .sysic{color:var(--text-3)}
 .sqtip{position:relative;cursor:help;border-bottom:1px dotted var(--text-3);padding-bottom:1px}
 .sqpop{display:none;position:absolute;z-index:30;right:-8px;top:calc(100% + 6px);min-width:240px;max-width:340px;background:var(--text);color:var(--surface);border-radius:8px;padding:8px 10px;font-size:11.5px;font-weight:400;line-height:1.45;text-align:left;white-space:normal;box-shadow:0 6px 18px rgba(0,0,0,.18)}
@@ -516,6 +520,11 @@ input.j{width:64px}
           <div class="ctrl"><select id="passMapType"><option value="lb">Cassent la ligne (réussies)</option><option value="prog">Progressives (réussies)</option><option value="box">Entrées dans la surface (réussies)</option><option value="kp">Passes clés</option></select></div></div>
           <div id="passMap" style="max-width:900px;margin:0 auto"></div>
           <p class="note">Sens d'attaque de gauche à droite. Maximum 600 passes affichées.</p>
+        </div>
+        <div class="card c12">
+          <div class="card-head"><div><h2>Possessions par tiers : départ, arrivée et passes</h2><p class="sub" id="pzSub"></p></div>
+          <div class="ctrl"><select id="pzMode"><option value="tot">Total</option><option value="pm">Par match</option></select></div></div>
+          <div id="pzBody"></div>
         </div>
         <div class="card c5">
           <div class="card-head"><div><h2>Début des possessions</h2><p class="sub">Comment l'équipe démarre ses possessions</p></div></div>
@@ -1162,7 +1171,7 @@ function baseFromMeta(meta, md) {
 }
 
 /* ---------- Insight : événements Opta + marquages tracking ---------- */
-const EV_VER = 5; // version du traitement des événements (à incrémenter si procInsight change)
+const EV_VER = 6; // version du traitement des événements (à incrémenter si procInsight change)
 const OPTA_KEEP = new Set([1, 3, 4, 7, 8, 10, 12, 17, 44, 45, 49, 50, 61, 74]);
 function procInsight(m, rows) {
   const L = m.L, W = m.W;
@@ -1174,8 +1183,10 @@ function procInsight(m, rows) {
   const ev = {passes: [], shots: [], goals: [], carries: [], poss: [], recs: [], corners: [], opta: [], subs: []};
   const shotMk = {}, shotMkList = [], optaRaw = [];
 
+  const mkById = {}, possRaw = [];
   for (const r of rows) {
     const k = r['2sMarking'];
+    if (k && k.id && (k.markingType === 'pass' || k.markingType === 'carry' || k.markingType === 'reception' || k.markingType === 'shot')) mkById[k.id] = k;
     if (k) {
       const clock = k.gameClock ?? k.startClock ?? 0;
       const q = quarter(k.period, clock / 60);
@@ -1192,9 +1203,10 @@ function procInsight(m, rows) {
         case 'carry':
           if (!k.startLoc || !k.endLoc) break;
           ev.carries.push({p: k.playerId, tm: k.attTeamId, q, d: k.distance || 0, x0: nx(k.startLoc[0]), x1: nx(k.endLoc[0]), y0: ny(k.startLoc[1]), y1: ny(k.endLoc[1]), per: k.period, mi: Math.round(clock / 0.6) / 100}); break;
-        case 'possession':
-          ev.poss.push({tm: k.teamId, q, dur: Math.max(0, (k.endClock ?? 0) - (k.startClock ?? 0)), xg: k.teamXg || 0,
-            st: k.startType || 'autre', vp: k.verticalPassing || 0, vc: k.verticalCarrying || 0, ct: k.isContested ? 1 : 0}); break;
+        case 'possession': {
+          const po = {tm: k.teamId, q, dur: Math.max(0, (k.endClock ?? 0) - (k.startClock ?? 0)), xg: k.teamXg || 0,
+            st: k.startType || 'autre', vp: k.verticalPassing || 0, vc: k.verticalCarrying || 0, ct: k.isContested ? 1 : 0};
+          ev.poss.push(po); if (Array.isArray(k.events) && k.events.length) possRaw.push([po, k.events]); break; }
         case 'corner':
           ev.corners.push({tm: k.attTeamId, q, p: k.takerId, att: (k.attInBox || []).length + (k.attInGkBox || []).length, def: (k.defInBox || []).length + (k.defInGkBox || []).length, sh: k.shortOption ? 1 : 0, sw: k.crossSwing === 'inswing' ? 'in' : k.crossSwing === 'outswing' ? 'out' : ''}); break;
         case 'shot':
@@ -1265,6 +1277,25 @@ function procInsight(m, rows) {
   // Pas d'événements Opta : tirs depuis le tracking
   if (!optaRaw.length) {
     for (const {k, q} of shotMkList) ev.shots.push({p: k.shooterId, tm: k.attTeamId, q, xg: k.xG || 0, x: nx(k.shotLoc[0]), y: ny(k.shotLoc[1]), g: 0, ot: 0, pen: 0, min: null});
+  }
+  // Possessions : tiers de départ / d'arrivée et passes nécessaires pour atteindre le tiers final
+  {
+    const zone = x => x < 35 ? 0 : x < 70 ? 1 : 2;
+    for (const [po, ids] of possRaw) {
+      const pts = []; // [x début, x fin, est une passe]
+      for (const id of ids) {
+        const k = mkById[id]; if (!k || (k.attTeamId && k.attTeamId !== po.tm)) continue;
+        if (k.markingType === 'pass' && k.passLoc) pts.push([nx(k.passLoc[0]), k.completed && k.endLoc ? nx(k.endLoc[0]) : nx(k.passLoc[0]), 1]);
+        else if (k.markingType === 'carry' && k.startLoc && k.endLoc) pts.push([nx(k.startLoc[0]), nx(k.endLoc[0]), 0]);
+        else if (k.markingType === 'reception' && k.receptionLoc) { const x = nx(k.receptionLoc[0]); pts.push([x, x, 0]); }
+        else if (k.markingType === 'shot' && k.shotLoc) { const x = nx(k.shotLoc[0]); pts.push([x, x, 0]); }
+      }
+      if (!pts.length) continue;
+      const z0 = zone(pts[0][0]), z1 = zone(pts[pts.length - 1][1]);
+      let np = 0, npz = null;
+      for (const [, x1, isP] of pts) { if (isP) np++; if (npz == null && z1 !== z0 && zone(x1) === z1) npz = np; }
+      po.z0 = z0; po.z1 = z1; po.np = np; if (z1 !== z0) po.npz = npz ?? np;
+    }
   }
   // Systèmes (Opta 34 = composition, 40 = changement de système) et postes occupés (case du système, qualif. 131 / 145)
   {
@@ -2539,6 +2570,8 @@ function renderTactical() {
     const stE = Object.entries(stc).sort((a, b) => b[1] - a[1]); const stTot = stE.reduce((a, x) => a + x[1], 0) || 1;
     chart('chPossStart', {type: 'bar', data: {labels: stE.map(x => STL[x[0]] || x[0]), datasets: [{label: 'Possessions', data: stE.map(x => x[1]), backgroundColor: s1, borderRadius: 4, borderSkipped: 'start'}]},
       options: {indexAxis: 'y', plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${fmt(c.raw)} possessions (${fmt(c.raw / stTot * 100, 1)} %)`}}}, scales: {x: {grid: {color: css('--grid')}}, y: {grid: {display: false}}}}});
+    { const tm = f.team || (f.player && PI[f.player] ? PI[f.player].team : ''); const r = possZones(ms, tm, f.qs, $('#pzMode').value === 'pm', tm ? clubColor(tm) : s1);
+      $('#pzBody').innerHTML = r.html; $('#pzSub').textContent = r.sub; }
     const pt = $('#passMapType').value, inBox = (x, y) => x >= 88.5 && Math.abs(y - 34) <= 20.16;
     if (!f.team && !f.player && ms.length > 1) { $('#passMap').innerHTML = '<div class="empty">Sélectionnez une équipe, un joueur ou un match pour afficher la carte des passes.</div>'; $('#lbSub').textContent = ''; }
     else {
@@ -3360,6 +3393,62 @@ function donutSVG(parts, center, sub, size = 108) {
 }
 const shade = (col, k) => `color-mix(in srgb, ${col} ${Math.round(8 + k * 80)}%, var(--surface))`;
 // Grille 3 × 3 (tiers × couloirs), attaque de gauche à droite
+/* ---------- Possessions par tiers ---------- */
+const PZ_L = ['Tiers défensif', 'Tiers médian', 'Tiers offensif'], PZ_S = ['déf.', 'médian', 'off.'];
+function possZones(ms, tm, qs, perMatch, col) {
+  const M = [0, 1, 2].map(() => [0, 1, 2].map(() => ({n: 0, np: 0, npz: 0, nz: 0, xg: 0, sh: 0})));
+  const B = [0, 0, 0, 0, 0]; let n = 0, nm = 0, old = 0;
+  for (const m of ms) {
+    if (!m.ev) continue; let any = false;
+    for (const e of m.ev.poss || []) {
+      if (e.ct || (tm && e.tm !== tm) || (qs && !qs.has(e.q))) continue;
+      if (e.z0 == null) { old++; continue; }
+      any = true; n++;
+      const c = M[e.z0][e.z1]; c.n++; c.np += e.np; c.xg += e.xg; if (e.xg > 0) c.sh++;
+      if (e.npz != null) { c.npz += e.npz; c.nz++; }
+      if (e.z1 === 2 && e.z0 !== 2) { const k = e.npz; B[k <= 0 ? 0 : k <= 2 ? 1 : k <= 5 ? 2 : k <= 9 ? 3 : 4]++; }
+    }
+    if (any) nm++;
+  }
+  if (!n) return {html: `<div class="empty">${old ? 'Réimportez les fichiers insight pour calculer les zones des possessions.' : 'Aucune possession.'}</div>`, sub: ''};
+  const dv = perMatch ? Math.max(1, nm) : 1, F = v => perMatch ? fmt(v / dv, 1) : fmt(v);
+  const st = [0, 1, 2].map(i => M[i].reduce((a, c) => a + c.n, 0)), en = [0, 1, 2].map(j => M.reduce((a, r) => a + r[j].n, 0));
+  const pc = v => Math.round(v / n * 100);
+  // Terrain
+  let svg = pitchLines(true);
+  const mxS = Math.max(...st, ...en, 1);
+  for (let z = 0; z < 3; z++) {
+    const x = z * 35;
+    svg += `<rect x="${x + .6}" y=".6" width="33.8" height="66.8" fill="${col}" fill-opacity="${(.06 + .34 * en[z] / mxS).toFixed(2)}"/>`;
+    svg += `<text x="${x + 17.5}" y="7.5" text-anchor="middle" font-size="3.6" font-weight="700" fill="var(--text-2)">${PZ_L[z].toUpperCase()}</text>`;
+    svg += `<text x="${x + 17.5}" y="15.5" text-anchor="middle" font-size="3.2" fill="var(--text-3)">débutent ici</text><text x="${x + 17.5}" y="23" text-anchor="middle" font-size="7" font-weight="800" fill="var(--text)">${F(st[z])}</text><text x="${x + 17.5}" y="27.5" text-anchor="middle" font-size="3.2" fill="var(--text-3)">${pc(st[z])} %</text>`;
+    svg += `<text x="${x + 17.5}" y="49" text-anchor="middle" font-size="3.2" fill="var(--text-3)">se terminent ici</text><text x="${x + 17.5}" y="57" text-anchor="middle" font-size="7" font-weight="800" fill="${col}">${F(en[z])}</text><text x="${x + 17.5}" y="61.5" text-anchor="middle" font-size="3.2" fill="var(--text-3)">${pc(en[z])} %</text>`;
+  }
+  // Flèches des progressions, au-dessus du terrain (départ → tiers plus haut)
+  const fl = [[0, 2], [0, 1], [1, 2]], mxF = Math.max(1, ...fl.map(([a, b]) => M[a][b].n));
+  for (const [a, b] of fl) {
+    const c = M[a][b]; if (!c.n) continue;
+    const far = b - a === 2, x0 = a * 35 + (far ? 17.5 : 21), x1 = b * 35 + (far ? 17.5 : 14), y = far ? 69.5 : -1.5, cy = far ? 86 : -12, w = (.5 + 1.8 * c.n / mxF).toFixed(2);
+    svg += `<path d="M ${x0} ${y} Q ${(x0 + x1) / 2} ${cy} ${x1} ${y}" fill="none" stroke="${col}" stroke-opacity=".9" stroke-width="${w}" marker-end="url(#pzArr)"/>`;
+    const ty = far ? 81.6 : -9.6;
+    svg += `<text x="${(x0 + x1) / 2}" y="${ty}" text-anchor="middle" font-size="3.1" fill="var(--text)"><tspan font-weight="800">${F(c.n)}</tspan> poss. · <tspan font-weight="800">${c.nz ? fmt(c.npz / c.nz, 1) : '—'}</tspan> passes</text>`;
+  }
+  const svgHTML = `<svg class="rgrid pzsvg" viewBox="-1.5 -15 108 99"><defs><marker id="pzArr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="3" markerHeight="3" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${col}"/></marker></defs>${svg}</svg>`;
+  // Matrice départ → arrivée
+  const mxC = Math.max(1, ...M.flat().map(c => c.n));
+  const rows = [0, 1, 2].map(i => `<tr><th class="txt">${PZ_L[i]}<small>${F(st[i])} poss.</small></th>${[0, 1, 2].map(j => {
+    const c = M[i][j], a = c.n / mxC, same = i === j;
+    const pas = same ? `${c.n ? fmt(c.np / c.n, 1) : '—'} passes / poss.` : `${c.nz ? fmt(c.npz / c.nz, 1) : '—'} passes pour y arriver`;
+    return `<td style="background:${shade(col, a * .85)};color:${a > .55 ? '#fff' : 'var(--text)'}" title="${esc(`${PZ_L[i]} → ${PZ_L[j]} : ${c.n} possession(s), ${c.n ? fmt(c.np / c.n, 1) : 0} passes en moyenne au total, ${c.sh} avec tir, ${fmt(c.xg, 2)} xG`)}"><b>${F(c.n)}</b><span>${st[i] ? Math.round(c.n / st[i] * 100) : 0} %</span><small>${pas}</small></td>`;
+  }).join('')}</tr>`).join('');
+  const mat = `<table class="pzm"><tr><th class="txt"><small>départ ↓ · fin →</small></th>${PZ_S.map(l => `<th>${'Fin ' + l}</th>`).join('')}</tr>${rows}</table>`;
+  // Passes nécessaires pour atteindre le tiers offensif
+  const bt = B.reduce((a, v) => a + v, 0), BL = ['0 passe', '1-2', '3-5', '6-9', '10 +'], mxB = Math.max(1, ...B);
+  const bars = `<div class="pzb"><div class="pzbh">Passes avant d’entrer dans le tiers offensif <small>(${F(bt)} possessions venues du tiers déf. ou médian)</small></div>${B.map((v, i) => `<div class="pzbr"><span>${BL[i]}</span><i><b style="width:${v / mxB * 100}%;background:${col}"></b></i><em>${F(v)} · ${bt ? Math.round(v / bt * 100) : 0} %</em></div>`).join('')}</div>`;
+  const sub = `${n} possessions (hors ballons disputés) · ${nm} match(s)${perMatch ? ' · moyenne par match' : ''} · sens d’attaque →`;
+  return {html: `<div class="pzw"><div>${svgHTML}<p class="note">Couleur des tiers = où les possessions se terminent. Flèches : possessions qui progressent vers un tiers plus haut, avec le nombre moyen de passes jouées avant d’y entrer (une conduite de balle peut suffire). Survolez une case du tableau pour le détail (tirs, xG).</p></div><div>${mat}${bars}</div></div>`, sub};
+}
+
 function thirdsGridSVG(pts, col, title) {
   const G = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
   for (const p of pts) { if (p.x == null || p.y == null) continue; const c = Math.max(0, Math.min(2, Math.floor(p.x / 35))), r = Math.max(0, Math.min(2, Math.floor(p.y / (68 / 3)))); G[r][c]++; }
@@ -3878,7 +3967,7 @@ function bindUI() {
     refreshAll();
   };
   $('#fReset').onclick = () => { S.f = {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0, 1, 2, 3, 4, 5])}; refreshAll(); };
-  ['#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#passMapType', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyEvoMetric', '#phyTeamMode', '#phyTX', '#phyTY', '#phyPX', '#phyPY', '#phyPEvoMetric', '#h2hEvoMetric', '#momResMode', '#momOffMode', '#xtPlMode',
+  ['#pzMode', '#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#passMapType', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyEvoMetric', '#phyTeamMode', '#phyTX', '#phyTY', '#phyPX', '#phyPY', '#phyPEvoMetric', '#h2hEvoMetric', '#momResMode', '#momOffMode', '#xtPlMode',
    '#shotType', '#offMetric', '#offTeamMode', '#recType', '#defMetric', '#defTeamMode', '#cpaTeamMode']
     .forEach(s => $(s).onchange = () => scheduleRender());
   document.querySelectorAll('[data-csv]').forEach(b => b.onclick = () => exportCSV(b.dataset.csv));
