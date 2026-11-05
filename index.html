@@ -151,7 +151,9 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .tbl-wrap.sqt{max-height:none;overflow:visible}
 .ppl{display:inline-flex;flex-wrap:wrap;gap:3px;max-width:300px;white-space:normal}.sqtip.pp{border:1px solid var(--border);border-radius:5px;padding:0 4px;font-weight:700;font-size:11px;background:var(--surface-2);white-space:nowrap}.pp small{font-weight:400;color:var(--text-3);margin-left:3px;font-size:10px}.pp em{font-style:normal;color:var(--text-2);margin-left:3px;font-weight:600;font-size:10px}.sqpop .muted2{opacity:.7;margin-top:3px}
 .sysbar{display:inline-block;width:120px;height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden;vertical-align:middle}.sysbar i{display:block;height:100%}
-.pzsvg{max-width:640px;margin:0 auto}.pzw{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}@media (max-width:900px){.pzw{grid-template-columns:1fr}}
+.pzsvg{max-width:640px;margin:0 auto}.pzhit{cursor:pointer}.pzhit:hover{fill-opacity:.55}.pztabs{margin:4px 0 10px}.pztabs small{opacity:.7;margin-left:4px}.pzhelp{margin:0 0 6px}
+.pzhd{margin-bottom:10px}.pzhd span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3)}.pzhd b{font-size:19px}.pzhd em{display:block;font-style:normal;color:var(--text-2);font-size:12.5px}
+.pzr{padding:8px 0;border-bottom:1px solid var(--grid)}.pzr.same{opacity:.85}.pzrh{display:flex;justify-content:space-between;gap:8px;font-size:13px}.pzrh span{font-weight:700}.pzr i{display:block;height:9px;background:var(--surface-2);border-radius:5px;overflow:hidden;margin:5px 0 3px}.pzr i b{display:block;height:100%}.pzr small{color:var(--text-2);font-size:11.5px}.pzw{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}@media (max-width:900px){.pzw{grid-template-columns:1fr}}
 .pzm{width:100%;border-collapse:separate;border-spacing:3px;font-size:12px}.pzm th{font-size:11px;color:var(--text-2);font-weight:700;padding:2px 4px}.pzm th.txt{text-align:left}.pzm th small{display:block;font-weight:400;color:var(--text-3)}
 .pzm td{border-radius:7px;padding:7px 6px;text-align:center;vertical-align:top}.pzm td b{display:block;font-size:17px;font-weight:800}.pzm td span{font-size:11px;opacity:.8}.pzm td small{display:block;font-size:10px;opacity:.8;margin-top:2px;line-height:1.2}
 .pzb{margin-top:12px;font-size:12px}.pzbh{font-weight:700;margin-bottom:6px}.pzbh small{font-weight:400;color:var(--text-3)}.pzbr{display:grid;grid-template-columns:58px 1fr 92px;gap:8px;align-items:center;margin:3px 0}.pzbr span{color:var(--text-2)}.pzbr i{height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden;display:block}.pzbr b{display:block;height:100%}.pzbr em{font-style:normal;font-weight:700;font-size:11.5px}
@@ -2571,7 +2573,7 @@ function renderTactical() {
     chart('chPossStart', {type: 'bar', data: {labels: stE.map(x => STL[x[0]] || x[0]), datasets: [{label: 'Possessions', data: stE.map(x => x[1]), backgroundColor: s1, borderRadius: 4, borderSkipped: 'start'}]},
       options: {indexAxis: 'y', plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${fmt(c.raw)} possessions (${fmt(c.raw / stTot * 100, 1)} %)`}}}, scales: {x: {grid: {color: css('--grid')}}, y: {grid: {display: false}}}}});
     { const tm = f.team || (f.player && PI[f.player] ? PI[f.player].team : ''); const r = possZones(ms, tm, f.qs, $('#pzMode').value === 'pm', tm ? clubColor(tm) : s1);
-      $('#pzBody').innerHTML = r.html; $('#pzSub').textContent = r.sub; }
+      $('#pzBody').innerHTML = r.html; $('#pzSub').textContent = r.sub; bindPossZones($('#pzBody')); }
     const pt = $('#passMapType').value, inBox = (x, y) => x >= 88.5 && Math.abs(y - 34) <= 20.16;
     if (!f.team && !f.player && ms.length > 1) { $('#passMap').innerHTML = '<div class="empty">Sélectionnez une équipe, un joueur ou un match pour afficher la carte des passes.</div>'; $('#lbSub').textContent = ''; }
     else {
@@ -3396,8 +3398,8 @@ const shade = (col, k) => `color-mix(in srgb, ${col} ${Math.round(8 + k * 80)}%,
 /* ---------- Possessions par tiers ---------- */
 const PZ_L = ['Tiers défensif', 'Tiers médian', 'Tiers offensif'], PZ_S = ['déf.', 'médian', 'off.'];
 function possZones(ms, tm, qs, perMatch, col) {
-  const M = [0, 1, 2].map(() => [0, 1, 2].map(() => ({n: 0, np: 0, npz: 0, nz: 0, xg: 0, sh: 0})));
-  const B = [0, 0, 0, 0, 0]; let n = 0, nm = 0, old = 0;
+  const M = [0, 1, 2].map(() => [0, 1, 2].map(() => ({n: 0, np: 0, npz: 0, nz: 0, xg: 0, sh: 0, gl: 0})));
+  const B = [0, 1, 2].map(() => [0, 0, 0, 0, 0]); let n = 0, nm = 0, old = 0;
   for (const m of ms) {
     if (!m.ev) continue; let any = false;
     for (const e of m.ev.poss || []) {
@@ -3406,47 +3408,55 @@ function possZones(ms, tm, qs, perMatch, col) {
       any = true; n++;
       const c = M[e.z0][e.z1]; c.n++; c.np += e.np; c.xg += e.xg; if (e.xg > 0) c.sh++;
       if (e.npz != null) { c.npz += e.npz; c.nz++; }
-      if (e.z1 === 2 && e.z0 !== 2) { const k = e.npz; B[k <= 0 ? 0 : k <= 2 ? 1 : k <= 5 ? 2 : k <= 9 ? 3 : 4]++; }
+      const k = e.z0 < 2 ? (e.z1 === 2 ? e.npz : null) : e.np;
+      if (k != null) B[e.z0][k <= 0 ? 0 : k <= 2 ? 1 : k <= 5 ? 2 : k <= 9 ? 3 : 4]++;
     }
     if (any) nm++;
   }
   if (!n) return {html: `<div class="empty">${old ? 'Réimportez les fichiers insight pour calculer les zones des possessions.' : 'Aucune possession.'}</div>`, sub: ''};
   const dv = perMatch ? Math.max(1, nm) : 1, F = v => perMatch ? fmt(v / dv, 1) : fmt(v);
-  const st = [0, 1, 2].map(i => M[i].reduce((a, c) => a + c.n, 0)), en = [0, 1, 2].map(j => M.reduce((a, r) => a + r[j].n, 0));
-  const pc = v => Math.round(v / n * 100);
-  // Terrain
-  let svg = pitchLines(true);
-  const mxS = Math.max(...st, ...en, 1);
-  for (let z = 0; z < 3; z++) {
-    const x = z * 35;
-    svg += `<rect x="${x + .6}" y=".6" width="33.8" height="66.8" fill="${col}" fill-opacity="${(.06 + .34 * en[z] / mxS).toFixed(2)}"/>`;
-    svg += `<text x="${x + 17.5}" y="7.5" text-anchor="middle" font-size="3.6" font-weight="700" fill="var(--text-2)">${PZ_L[z].toUpperCase()}</text>`;
-    svg += `<text x="${x + 17.5}" y="15.5" text-anchor="middle" font-size="3.2" fill="var(--text-3)">débutent ici</text><text x="${x + 17.5}" y="23" text-anchor="middle" font-size="7" font-weight="800" fill="var(--text)">${F(st[z])}</text><text x="${x + 17.5}" y="27.5" text-anchor="middle" font-size="3.2" fill="var(--text-3)">${pc(st[z])} %</text>`;
-    svg += `<text x="${x + 17.5}" y="49" text-anchor="middle" font-size="3.2" fill="var(--text-3)">se terminent ici</text><text x="${x + 17.5}" y="57" text-anchor="middle" font-size="7" font-weight="800" fill="${col}">${F(en[z])}</text><text x="${x + 17.5}" y="61.5" text-anchor="middle" font-size="3.2" fill="var(--text-3)">${pc(en[z])} %</text>`;
-  }
-  // Flèches des progressions, au-dessus du terrain (départ → tiers plus haut)
-  const fl = [[0, 2], [0, 1], [1, 2]], mxF = Math.max(1, ...fl.map(([a, b]) => M[a][b].n));
-  for (const [a, b] of fl) {
-    const c = M[a][b]; if (!c.n) continue;
-    const far = b - a === 2, x0 = a * 35 + (far ? 17.5 : 21), x1 = b * 35 + (far ? 17.5 : 14), y = far ? 69.5 : -1.5, cy = far ? 86 : -12, w = (.5 + 1.8 * c.n / mxF).toFixed(2);
-    svg += `<path d="M ${x0} ${y} Q ${(x0 + x1) / 2} ${cy} ${x1} ${y}" fill="none" stroke="${col}" stroke-opacity=".9" stroke-width="${w}" marker-end="url(#pzArr)"/>`;
-    const ty = far ? 81.6 : -9.6;
-    svg += `<text x="${(x0 + x1) / 2}" y="${ty}" text-anchor="middle" font-size="3.1" fill="var(--text)"><tspan font-weight="800">${F(c.n)}</tspan> poss. · <tspan font-weight="800">${c.nz ? fmt(c.npz / c.nz, 1) : '—'}</tspan> passes</text>`;
-  }
-  const svgHTML = `<svg class="rgrid pzsvg" viewBox="-1.5 -15 108 99"><defs><marker id="pzArr" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="3" markerHeight="3" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${col}"/></marker></defs>${svg}</svg>`;
-  // Matrice départ → arrivée
-  const mxC = Math.max(1, ...M.flat().map(c => c.n));
-  const rows = [0, 1, 2].map(i => `<tr><th class="txt">${PZ_L[i]}<small>${F(st[i])} poss.</small></th>${[0, 1, 2].map(j => {
-    const c = M[i][j], a = c.n / mxC, same = i === j;
-    const pas = same ? `${c.n ? fmt(c.np / c.n, 1) : '—'} passes / poss.` : `${c.nz ? fmt(c.npz / c.nz, 1) : '—'} passes pour y arriver`;
-    return `<td style="background:${shade(col, a * .85)};color:${a > .55 ? '#fff' : 'var(--text)'}" title="${esc(`${PZ_L[i]} → ${PZ_L[j]} : ${c.n} possession(s), ${c.n ? fmt(c.np / c.n, 1) : 0} passes en moyenne au total, ${c.sh} avec tir, ${fmt(c.xg, 2)} xG`)}"><b>${F(c.n)}</b><span>${st[i] ? Math.round(c.n / st[i] * 100) : 0} %</span><small>${pas}</small></td>`;
-  }).join('')}</tr>`).join('');
-  const mat = `<table class="pzm"><tr><th class="txt"><small>départ ↓ · fin →</small></th>${PZ_S.map(l => `<th>${'Fin ' + l}</th>`).join('')}</tr>${rows}</table>`;
-  // Passes nécessaires pour atteindre le tiers offensif
-  const bt = B.reduce((a, v) => a + v, 0), BL = ['0 passe', '1-2', '3-5', '6-9', '10 +'], mxB = Math.max(1, ...B);
-  const bars = `<div class="pzb"><div class="pzbh">Passes avant d’entrer dans le tiers offensif <small>(${F(bt)} possessions venues du tiers déf. ou médian)</small></div>${B.map((v, i) => `<div class="pzbr"><span>${BL[i]}</span><i><b style="width:${v / mxB * 100}%;background:${col}"></b></i><em>${F(v)} · ${bt ? Math.round(v / bt * 100) : 0} %</em></div>`).join('')}</div>`;
+  const st = [0, 1, 2].map(i => M[i].reduce((a, c) => a + c.n, 0));
+  const passTxt = (i, j) => { const c = M[i][j]; return i === j ? `${c.n ? fmt(c.np / c.n, 1) : '—'} passes / poss.` : `${c.nz ? fmt(c.npz / c.nz, 1) : '—'} passes pour y arriver`; };
+  const view = sel => {
+    const tot = st[sel] || 1, mx = Math.max(1, ...M[sel].map(c => c.n));
+    let svg = pitchLines(true);
+    for (let z = 0; z < 3; z++) {
+      const x = z * 35, c = M[sel][z], a = c.n / mx, isS = z === sel;
+      svg += `<rect class="pzhit" data-pz="${z}" x="${x + .6}" y=".6" width="33.8" height="66.8" fill="${col}" fill-opacity="${(.05 + .45 * a).toFixed(2)}"${isS ? ` stroke="${col}" stroke-width="1.4"` : ''}><title>Cliquer : possessions qui débutent dans le ${PZ_L[z].toLowerCase()}</title></rect>`;
+      svg += `<text x="${x + 17.5}" y="8" text-anchor="middle" font-size="3.5" font-weight="800" fill="${isS ? col : 'var(--text-2)'}" pointer-events="none">${PZ_L[z].toUpperCase()}</text>`;
+      if (isS) svg += `<rect x="${x + 7.5}" y="11" width="20" height="5" rx="2.5" fill="${col}" pointer-events="none"/><text x="${x + 17.5}" y="14.6" text-anchor="middle" font-size="3" font-weight="800" fill="#fff" pointer-events="none">DÉPART · ${F(st[sel])}</text>`;
+      svg += `<text x="${x + 17.5}" y="30" text-anchor="middle" font-size="3.1" fill="var(--text-3)" pointer-events="none">${isS ? 'restent ici' : 'finissent ici'}</text>`
+        + `<text x="${x + 17.5}" y="40" text-anchor="middle" font-size="9" font-weight="800" fill="${a > .6 ? '#fff' : 'var(--text)'}" pointer-events="none">${Math.round(c.n / tot * 100)} %</text>`
+        + `<text x="${x + 17.5}" y="46" text-anchor="middle" font-size="3.4" font-weight="700" fill="${a > .6 ? '#fff' : 'var(--text)'}" pointer-events="none">${F(c.n)} poss.</text>`
+        + `<text x="${x + 17.5}" y="54" text-anchor="middle" font-size="3.6" font-weight="700" fill="${a > .6 ? '#fff' : 'var(--text)'}" pointer-events="none">${z === sel ? (c.n ? fmt(c.np / c.n, 1) : '—') : (c.nz ? fmt(c.npz / c.nz, 1) : '—')} passes</text>`
+        + `<text x="${x + 17.5}" y="58" text-anchor="middle" font-size="2.7" fill="${a > .6 ? '#ffffffdd' : 'var(--text-2)'}" pointer-events="none">${z === sel ? 'par possession' : 'pour y arriver'}</text>`
+        + `<text x="${x + 17.5}" y="63.5" text-anchor="middle" font-size="2.7" fill="${a > .6 ? '#ffffffcc' : 'var(--text-3)'}" pointer-events="none">${c.sh} avec tir · ${fmt(c.xg, 2)} xG</text>`;
+    }
+    for (let z = 0; z < 3; z++) {
+      if (z === sel || !M[sel][z].n) continue;
+      const far = Math.abs(z - sel) === 2, fw = z > sel, xs = sel * 35 + 17.5 + (far ? 0 : fw ? 4 : -4), xe = z * 35 + 17.5 + (far ? 0 : fw ? -4 : 4);
+      const y = far ? 69.5 : -1.5, cy = far ? 84 : -12, w = (.6 + 2 * M[sel][z].n / mx).toFixed(2);
+      svg += `<path d="M ${xs} ${y} Q ${(xs + xe) / 2} ${cy} ${xe} ${y}" fill="none" stroke="${col}" stroke-width="${w}" marker-end="url(#pzArr${sel})" pointer-events="none"/>`;
+    }
+    return `<svg class="rgrid pzsvg" viewBox="-1.5 -12 108 90"><defs><marker id="pzArr${sel}" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="3" markerHeight="3" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${col}"/></marker></defs>${svg}</svg>`;
+  };
+  const panel = sel => {
+    const tot = st[sel] || 1;
+    const rows = [0, 1, 2].map(z => { const c = M[sel][z], p = c.n / tot * 100; return `<div class="pzr${z === sel ? ' same' : ''}"><div class="pzrh"><b>${z === sel ? 'Restent dans le ' + PZ_L[z].toLowerCase() : 'Finissent dans le ' + PZ_L[z].toLowerCase()}</b><span>${F(c.n)} poss. · ${Math.round(p)} %</span></div><i><b style="width:${p}%;background:${col}"></b></i><small>${passTxt(sel, z)} · ${c.sh} avec tir · ${fmt(c.xg, 2)} xG</small></div>`; }).join('');
+    const Bs = B[sel], bt = Bs.reduce((a, v) => a + v, 0), BL = ['0 passe', '1-2', '3-5', '6-9', '10 +'], mxB = Math.max(1, ...Bs);
+    const bh = sel < 2 ? `Passes jouées avant d’entrer dans le tiers offensif <small>(${F(bt)} poss. y arrivent)</small>` : `Passes jouées par possession <small>(${F(bt)} poss.)</small>`;
+    const bars = `<div class="pzb"><div class="pzbh">${bh}</div>${Bs.map((v, i) => `<div class="pzbr"><span>${BL[i]}</span><i><b style="width:${v / mxB * 100}%;background:${col}"></b></i><em>${F(v)} · ${bt ? Math.round(v / bt * 100) : 0} %</em></div>`).join('')}</div>`;
+    return `<div class="pzhd"><span>Départ</span><b>${PZ_L[sel]}</b><em>${F(st[sel])} possessions${perMatch ? ' par match' : ''} · ${Math.round(st[sel] / n * 100)} % du total</em></div>${rows}${bars}`;
+  };
+  const tabs = `<div class="chips pztabs">${[0, 1, 2].map(z => `<button class="chip" data-pz="${z}">${PZ_L[z]} <small>${F(st[z])}</small></button>`).join('')}</div>`;
+  const views = [0, 1, 2].map(z => `<div class="pzv" data-v="${z}"><div class="pzw"><div>${view(z)}</div><div>${panel(z)}</div></div></div>`).join('');
   const sub = `${n} possessions (hors ballons disputés) · ${nm} match(s)${perMatch ? ' · moyenne par match' : ''} · sens d’attaque →`;
-  return {html: `<div class="pzw"><div>${svgHTML}<p class="note">Couleur des tiers = où les possessions se terminent. Flèches : possessions qui progressent vers un tiers plus haut, avec le nombre moyen de passes jouées avant d’y entrer (une conduite de balle peut suffire). Survolez une case du tableau pour le détail (tirs, xG).</p></div><div>${mat}${bars}</div></div>`, sub};
+  return {html: `<p class="note pzhelp">Choisissez la zone de départ (bouton ou clic sur le terrain) : le terrain montre où finissent ces possessions et combien de passes il a fallu pour y arriver.</p>${tabs}${views}`, sub};
+}
+function bindPossZones(root) {
+  const set = z => { S.pzSel = z; root.querySelectorAll('.pzv').forEach(v => v.hidden = +v.dataset.v !== z); root.querySelectorAll('.pztabs .chip').forEach(b => b.setAttribute('aria-pressed', +b.dataset.pz === z)); try { localStorage.setItem('dash-pz', z); } catch (e) {} };
+  root.onclick = e => { const t = e.target.closest('[data-pz]'); if (t) set(+t.dataset.pz); };
+  let z = S.pzSel; if (z == null) { try { z = +(localStorage.getItem('dash-pz') ?? 0); } catch (e) { z = 0; } } set([0, 1, 2].includes(z) ? z : 0);
 }
 
 function thirdsGridSVG(pts, col, title) {
