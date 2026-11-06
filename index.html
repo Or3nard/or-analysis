@@ -177,10 +177,13 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .ph-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}@media (max-width:900px){.ph-kpis{grid-template-columns:repeat(2,1fr)}}
 .phk{background:var(--surface-2);border-radius:10px;padding:9px 12px;display:flex;flex-direction:column;gap:4px}.phk>span{font-size:12px;color:var(--text-2)}.phk>span small{color:var(--text-3)}.phk>div{display:flex;align-items:center;gap:8px}.phk>div b{font-size:20px}.phk small{font-size:11px;color:var(--text-3)}.phk .kbar{width:100%;margin:4px 0 2px}
 .ph-vis{display:grid;grid-template-columns:1.25fr 1fr;gap:20px;margin-top:6px}.ph-vis+.ph-vis{margin-top:18px;padding-top:14px;border-top:1px solid var(--grid)}@media (max-width:900px){.ph-vis{grid-template-columns:1fr}}
-.ph-one{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--grid)}.ph-one h3{font-size:13.5px;margin:0 0 2px}.pitch.zhalf{max-width:380px;display:block;margin:6px auto 0}#ph3 #shotMap,#dph3 #shotMapAg{max-width:430px;margin:0 auto}
+.ph-one{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--grid)}.ph-one h3{font-size:13.5px;margin:0 0 2px}.pitch.zhalf{max-width:380px;display:block;margin:6px auto 0}#ph3 #shotMap,#dph3 #shotMapAg,#plyShotMap{max-width:430px;margin:0 auto}
 .ph-vis h3{font-size:13.5px;margin:0 0 2px}.ph-more{margin-top:8px;font-size:12px}.ph-arrows{margin-top:8px}
 .top5{display:flex;flex-direction:column;gap:8px;margin-top:8px}.t5{display:grid;grid-template-columns:minmax(0,1.3fr) 1fr 74px;gap:10px;align-items:center;font-size:12.5px}.t5n{display:flex;flex-direction:column;min-width:0}.t5n small{color:var(--text-3);font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.t5 i{display:block;height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden}.t5 i b{display:block;height:100%}.t5 em{font-style:normal;font-weight:700;text-align:right}
 details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}
+.lvls{display:inline-flex;background:var(--surface-2);border-radius:10px;padding:3px;margin:0 0 10px;gap:2px}.lvls button{border:0;background:transparent;padding:7px 18px;border-radius:8px;font-weight:700;font-size:13.5px;color:var(--text-2);cursor:pointer}.lvls button[aria-selected=true]{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.ply-head{display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:14px 18px}.ply-head .pn{font-size:22px;font-weight:800}.ply-head .pm{color:var(--text-2);font-size:13px}.ply-head .tlogo{height:34px}.ply-stats{display:flex;gap:18px;margin-left:auto;flex-wrap:wrap}.ply-stats div{text-align:center}.ply-stats b{display:block;font-size:20px}.ply-stats span{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
+.empty-card{padding:28px;text-align:center}.empty-card p{color:var(--text-2)}
 .gk-ctl{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:10px 14px}.gk-ctl select{min-width:280px}.gk-ctl .tlogo{height:18px;vertical-align:-4px}
 .gkz{width:100%;font-size:12.5px;margin-top:10px;border-collapse:collapse}.gkz th{font-size:11px;color:var(--text-2);text-align:right;padding:4px 6px;border-bottom:1px solid var(--border)}.gkz td{text-align:right;padding:5px 6px;border-bottom:1px solid var(--grid)}.gkz .txt{text-align:left}
 .gkd{font-size:12px}.gkdr{display:grid;grid-template-columns:130px 1fr auto;gap:8px;align-items:center;margin:6px 0}.gkdr span{color:var(--text-2)}.gkdr i{position:relative;height:12px;background:var(--surface-2);border-radius:6px;overflow:hidden;display:block}.gkdr i b{position:absolute;left:0;top:0;height:100%;border-radius:6px}.gkdr em{font-style:normal;font-weight:700}
@@ -475,8 +478,10 @@ input.j{width:64px}
 <section class="panel" id="panel-tac">
   <div id="tacEmpty" class="empty" hidden><b>Aucune donnée d'événements</b>Importez des fichiers <code>insight.jsonl</code> dans l'onglet Données.</div>
   <div id="tacBody">
+    <div class="lvls" data-for="tac"><button data-lvl="col">Collectif</button><button data-lvl="ind">Individuel</button></div>
     <nav class="subtabs" data-for="tac">
-      <button data-sub="res">Résumé</button><button data-sub="off">Offensif</button><button data-sub="def">Défensif</button><button data-sub="cpa">CPA</button><button data-sub="gk">Gardien</button><button data-sub="cls">Classements</button>
+      <button data-sub="res" data-lvl="col">Résumé</button><button data-sub="off" data-lvl="col">Offensif</button><button data-sub="def" data-lvl="col">Défensif</button><button data-sub="cpa" data-lvl="col">CPA</button><button data-sub="cls" data-lvl="col">Classements équipes</button>
+      <button data-sub="ply" data-lvl="ind">Fiche joueur</button><button data-sub="gk" data-lvl="ind">Gardien</button><button data-sub="pcls" data-lvl="ind">Classements joueurs</button>
     </nav>
     <p class="focus-line" id="tacFocus"></p>
 
@@ -771,6 +776,59 @@ input.j{width:64px}
       <div class="grid" style="margin-top:14px">
         <div class="card c12">
           <div class="card-head">
+            <div><h2>Statistiques par équipe</h2><p class="sub">Cliquez sur une équipe pour filtrer · cliquez un en-tête pour trier</p></div>
+            <div class="ctrl"><select id="tacTeamMode"><option value="pm">Moyenne par match</option><option value="tot">Total</option></select><button class="btn" data-csv="tblTacTeams">CSV</button></div>
+          </div>
+          <div class="tbl-wrap" id="tblTacTeams"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Fiche joueur -->
+    <div class="subpanel" data-sub="ply">
+      <div id="plyEmpty" class="card empty-card" hidden><b>Choisissez un joueur</b><p>Sélectionnez un joueur dans le filtre « Joueur » en haut de la page (ou cliquez sur un joueur dans un classement).</p></div>
+      <div id="plyBody">
+        <div class="card ply-head" id="plyHead"></div>
+        <div class="grid" style="margin-top:14px">
+          <div class="card c12">
+            <div class="card-head"><div><h2>Le joueur en chiffres</h2><p class="sub" id="plySub"></p></div>
+            <div class="ctrl"><select id="plyPeer"><option value="role">Comparé aux joueurs du même poste</option><option value="all">Comparé à tous les joueurs de champ</option></select></div></div>
+            <div id="plyTbl"></div>
+          </div>
+          <div class="card c6">
+            <div class="card-head"><div><h2>Où il touche le ballon</h2><p class="sub" id="plyZoneSub"></p></div></div>
+            <div id="plyZones"></div>
+          </div>
+          <div class="card c6">
+            <div class="card-head"><div><h2>Postes occupés</h2><p class="sub" id="plyPostSub"></p></div></div>
+            <div id="plyPosts"></div>
+          </div>
+          <div class="card c7">
+            <div class="card-head"><div><h2>Ses passes</h2><p class="sub" id="plyPassSub"></p></div>
+            <div class="ctrl"><select id="plyPassType"><option value="prog">Progressives (réussies)</option><option value="lb">Cassent une ligne (réussies)</option><option value="kp">Passes clés</option><option value="all">Toutes</option></select></div></div>
+            <div id="plyPassMap"></div>
+          </div>
+          <div class="card c5">
+            <div class="card-head"><div><h2>Ses tirs</h2><p class="sub" id="plyShotSub"></p></div></div>
+            <div id="plyShotMap"></div>
+            <div class="legend shleg"><span><b class="lgball">⚽</b>But</span><span><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG</span></div>
+          </div>
+          <div class="card c6">
+            <div class="card-head"><div><h2>Ses duels</h2><p class="sub" id="plyDuelSub"></p></div></div>
+            <div id="plyDuels"></div>
+          </div>
+          <div class="card c6">
+            <div class="card-head"><div><h2>Ses récupérations</h2><p class="sub" id="plyRecSub"></p></div></div>
+            <div id="plyRecs"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Classements joueurs -->
+    <div class="subpanel" data-sub="pcls">
+      <div class="grid">
+        <div class="card c12">
+          <div class="card-head">
             <div><h2>Classement joueurs</h2><p class="sub" id="tacRankSub"></p></div>
             <div class="ctrl"><select id="tacMetric"></select></div>
           </div>
@@ -786,13 +844,6 @@ input.j{width:64px}
             </div>
           </div>
           <div class="tbl-wrap" id="tblTacPlayers"></div>
-        </div>
-        <div class="card c12">
-          <div class="card-head">
-            <div><h2>Statistiques par équipe</h2><p class="sub">Cliquez sur une équipe pour filtrer · cliquez un en-tête pour trier</p></div>
-            <div class="ctrl"><select id="tacTeamMode"><option value="pm">Moyenne par match</option><option value="tot">Total</option></select><button class="btn" data-csv="tblTacTeams">CSV</button></div>
-          </div>
-          <div class="tbl-wrap" id="tblTacTeams"></div>
         </div>
       </div>
     </div>
@@ -855,7 +906,8 @@ input.j{width:64px}
 <section class="panel" id="panel-phy">
   <div id="phyEmpty" class="empty" hidden><b>Aucune donnée physique</b>Importez des fichiers <code>physical-*.jsonl</code> dans l'onglet Données.</div>
   <div id="phyBody">
-    <nav class="subtabs" data-for="phy"><button data-sub="team">Équipe</button><button data-sub="player">Joueur</button><button data-sub="h2h">Face à face</button><button data-sub="cls">Classements</button></nav>
+    <div class="lvls" data-for="phy"><button data-lvl="col">Collectif</button><button data-lvl="ind">Individuel</button></div>
+    <nav class="subtabs" data-for="phy"><button data-sub="team" data-lvl="col">Équipe</button><button data-sub="player" data-lvl="ind">Joueur</button><button data-sub="h2h" data-lvl="col ind">Face à face</button><button data-sub="cls" data-lvl="col ind">Classements</button></nav>
     <p class="focus-line" id="phyFocus"></p>
 
     <!-- ===================== Équipe ===================== -->
@@ -2994,17 +3046,79 @@ function renderTactical() {
   }
 
   if (sub === 'gk') renderGK(TN, PI, f);
+  if (sub === 'ply') renderPlayerCard(ms, TN, PI, f, P);
 
   if (sub === 'cls') {
     const tm = $('#tacTeamMode').value;
     teamTable('tblTacTeams', ['mp', 'gf', 'ga', 'xg', 'xga', 'xgd', 'xgot', 'xgota', 'sh', 'sot', 'sha', 'possPct', 'pass', 'passPct', 'xpd', 'lb', 'prog', 'f3', 'box', 'kp', 'carryProg', 'ppda', 'recov', 'int', 'tkW', 'aerPct', 'foul', 'yc', 'rc', 'corners', 'vert', 'xgPoss'],
       teamRows, tm, 'xgd', f);
+  }
+  if (sub === 'pcls') {
     const plCols = ['mp', 'min', 'gf', 'ast', 'xg', 'xgot', 'xgotmxg', 'gmx', 'sh', 'sot', 'pass', 'passPct', 'xpd', 'lb', 'byp', 'prog', 'kp', 'f3', 'box', 'cross', 'carryProg', 'drbOk', 'recov', 'recovH', 'int', 'tkW', 'aerW', 'aerPct', 'lost', 'foul', 'fouled', 'yc', 'saves'];
     renderTable('tblTacPlayers', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'team', l: 'Équipe', txt: 1, v: r => r.team, html: r => logoHTML(r.tid) + esc(r.team)}, {k: 'pos', l: 'Poste', txt: 1, v: r => r.pos},
       ...plCols.map(k => ({k, l: TAC[k].l, h: TAC[k].h, d: dec(TAC, k, pmP), v: r => val(TAC, k, r.o, pmP)}))],
       plRows, {defaultSort: 'xg', hl: r => r.id === f.player, onRow: id => setFilter('player', id)});
     rankPlayers('chTacRank', '#tacRankSub', $('#tacMetric').value, TAC, plRows, pmP, minMin, f.player);
   }
+}
+
+/* ---------- Fiche joueur (Analyse tactique › Individuel) ---------- */
+const P90 = k => o => o.secs ? o[k] / o.secs * 5400 : null;
+const PLY_GROUPS = [
+  ['Construction', [['Passes', P90('pass'), 1, 1], ['% passes réussies', o => val(TAC, 'passPct', o), 1, 1], ['Passes progressives', P90('prog'), 1, 1], ['Passes qui cassent une ligne', P90('lb'), 1, 1], ['Défenseurs éliminés par la passe', P90('byp'), 1, 1]]],
+  ['Déséquilibre', [['Conduites progressives', P90('carryProg'), 1, 1], ['Dribbles réussis', P90('drbOk'), 1, 1], ['% dribbles réussis', o => val(TAC, 'drbPct', o), 0, 1], ['Entrées dans le dernier tiers', o => o.secs ? (o.f3 + o.carryF3) / o.secs * 5400 : null, 1, 1]]],
+  ['30 derniers mètres', [['Buts', P90('gf'), 2, 1], ['Passes décisives', P90('ast'), 2, 1], ['Tirs', P90('sh'), 1, 1], ['xG', P90('xg'), 2, 1], ['xGOT', P90('xgot'), 2, 1], ['Passes clés', P90('kp'), 1, 1], ['Entrées dans la surface', P90('box'), 1, 1]]],
+  ['Défense et duels', [['Récupérations', P90('recov'), 1, 1], ['Interceptions', P90('int'), 1, 1], ['Tacles gagnés', P90('tkW'), 1, 1], ['% duels gagnés', o => val(TAC, 'duelPct', o), 1, 1], ['% duels aériens gagnés', o => val(TAC, 'aerPct', o), 1, 1], ['Pertes de balle', P90('lost'), 1, -1], ['Fautes', P90('foul'), 1, -1]]]
+];
+function renderPlayerCard(ms, TN, PI, f, P) {
+  const pid = f.player;
+  $('#plyEmpty').hidden = !!pid; $('#plyBody').hidden = !pid;
+  if (!pid || !PI[pid]) return;
+  const pi = PI[pid], tid = pi.team, col = clubColor(tid), o = P[pid] || newAgg();
+  const SR = seasonRoles(), role = SR[pid], peerMode = $('#plyPeer').value;
+  const posts = playerPosts(ms, pid, TN, tid);
+  $('#plyHead').innerHTML = `<span>${logoHTML(tid)}</span><div><div class="pn">${esc(pi.name)}</div><div class="pm">${esc(TN[tid] || '')} · ${role === 'GK' ? 'Gardien' : esc(ROLE_L[role] || 'poste non déterminé')}${posts.length ? ' · ' + posts.slice(0, 3).map(x => esc(x.nm) + (x.dn ? ` (déf. à ${x.dn})` : '')).join(', ') : ''}</div></div>`
+    + `<div class="ply-stats"><div><b>${fmt(o.mp)}</b><span>matchs</span></div><div><b>${fmt(Math.round(o.secs / 60))}</b><span>minutes</span></div><div><b>${fmt(o.gf)}</b><span>buts</span></div><div><b>${fmt(o.ast)}</b><span>passes déc.</span></div><div><b>${fmt(o.xg, 2)}</b><span>xG</span></div><div><b>${fmt(TAC.passPct.f(o), 0)} %</b><span>passes</span></div></div>`;
+  // pairs : joueurs du championnat (même poste ou tous les joueurs de champ), au moins 270 min
+  const lg = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1));
+  const LP = aggTactical(lg, f.qs).P;
+  const peers = Object.entries(LP).filter(([id, x]) => PI[id] && x.secs >= 270 * 60 && SR[id] !== 'GK' && (peerMode === 'all' || SR[id] === role) && id !== pid);
+  const oL = LP[pid] || o;
+  $('#plySub').innerHTML = `Valeurs par 90 min (pourcentages : sur l’ensemble) · comparé à ${peers.length} ${peerMode === 'all' ? 'joueurs de champ' : esc({CB: 'défenseurs centraux', FB: 'latéraux', CM: 'milieux centraux', WM: 'milieux excentrés', FW: 'attaquants'}[role] || 'joueurs')} du championnat (≥ 270 min) · vert = quart supérieur, rouge = quart inférieur`;
+  const row = ([l, fn, d, dir]) => {
+    const v = fn(oL), vals = peers.map(([id, x]) => [id, fn(x)]).filter(x => x[1] != null && isFinite(x[1]));
+    if (v != null) vals.push([pid, v]);
+    vals.sort((a, b) => dir > 0 ? b[1] - a[1] : a[1] - b[1]);
+    const avg = mean(vals.filter(x => x[0] !== pid).map(x => x[1])), i = vals.findIndex(x => x[0] === pid), n = vals.length, best = vals[0];
+    const lo = Math.min(...vals.map(x => x[1])), hi = Math.max(...vals.map(x => x[1])), pos = x => hi > lo ? (dir > 0 ? (x - lo) / (hi - lo) : (hi - x) / (hi - lo)) * 100 : 50;
+    const q = i < 0 ? '' : i < n / 4 ? 'top' : i >= n * 3 / 4 ? 'low' : 'mid', diff = v != null && avg != null ? v - avg : null, good = diff == null ? '' : diff * dir > 0 ? 'up' : diff * dir < 0 ? 'down' : '';
+    return `<tr><td class="txt">${esc(l)}</td><td><b style="color:${col}">${fmt(v, d)}</b></td><td>${fmt(avg, d)}</td><td class="kd ${good}">${diff == null ? '—' : (diff >= 0 ? '+' : '') + fmt(diff, d)}</td><td>${i >= 0 ? `<em class="rk ${q}">${ordFr(i + 1)}</em> <small class="muted">/ ${n}</small>` : '—'}</td>`
+      + `<td class="txt">${v == null ? '' : `<span class="kbar"><i class="avg" style="left:${pos(avg)}%"></i><b style="left:${pos(v)}%;background:${col}"></b></span>`}</td><td class="txt kb">${best ? `${esc(PI[best[0]].name)} <b>${fmt(best[1], d)}</b>` : ''}</td></tr>`;
+  };
+  $('#plyTbl').innerHTML = `<div class="tbl-wrap ktbl"><table><tr><th class="txt">Indicateur</th><th>${esc(pi.name)}</th><th>Moy. ${peerMode === 'all' ? 'joueurs' : 'poste'}</th><th>Écart</th><th>Rang</th><th class="txt">Position (← moins bon · meilleur →)</th><th class="txt">Meilleur</th></tr>${PLY_GROUPS.map(([g, L]) => `<tr class="kgrp"><td colspan="7">${esc(g)}</td></tr>${L.map(row).join('')}`).join('')}</table></div>`;
+  // zones de jeu, passes, tirs, duels, récupérations
+  const T0 = [], DU = [], RC = [], PS = [], SH = [], pt = $('#plyPassType').value;
+  for (const m of ms) if (m.ev) {
+    for (const e of m.ev.opta) { if (e.p !== pid || !f.qs.has(e.q)) continue;
+      const x = e.x * 1.05, y = (100 - e.y) * .68; if (e.x || e.y) T0.push({x, y});
+      if (e.t === 7 || e.t === 45 || e.t === 3 || e.t === 44) DU.push({x, y, w: e.t === 7 ? 1 : e.t === 45 ? 0 : e.o ? 1 : 0, a: e.t === 44});
+      if (e.t === 49 || e.t === 8 || (e.t === 7 && e.o)) RC.push({x, y});
+      if (pt === 'kp' && e.t === 1 && e.kp) PS.push({p: e.p, tm: e.tm, x0: r1(x), y0: r1(y), x1: r1((e.ex ?? e.x) * 1.05), y1: r1((100 - (e.ey ?? e.y)) * .68), c: e.o ? 1 : 0}); }
+    if (pt !== 'kp') for (const e of m.ev.passes) if (e.p === pid && f.qs.has(e.q) && (pt === 'all' || (e.c && (pt === 'lb' ? e.br : e.x1 - e.x0 >= 10 && e.x1 >= 35)))) PS.push(e);
+    for (const x of m.ev.shots) if (x.p === pid && f.qs.has(x.q)) SH.push(x);
+  }
+  $('#plyZoneSub').textContent = `${T0.length} actions avec ballon ou défensives · sens d’attaque →`;
+  $('#plyZones').innerHTML = zoneGridSVG(T0, col, {xs: [0, 17.5, 35, 52.5, 70, 87.5, 105]});
+  $('#plyPostSub').textContent = posts.length ? 'Survolez un poste pour voir les matchs' : '';
+  $('#plyPosts').innerHTML = posts.length ? `<table class="gkz"><tr><th class="txt">Poste</th><th class="txt">Système</th><th>Matchs</th><th>Minutes</th></tr>${posts.map(x => `<tr><td class="txt"><span class="sqtip" tabindex="0">${esc(x.nm)}<span class="sqpop"><b>${esc(x.nm)}${x.dn ? ' · défense à ' + x.dn : ''}</b>${x.L.map(y => `<span>${esc(y)}</span>`).join('')}</span></span></td><td class="txt">${x.dn ? 'défense à ' + x.dn : '—'}</td><td>${x.n}</td><td>${Math.round(x.min)}</td></tr>`).join('')}</table>` : '<div class="empty">Postes non disponibles (réimportez les fichiers insight).</div>';
+  $('#plyPassSub').textContent = `${PS.length} passe(s)`;
+  $('#plyPassMap').innerHTML = passMapSVG(PS, PI, TN, col);
+  $('#plyShotSub').textContent = `${SH.length} tirs · ${SH.filter(x => x.g).length} buts · ${fmt(SH.reduce((a, x) => a + x.xg, 0), 2)} xG`;
+  $('#plyShotMap').innerHTML = SH.length ? shotMapColored(SH, PI, TN, col) : '<div class="empty">Aucun tir.</div>'; { const lg2 = $('#plyShotMap').parentElement.querySelector('.shleg'); if (lg2) lg2.style.setProperty('--s1', col); }
+  $('#plyDuelSub').textContent = `${DU.length} duels · ${DU.length ? Math.round(DU.filter(d => d.w).length / DU.length * 100) : 0} % gagnés · couleur = % gagnés dans la zone`;
+  $('#plyDuels').innerHTML = winGridSVG(DU);
+  $('#plyRecSub').textContent = `${RC.length} ballons récupérés (récupérations, interceptions, tacles gagnés)`;
+  $('#plyRecs').innerHTML = zoneGridSVG(RC, col, {xs: [0, 35, 70, 105]});
 }
 
 /* =====================================================================
@@ -3858,17 +3972,30 @@ function fillMetricSelects() {
   for (const [id, v] of [['#phyTX', 'dist'], ['#phyTY', 'spr'], ['#phyPX', 'dist'], ['#phyPY', 'spr']]) { $(id).innerHTML = scOpts; $(id).value = v; }
 }
 
+const SUB_LVL = (b, lv) => !b.dataset.lvl || b.dataset.lvl.split(' ').includes(lv);
 function applySubtabs() {
+  S.lvl = S.lvl || {};
+  document.querySelectorAll('.lvls').forEach(el => { const tab = el.dataset.for, lv = S.lvl[tab] || 'col'; el.querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', b.dataset.lvl === lv)); });
   document.querySelectorAll('.subtabs').forEach(nav => {
-    const tab = nav.dataset.for;
-    if (!nav.querySelector(`button[data-sub="${S.sub[tab]}"]`)) S.sub[tab] = nav.querySelector('button[data-sub]').dataset.sub;
+    const tab = nav.dataset.for, lv = (S.lvl || {})[tab] || 'col';
+    nav.querySelectorAll('button[data-sub]').forEach(b => b.hidden = !SUB_LVL(b, lv));
+    const curB = nav.querySelector(`button[data-sub="${S.sub[tab]}"]`);
+    if (!curB || curB.hidden) S.sub[tab] = [...nav.querySelectorAll('button[data-sub]')].find(b => !b.hidden).dataset.sub;
     const cur = S.sub[tab];
     nav.querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', b.dataset.sub === cur));
     nav.parentElement.querySelectorAll(':scope > .subpanel').forEach(p => p.classList.toggle('active', p.dataset.sub === cur));
   });
 }
+function setLevel(tab, lv) {
+  S.lvl = S.lvl || {}; S.lvl[tab] = lv;
+  if (tab === 'phy' && S.h2h) { S.h2h.mode = lv === 'ind' ? 'player' : 'team'; try { saveH2H(); } catch (e) {} }
+  try { localStorage.setItem('dash-lvl', JSON.stringify(S.lvl)); } catch (e) {}
+  applySubtabs(); scheduleRender();
+}
 function bindSubtabs() {
   try { const sv = JSON.parse(localStorage.getItem('dash-sub') || 'null'); if (sv) Object.assign(S.sub, sv); } catch (e) {}
+  try { S.lvl = JSON.parse(localStorage.getItem('dash-lvl') || 'null') || {}; } catch (e) { S.lvl = {}; }
+  document.querySelectorAll('.lvls').forEach(el => el.onclick = e => { const b = e.target.closest('button[data-lvl]'); if (b) setLevel(el.dataset.for, b.dataset.lvl); });
   document.querySelectorAll('.subtabs').forEach(nav => nav.onclick = e => {
     const b = e.target.closest('button[data-sub]'); if (!b) return;
     S.sub[nav.dataset.for] = b.dataset.sub;
@@ -3982,7 +4109,7 @@ function phaseUI(pre, PH, NAMES, tF, TN, f, TOT, mp) {
   const fmtS = (r, v) => tot(r) ? fmt(v, r.u === 'pm2' ? 2 : 0) : fmtV(r, v);
   const cmp = r => tot(r) ? `soit ${fmtV(r, r.v)} / match · moy. ${fmtV(r, r.avg)} · meilleur ${fmtV(r, r.best)}` : `moy. ${fmtV(r, r.avg)} · meilleur ${fmtV(r, r.best)}`;
   $('#' + pre + 'synSub').innerHTML = tF ? `<b style="color:${cT}">${esc(TN[tF])}</b> · ${TOT ? `totaux sur ${mp} match(s)` : 'valeurs par match'} · comparé à la moyenne ${compShort()} · rang sur ${LG.n} équipes (calculé par match)` : `Moyenne ${compShort()} · sélectionnez une équipe pour voir ses rangs`;
-  $('#' + pre + 'synCols').innerHTML = res.map((L, i) => { const v = tF ? verdict(L) : null; return `<div class="syc"><div class="syc-h"><span class="chap-n sm">${i + 1}</span><b>${NAMES[i]}</b>${v ? `<span class="vd ${v[0]}">${v[1]}</span>` : ''}</div>${L.slice(0, 3).map(r => `<div class="syr"><span>${esc(r.l)}${unit(r)}</span><b style="color:${tF ? cT : 'var(--text)'}">${fmtS(r, shown(r))}</b>${tF ? pill(r) : ''}<small>${tot(r) ? `soit ${fmtV(r, r.v)} / match · ` : ''}moy. ${fmtV(r, r.avg)}${tot(r) ? ' / match' : ''}</small></div>`).join('')}</div>`; }).join('');
+  $('#' + pre + 'synCols').innerHTML = res.map((L, i) => { const v = tF ? verdict(L) : null; return `<div class="syc"><div class="syc-h"><span class="chap-n sm">${i + 1}</span><b>${NAMES[i]}</b>${v ? `<span class="vd ${v[0]}">${v[1]}</span>` : ''}</div>${L.slice(0, i === 2 ? 4 : 3).map(r => `<div class="syr"><span>${esc(r.l)}${unit(r)}</span><b style="color:${tF ? cT : 'var(--text)'}">${fmtS(r, shown(r))}</b>${tF ? pill(r) : ''}<small>${tot(r) ? `soit ${fmtV(r, r.v)} / match · ` : ''}moy. ${fmtV(r, r.avg)}${tot(r) ? ' / match' : ''}</small></div>`).join('')}</div>`; }).join('');
   if (tF) { const all = res.flat().filter(r => r.rank), best = all.slice().sort((a, b) => a.rank - b.rank)[0], worst = all.slice().sort((a, b) => b.rank - a.rank)[0];
     $('#' + pre + 'synRead').innerHTML = best && worst ? `<b>À retenir :</b> point fort — ${esc(best.l.toLowerCase())} (${ordFr(best.rank)}, ${fmtV(best, best.v)} contre ${fmtV(best, best.avg)} en moyenne) ; point faible — ${esc(worst.l.toLowerCase())} (${ordFr(worst.rank)}, ${fmtV(worst, worst.v)} contre ${fmtV(worst, worst.avg)}).` : ''; }
   else $('#' + pre + 'synRead').innerHTML = '';
@@ -4622,7 +4749,7 @@ function bindUI() {
     refreshAll();
   };
   $('#fReset').onclick = () => { S.f = {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0, 1, 2, 3, 4, 5])}; refreshAll(); };
-  ['#offMode', '#bmGk', '#defMode', '#duelMin', '#gkCrType', '#gkDepType', '#gkShotType', '#gkPassType', '#gkTblMode', '#gkMinMin', '#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyEvoMetric', '#phyTeamMode', '#phyTX', '#phyTY', '#phyPX', '#phyPY', '#phyPEvoMetric', '#h2hEvoMetric', '#momOffMode', '#xtPlMode',
+  ['#plyPeer', '#plyPassType', '#offMode', '#bmGk', '#defMode', '#duelMin', '#gkCrType', '#gkDepType', '#gkShotType', '#gkPassType', '#gkTblMode', '#gkMinMin', '#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyEvoMetric', '#phyTeamMode', '#phyTX', '#phyTY', '#phyPX', '#phyPY', '#phyPEvoMetric', '#h2hEvoMetric', '#momOffMode', '#xtPlMode',
    '#offMetric', '#offTeamMode', '#defMetric', '#defTeamMode', '#cpaTeamMode']
     .forEach(s => $(s).onchange = () => scheduleRender());
   document.querySelectorAll('[data-csv]').forEach(b => b.onclick = () => exportCSV(b.dataset.csv));
