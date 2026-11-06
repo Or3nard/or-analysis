@@ -184,6 +184,9 @@ details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}
 .lvls{display:inline-flex;background:var(--surface-2);border-radius:10px;padding:3px;margin:0 0 10px;gap:2px}.lvls button{border:0;background:transparent;padding:7px 18px;border-radius:8px;font-weight:700;font-size:13.5px;color:var(--text-2);cursor:pointer}.lvls button[aria-selected=true]{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .ply-head{display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:14px 18px}.ply-head .pn{font-size:22px;font-weight:800}.ply-head .pm{color:var(--text-2);font-size:13px}.ply-head .tlogo{height:34px}.ply-stats{display:flex;gap:18px;margin-left:auto;flex-wrap:wrap}.ply-stats div{text-align:center}.ply-stats b{display:block;font-size:20px}.ply-stats span{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
 .empty-card{padding:28px;text-align:center}.empty-card p{color:var(--text-2)}
+.shf [data-sh]{cursor:pointer;user-select:none;border-radius:6px;padding:1px 5px;transition:opacity .15s}.shf [data-sh]:hover{background:var(--surface-2)}
+.shh-g .sh-g,.shh-ot .sh-ot,.shh-off .sh-off{display:none}
+.shh-g .shf [data-sh=g],.shh-ot .shf [data-sh=ot],.shh-off .shf [data-sh=off]{opacity:.35;text-decoration:line-through}
 .gk-ctl{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:10px 14px}.gk-ctl select{min-width:280px}.gk-ctl .tlogo{height:18px;vertical-align:-4px}
 .gkz{width:100%;font-size:12.5px;margin-top:10px;border-collapse:collapse}.gkz th{font-size:11px;color:var(--text-2);text-align:right;padding:4px 6px;border-bottom:1px solid var(--border)}.gkz td{text-align:right;padding:5px 6px;border-bottom:1px solid var(--grid)}.gkz .txt{text-align:left}
 .gkd{font-size:12px}.gkdr{display:grid;grid-template-columns:130px 1fr auto;gap:8px;align-items:center;margin:6px 0}.gkdr span{color:var(--text-2)}.gkdr i{position:relative;height:12px;background:var(--surface-2);border-radius:6px;overflow:hidden;display:block}.gkdr i b{position:absolute;left:0;top:0;height:100%;border-radius:6px}.gkdr em{font-style:normal;font-weight:700}
@@ -532,7 +535,7 @@ input.j{width:64px}
           <div class="ph-head"><span class="chap-n">3</span><div><h2>30 derniers mètres</h2><p>Est-ce que l’équipe se crée des occasions et les convertit ?</p></div><span class="ph-verdict" id="phV3"></span></div>
           <div class="ph-kpis" id="phK3"></div>
           <div class="ph-vis">
-            <div><h3>D’où l’équipe tire</h3><p class="sub" id="shotSub"></p><div id="shotMap"></div><div class="legend shleg"><span><b class="lgball">⚽</b>But</span><span><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG</span></div></div>
+            <div><h3>D’où l’équipe tire</h3><p class="sub" id="shotSub"></p><div id="shotMap"></div><div class="legend shleg shf"><span data-sh="g" title="Cliquer pour masquer / afficher"><b class="lgball">⚽</b>But</span><span data-sh="ot" title="Cliquer pour masquer / afficher"><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span data-sh="off" title="Cliquer pour masquer / afficher"><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG · cliquez sur la légende pour filtrer</span></div></div>
             <div><h3>Où vont les tirs dans la cage</h3><p class="sub" id="cageSub"></p><div id="cageOff" class="cage-wrap"></div>
               <h3 style="margin-top:14px">Les joueurs les plus dangereux</h3><div id="dgTop"></div></div>
           </div>
@@ -619,7 +622,7 @@ input.j{width:64px}
           <div class="ph-head"><span class="chap-n">3</span><div><h2>30 derniers mètres</h2><p>Est-ce que l’équipe protège son but ?</p></div><span class="ph-verdict" id="dphV3"></span></div>
           <div class="ph-kpis" id="dphK3"></div>
           <div class="ph-vis">
-            <div><h3>D’où l’adversaire tire</h3><p class="sub" id="shotAgSub"></p><div id="shotMapAg"></div><div class="legend shleg"><span><b class="lgball">⚽</b>But</span><span><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG</span></div></div>
+            <div><h3>D’où l’adversaire tire</h3><p class="sub" id="shotAgSub"></p><div id="shotMapAg"></div><div class="legend shleg shf"><span data-sh="g" title="Cliquer pour masquer / afficher"><b class="lgball">⚽</b>But</span><span data-sh="ot" title="Cliquer pour masquer / afficher"><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span data-sh="off" title="Cliquer pour masquer / afficher"><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG · cliquez sur la légende pour filtrer</span></div></div>
             <div><h3>Où arrivent les tirs concédés</h3><p class="sub" id="cageAgSub"></p><div id="cageAg" class="cage-wrap"></div>
               <h3 style="margin-top:14px">Type de tirs concédés</h3><div id="shATypes"></div></div>
           </div>
@@ -678,7 +681,7 @@ input.j{width:64px}
         <div class="card c5">
           <div class="card-head"><div><h2>Tirs sur CPA</h2><p class="sub" id="shotCpaSub"></p></div></div>
           <div id="shotMapCpa"></div>
-          <div class="legend shleg"><span><b class="lgball">⚽</b>But</span><span><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG</span></div>
+          <div class="legend shleg shf"><span data-sh="g" title="Cliquer pour masquer / afficher"><b class="lgball">⚽</b>But</span><span data-sh="ot" title="Cliquer pour masquer / afficher"><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span data-sh="off" title="Cliquer pour masquer / afficher"><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG · cliquez sur la légende pour filtrer</span></div>
         </div>
         <div class="card c12">
           <div class="card-head">
@@ -704,7 +707,7 @@ input.j{width:64px}
           <div class="card-head"><div><h2>D’où on lui tire dessus</h2><p class="sub" id="gkShotSub"></p></div>
           <div class="ctrl"><select id="gkShotType"><option value="all">Tous les tirs</option><option value="ot">Cadrés</option><option value="g">Buts</option></select></div></div>
           <div id="gkShotMap"></div>
-          <div class="legend shleg"><span><b class="lgball">⚽</b>But</span><span><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG</span></div>
+          <div class="legend shleg shf"><span data-sh="g" title="Cliquer pour masquer / afficher"><b class="lgball">⚽</b>But</span><span data-sh="ot" title="Cliquer pour masquer / afficher"><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span data-sh="off" title="Cliquer pour masquer / afficher"><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG · cliquez sur la légende pour filtrer</span></div>
         </div>
         <div class="card c12 gk-sec"><h2 class="gk-h">Centres et sorties aériennes</h2></div>
         <div class="card c7">
@@ -810,7 +813,7 @@ input.j{width:64px}
           <div class="card c5">
             <div class="card-head"><div><h2>Ses tirs</h2><p class="sub" id="plyShotSub"></p></div></div>
             <div id="plyShotMap"></div>
-            <div class="legend shleg"><span><b class="lgball">⚽</b>But</span><span><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG</span></div>
+            <div class="legend shleg shf"><span data-sh="g" title="Cliquer pour masquer / afficher"><b class="lgball">⚽</b>But</span><span data-sh="ot" title="Cliquer pour masquer / afficher"><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span data-sh="off" title="Cliquer pour masquer / afficher"><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG · cliquez sur la légende pour filtrer</span></div>
           </div>
           <div class="card c6">
             <div class="card-head"><div><h2>Ses duels</h2><p class="sub" id="plyDuelSub"></p></div></div>
@@ -2297,9 +2300,9 @@ function shotMapSVG(shots, PI, TN) {
   const pts = sorted.map(s => {
     const r = 0.7 + Math.sqrt(Math.max(s.xg, 0.005)) * 3.4, cx = s.y.toFixed(1), cy = (105 - s.x).toFixed(1);
     const tip = `${PI[s.p] ? PI[s.p].name : '—'} (${TN[s.tm] || ''})\n${s.min != null ? s.min + "' · " : ''}xG ${fmt(s.xg, 2)}${(s.ot || s.g) && !s.blk ? ' · xGOT ' + fmt(PSM(s), 2) : ''}${s.g ? ' · BUT' : s.ot ? ' · cadré, arrêté' : s.blk ? ' · contré' : ' · non cadré'}${s.pen ? ' · penalty' : ''}`;
-    if (s.g) { const R = Math.max(1.2, r * .95); return `<g data-tip="${esc(tip)}"><circle cx="${cx}" cy="${cy}" r="${(R + .25).toFixed(2)}" fill="#fff" stroke="var(--s1)" stroke-width=".55"/><text x="${cx}" y="${(+cy + R * .52).toFixed(2)}" text-anchor="middle" font-size="${(R * 1.55).toFixed(2)}">⚽</text></g>`; }
-    if (s.ot) return `<circle cx="${cx}" cy="${cy}" r="${r.toFixed(2)}" fill="var(--s1)" fill-opacity=".45" stroke="var(--s1)" stroke-width=".3" data-tip="${esc(tip)}"/>`;
-    return `<circle cx="${cx}" cy="${cy}" r="${r.toFixed(2)}" fill="var(--surface)" fill-opacity=".5" stroke="var(--s1)" stroke-width=".3" stroke-opacity=".8" data-tip="${esc(tip)}"/>`;
+    if (s.g) { const R = Math.max(1.2, r * .95); return `<g class="sh-g" data-tip="${esc(tip)}"><circle cx="${cx}" cy="${cy}" r="${(R + .25).toFixed(2)}" fill="#fff" stroke="var(--s1)" stroke-width=".55"/><text x="${cx}" y="${(+cy + R * .52).toFixed(2)}" text-anchor="middle" font-size="${(R * 1.55).toFixed(2)}">⚽</text></g>`; }
+    if (s.ot) return `<circle class="sh-ot" cx="${cx}" cy="${cy}" r="${r.toFixed(2)}" fill="var(--s1)" fill-opacity=".45" stroke="var(--s1)" stroke-width=".3" data-tip="${esc(tip)}"/>`;
+    return `<circle class="sh-off" cx="${cx}" cy="${cy}" r="${r.toFixed(2)}" fill="var(--surface)" fill-opacity=".5" stroke="var(--s1)" stroke-width=".3" stroke-opacity=".8" data-tip="${esc(tip)}"/>`;
   }).join('');
   return `<svg class="pitch" viewBox="-2 -3 72 58"><g transform="matrix(0,-1,1,0,0,105)">${pitchLines(false)}</g>${pts}</svg>`;
 }
@@ -2426,15 +2429,15 @@ function cageSVG(shots, col) {
     const x = Math.max(.08, Math.min(W - .08, X(s.gy))), z = Math.max(.08, Math.min(H - .02, Z(s.gz)));
     const r = .07 + Math.sqrt(Math.max(s.xg || 0, .01)) * .16;
     const tip = `${s.min != null ? s.min + "' · " : ''}xG ${fmt(s.xg, 2)}${s.ot || s.g ? ' · xGOT ' + fmt(PSC(s), 2) : ''}${s.g ? ' · BUT' : s.ot ? ' · arrêté' : s.post ? ' · poteau' : ' · non cadré'}`;
-    if (s.g) return `<g data-tip="${esc(tip)}"><circle cx="${x}" cy="${z}" r="${r + .03}" fill="#fff" stroke="${col}" stroke-width=".035"/><text x="${x}" y="${z + .07}" text-anchor="middle" font-size="${(r + .03) * 1.55}">⚽</text></g>`;
-    if (s.ot) return `<circle cx="${x}" cy="${z}" r="${r}" fill="${col}" stroke="var(--surface)" stroke-width=".02" data-tip="${esc(tip)}"/>`;
-    return `<circle cx="${x}" cy="${z}" r="${r}" fill="var(--surface)" stroke="${col}" stroke-width=".03" stroke-dasharray="${s.post ? '0' : '.05 .03'}" data-tip="${esc(tip)}"/>`;
+    if (s.g) return `<g class="sh-g" data-tip="${esc(tip)}"><circle cx="${x}" cy="${z}" r="${r + .03}" fill="#fff" stroke="${col}" stroke-width=".035"/><text x="${x}" y="${z + .07}" text-anchor="middle" font-size="${(r + .03) * 1.55}">⚽</text></g>`;
+    if (s.ot) return `<circle class="sh-ot" cx="${x}" cy="${z}" r="${r}" fill="${col}" stroke="var(--surface)" stroke-width=".02" data-tip="${esc(tip)}"/>`;
+    return `<circle class="sh-off" cx="${x}" cy="${z}" r="${r}" fill="var(--surface)" stroke="${col}" stroke-width=".03" stroke-dasharray="${s.post ? '0' : '.05 .03'}" data-tip="${esc(tip)}"/>`;
   }).join('');
   const frame = `<path d="M${X(PY1)} ${H} V${Z(BAR)} H${X(PY0)} V${H}" fill="none" stroke="var(--text)" stroke-width=".09" stroke-linejoin="round"/><line x1="0" y1="${H}" x2="${W}" y2="${H}" stroke="var(--text-3)" stroke-width=".03"/>`;
   const lab = ['lucarne', 'mi-hauteur', 'ras de terre'].map((l, r) => `<text x="${X(PY1) - .12}" y="${(Z(cz[r]) + Z(cz[r + 1])) / 2 + .06}" text-anchor="end" font-size=".17" fill="var(--text-3)">${l}</text>`).join('');
   const gl = ok.filter(s => s.g).length, sv = ok.filter(s => s.ot && !s.g).length, off = ok.length - gl - sv;
   return {svg: `<svg class="cage" viewBox="-.1 -.1 ${W + .2} ${H + .35}"><rect x="-.1" y="-.1" width="${W + .2}" height="${H + .35}" fill="var(--pitch)"/>${cells}${frame}${lab}${dots}<text x="${W / 2}" y="${H + .25}" text-anchor="middle" font-size=".16" fill="var(--text-3)">vue depuis le tireur</text></svg>`
-    + `<div class="cage-leg"><span>⚽ but (${gl})</span><span><i style="background:${col}"></i>arrêté (${sv})</span><span><i style="border:1.5px dashed ${col}"></i>non cadré (${off})</span>${blk ? `<span>${blk} contré(s), non placés</span>` : ''}</div>`,
+    + `<div class="cage-leg shf"><span data-sh="g" title="Cliquer pour masquer / afficher">⚽ but (${gl})</span><span data-sh="ot" title="Cliquer pour masquer / afficher"><i style="background:${col}"></i>arrêté (${sv})</span><span data-sh="off" title="Cliquer pour masquer / afficher"><i style="border:1.5px dashed ${col}"></i>non cadré (${off})</span>${blk ? `<span>${blk} contré(s), non placés</span>` : ''}</div>`,
     sub: `${shots.length} tirs · ${inF} cadrés placés dans le cadre · xGOT ${fmt(ok.filter(s => s.ot || s.g).reduce((a, s) => a + PSC(s), 0), 2)} · taille = xG${miss ? ` · ${miss} tir(s) sans position (réimportez les matchs)` : ''}`};
 }
 /* =====================================================================
@@ -4718,6 +4721,7 @@ function bindUI() {
   bindSubtabs();
   bindPhyUI();
   bindReportUI();
+  document.addEventListener('click', e => { const t = e.target.closest('.shf [data-sh]'); if (!t) return; const sc = t.closest('.subpanel, .rpage, .card') || document.body; sc.classList.toggle('shh-' + t.dataset.sh); });
   document.addEventListener('click', e => { const b = e.target.closest('[data-more]'); if (!b) return; const w = document.getElementById(b.dataset.more + 'Wrap'); if (!w) return; w.hidden = !w.hidden; b.textContent = b.textContent.replace(/^(Voir|Masquer)/, w.hidden ? 'Voir' : 'Masquer'); });
   $('#offDet').addEventListener('toggle', () => scheduleRender()); $('#defDet').addEventListener('toggle', () => scheduleRender());
   $('#gkSel').onchange = e => { S.gkSel = e.target.value; scheduleRender(); };
