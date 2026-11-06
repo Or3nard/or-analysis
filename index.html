@@ -187,6 +187,7 @@ details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}
 .shf [data-sh]{cursor:pointer;user-select:none;border-radius:6px;padding:1px 5px;transition:opacity .15s}.shf [data-sh]:hover{background:var(--surface-2)}
 .shh-g .sh-g,.shh-ot .sh-ot,.shh-off .sh-off{display:none}
 .shh-g .shf [data-sh=g],.shh-ot .shf [data-sh=ot],.shh-off .shf [data-sh=off]{opacity:.35;text-decoration:line-through}
+#verBar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;background:var(--text);color:var(--surface);padding:10px 14px;border-radius:10px;font-size:13.5px;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;gap:12px;align-items:center}#verBar .btn{background:var(--surface);color:var(--text)}
 .gk-ctl{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:10px 14px}.gk-ctl select{min-width:280px}.gk-ctl .tlogo{height:18px;vertical-align:-4px}
 .gkz{width:100%;font-size:12.5px;margin-top:10px;border-collapse:collapse}.gkz th{font-size:11px;color:var(--text-2);text-align:right;padding:4px 6px;border-bottom:1px solid var(--border)}.gkz td{text-align:right;padding:5px 6px;border-bottom:1px solid var(--grid)}.gkz .txt{text-align:left}
 .gkd{font-size:12px}.gkdr{display:grid;grid-template-columns:130px 1fr auto;gap:8px;align-items:center;margin:6px 0}.gkdr span{color:var(--text-2)}.gkdr i{position:relative;height:12px;background:var(--surface-2);border-radius:6px;overflow:hidden;display:block}.gkdr i b{position:absolute;left:0;top:0;height:100%;border-radius:6px}.gkdr em{font-style:normal;font-weight:700}
@@ -370,7 +371,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1>OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-06 10:29 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3064,6 +3065,23 @@ function renderTactical() {
     rankPlayers('chTacRank', '#tacRankSub', $('#tacMetric').value, TAC, plRows, pmP, minMin, f.player);
   }
 }
+
+// Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
+const BUILD = '2026-11-06 10:29 UTC';
+async function checkVersion() {
+  if (location.protocol === 'file:') return;
+  try {
+    const t = await (await fetch(location.pathname + '?v=' + Date.now(), {cache: 'no-store'})).text();
+    const m = t.match(/const BUILD = '([^']+)'/);
+    if (m && m[1] !== BUILD && !document.getElementById('verBar')) {
+      const el = document.createElement('div'); el.id = 'verBar';
+      el.innerHTML = `Une nouvelle version du dashboard est disponible. <button class="btn">Recharger</button>`;
+      el.querySelector('button').onclick = () => location.reload();
+      document.body.appendChild(el);
+    }
+  } catch (e) {}
+}
+setTimeout(checkVersion, 4000); setInterval(checkVersion, 5 * 60 * 1000);
 
 /* ---------- Fiche joueur (Analyse tactique › Individuel) ---------- */
 const P90 = k => o => o.secs ? o[k] / o.secs * 5400 : null;
