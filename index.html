@@ -190,6 +190,13 @@ details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}
 .cage .cz-g,.cage .cz-ot{display:none}.shh-g .cage .cz-all,.shh-ot .cage .cz-all{display:none}.shh-ot .cage .cz-g{display:inline}.shh-g .cage .cz-ot{display:inline}.shh-g.shh-ot .cage .cz-g,.shh-g.shh-ot .cage .cz-ot{display:none}
 .shh-g .shf [data-sh=g],.shh-ot .shf [data-sh=ot],.shh-off .shf [data-sh=off]{opacity:.35;text-decoration:line-through}
 #verBar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;background:var(--text);color:var(--surface);padding:10px 14px;border-radius:10px;font-size:13.5px;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;gap:12px;align-items:center}#verBar .btn{background:var(--surface);color:var(--text)}
+.ph-kpis.ck6{grid-template-columns:repeat(6,1fr)}@media (max-width:1100px){.ph-kpis.ck6{grid-template-columns:repeat(3,1fr)}}
+.ck-box{max-width:560px;margin:6px auto 0}.ck-box svg{width:100%;display:block}
+.ckmode{display:flex;flex-direction:column;gap:8px}
+.ck-info dl{display:grid;grid-template-columns:150px 1fr;gap:6px 10px;margin:6px 0;font-size:13px}.ck-info dt{color:var(--text-3)}.ck-info dd{margin:0;font-weight:600}
+.ck-box.ck-big{max-width:720px}
+.ckzt{margin-top:8px}
+.ck2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.ck2 h4{font-size:12px;margin:4px 0;color:var(--text-2)}
 .gk-ctl{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:10px 14px}.gk-ctl select{min-width:280px}.gk-ctl .tlogo{height:18px;vertical-align:-4px}
 .gkz{width:100%;font-size:12.5px;margin-top:10px;border-collapse:collapse}.gkz th{font-size:11px;color:var(--text-2);text-align:right;padding:4px 6px;border-bottom:1px solid var(--border)}.gkz td{text-align:right;padding:5px 6px;border-bottom:1px solid var(--grid)}.gkz .txt{text-align:left}
 .gkd{font-size:12px}.gkdr{display:grid;grid-template-columns:130px 1fr auto;gap:8px;align-items:center;margin:6px 0}.gkdr span{color:var(--text-2)}.gkdr i{position:relative;height:12px;background:var(--surface-2);border-radius:6px;overflow:hidden;display:block}.gkdr i b{position:absolute;left:0;top:0;height:100%;border-radius:6px}.gkdr em{font-style:normal;font-weight:700}
@@ -373,7 +380,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-06 10:42 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-06 10:57 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -675,6 +682,41 @@ input.j{width:64px}
     <!-- CPA -->
     <div class="subpanel" data-sub="cpa">
       <p class="note" id="cpaNote" hidden></p>
+      <div class="grid">
+        <div class="card c12 synth">
+          <div class="card-head"><div><h2>Corners — en résumé</h2><p class="sub" id="ckSub"></p></div>
+          <div class="ctrl"><div class="chips" id="ckSide"><button class="chip" data-v="for">Nos corners</button><button class="chip" data-v="ag">Corners adverses</button></div></div></div>
+          <div class="ph-kpis ck6" id="ckKpis"></div>
+          <p class="note" id="ckTrkNote"></p>
+        </div>
+        <div class="card c12 ph">
+          <div class="ph-head"><span class="chap-n">1</span><div><h2>Les tireurs</h2><p>Qui tire, de quel côté, avec quelle trajectoire, et ce que ça donne.</p></div></div>
+          <div class="tbl-wrap" id="ckTakers"></div>
+        </div>
+        <div class="card c12 ph">
+          <div class="ph-head"><span class="chap-n">2</span><div><h2>Exécution et trajectoire</h2><p>Comment le corner est joué (direct, à 2, à 3) et la trajectoire du ballon.</p></div></div>
+          <div class="ph-vis"><div><h3>Comment le corner est joué</h3><div id="ckMode"></div></div><div><h3>Trajectoire</h3><p class="sub" id="ckTrajSub"></p><div id="ckTraj"></div></div></div>
+        </div>
+        <div class="card c12 ph">
+          <div class="ph-head"><span class="chap-n">3</span><div><h2>Premier et second contact</h2><p>Où arrive le ballon, qui le touche en premier, puis qui récupère le second ballon.</p></div>
+          <div class="ph-verdict"><div class="chips" id="ckZoneMode"><button class="chip" data-v="arr">Arrivée du ballon</button><button class="chip" data-v="c1">1er contact</button><button class="chip" data-v="c2">2e contact</button></div></div></div>
+          <div class="ph-vis"><div><h3 id="ckZoneT"></h3><p class="sub" id="ckZoneSub"></p><div id="ckZones" class="ck-box"></div></div>
+            <div><h3>Premier contact : par qui</h3><div id="ckC1"></div><h3 style="margin-top:14px">Second contact : par qui</h3><div id="ckC2"></div></div></div>
+        </div>
+        <div class="card c12 ph">
+          <div class="ph-head"><span class="chap-n">4</span><div><h2>Qui monte et où se placent les joueurs</h2><p>Les joueurs présents dans la surface et leurs positions au départ puis à l’arrivée du ballon.</p></div></div>
+          <div class="ph-vis"><div><h3>Les joueurs dans la surface</h3><p class="sub" id="ckUpSub"></p><div class="tbl-wrap" id="ckUp"></div></div>
+            <div><h3>Placement moyen</h3><p class="sub" id="ckPlSub"></p><div class="chips" id="ckPlMode" style="margin:4px 0 6px"><button class="chip" data-v="k">Au départ du corner</button><button class="chip" data-v="r">À l’arrivée du ballon</button></div><div id="ckPlace" class="ck-box"></div></div></div>
+        </div>
+        <div class="card c12 ph">
+          <div class="ph-head"><span class="chap-n">5</span><div><h2>Corner par corner</h2><p>Positions au départ (cercles vides) puis à l’arrivée du ballon (pleins), trajectoire du ballon et contacts.</p></div></div>
+          <div class="ph-vis"><div><label class="lbl">Corner <select id="ckOne"></select></label><div id="ckOneMap" class="ck-box ck-big"></div>
+            <div class="legend"><span><i id="ckLegA" style="background:var(--s1)"></i>Attaquants</span><span><i style="background:#8a8a8a"></i>Défenseurs</span><span>○ au départ · ● à l’arrivée</span><span style="color:#e08a00">— ballon</span></div></div>
+            <div><h3>Le corner</h3><div id="ckOneInfo"></div></div></div>
+        </div>
+        <details class="card c12 det" id="cpaDet">
+          <summary><b>Autres coups de pied arrêtés</b> <span class="muted">— xG par type de CPA, tirs sur CPA, tableau des équipes</span></summary>
+          <div style="margin-top:12px">
       <div class="kpis" id="cpaKpis"></div>
       <div class="grid" style="margin-top:14px">
         <div class="card c7">
@@ -694,9 +736,11 @@ input.j{width:64px}
           <div class="tbl-wrap" id="tblCpaTeams"></div>
         </div>
       </div>
+          </div>
+        </details>
+      </div>
     </div>
 
-    <!-- Gardien -->
     <div class="subpanel" data-sub="gk">
       <div class="card gk-ctl"><label class="lbl">Gardien <select id="gkSel"></select></label><span class="sub" id="gkInfo"></span></div>
       <div class="kpis" id="gkKpis" style="margin-top:12px"></div>
@@ -1267,11 +1311,11 @@ async function importFiles(list) {
   if (!canEdit()) return;
   logEl.textContent = '';
   log(`Analyse de ${list.length} fichier(s)…`);
-  const parsed = [];
+  const parsed = [], trkFiles = [];
   for (const {file, path} of list) {
     const name = file.name.toLowerCase();
     if (!/\.(jsonl?|json)$/.test(name)) { continue; }
-    if (file.size > 80e6 || /tracking/.test(name)) { log(`• ${file.name} : tracking brut ignoré (non nécessaire au dashboard)`); continue; }
+    if (file.size > 80e6 || /tracking/.test(name)) { const dir = path.includes('/') ? path.slice(0, path.lastIndexOf('/')) : ''; trkFiles.push({file, dir, size: file.size, name: file.name}); continue; }
     let p;
     try { p = parseText(await file.text()); } catch (e) { log(`✗ ${file.name} : lecture impossible`); continue; }
     const dir = path.includes('/') ? path.slice(0, path.lastIndexOf('/')) : '';
@@ -1309,7 +1353,7 @@ async function importFiles(list) {
     const base = baseFromMeta(mm.meta, mm.metadata);
     const prev = S.matches[gid];
     if (prev) { // conserve événements, physique, journée manuelle
-      for (const k of ['ev', 'phys', 'minsQ', 'minsSrc', 'j', 'jManual', 'comp', 'srcSig']) if (prev[k] !== undefined) base[k] = prev[k];
+      for (const k of ['ev', 'phys', 'minsQ', 'minsSrc', 'j', 'jManual', 'comp', 'srcSig', 'trk']) if (prev[k] !== undefined) base[k] = prev[k];
       for (const [pid, pl] of Object.entries(prev.players)) if (!base.players[pid]) base.players[pid] = pl;
     }
     base.dirs = [...mm.dirs];
@@ -1360,12 +1404,69 @@ async function importFiles(list) {
     if ((sigs[id] || []).length >= 3) m.srcSig = sg;
   }
   if (skipped) log(`• ${skipped} match(s) déjà à jour (mêmes fichiers) : ignorés, rien n'est renvoyé en ligne.`);
+  // 4) Tracking : uniquement les quelques secondes autour de chaque corner (positions, trajectoire du ballon)
+  for (const it of trkFiles) {
+    let m = Object.values(S.matches).find(x => it.dir && (x.dirs || []).includes(it.dir));
+    if (!m) { try { const head = await it.file.slice(0, 400).text(); const wc = +((head.match(/"wallClock": (\d+)/) || [])[1]); m = Object.values(S.matches).find(x => x.periods && x.periods[0] && x.periods[0].wc === wc); } catch (e) {} }
+    if (!m || !m.ev) { log(`• ${it.name} : tracking sans match correspondant (importez le dossier complet du match)`); continue; }
+    const nC = (m.ev.corners || []).length;
+    if (m.trk && m.trk.size === it.size && m.trk.v === TRK_VER && m.trk.n === nC) continue;
+    try { log(`… ${m.home.name} – ${m.away.name} : lecture du tracking pour les corners`); const n = await procTracking(m, it.file); m.trk.size = it.size; touched.add(m.id); log(`✓ ${m.home.name} – ${m.away.name} : positions sur ${n} corner(s)`); }
+    catch (e) { console.warn(e); log(`✗ ${it.name} : lecture du tracking impossible`); }
+  }
   if (fresh && impComp !== S.comp) setComp(impComp, true);
   for (const id of autoJournees()) touched.add(id);
   for (const id of touched) persist(S.matches[id]);
   if (CLOUD && touched.size) log(`Envoi en ligne de ${touched.size} match(s)…`);
   log(`Terminé : ${touched.size} match(s) mis à jour, ${Object.keys(S.matches).length} au total.`);
   refreshAll();
+}
+
+/* ---------- Tracking : positions et trajectoire du ballon autour des corners ---------- */
+const TRK_VER = 1;
+const cornerKey = c => c.per + '|' + Math.round(c.gc * 10);
+async function procTracking(m, file) {
+  const C = (m.ev && m.ev.corners) || [];
+  m.trk = {v: TRK_VER, n: C.length, c: {}};
+  if (!C.length) return 0;
+  const W = C.map((c, i) => ({i, per: c.per, a: c.gc - .3, b: c.gc + 7, fr: []}));
+  const rx = /"period": (\d+), "frameIdx": \d+, "gameClock": ([\d.]+)/;
+  const reader = file.stream().pipeThrough(new TextDecoderStream()).getReader();
+  let buf = '', done = false;
+  const take = line => { const mm = rx.exec(line.slice(0, 100)); if (!mm) return; const per = +mm[1], gc = +mm[2];
+    for (const w of W) if (w.per === per && gc >= w.a && gc <= w.b) { const o = JSON.parse(line); w.fr.push({gc, b: o.ball && o.ball.xyz, h: o.homePlayers, w: o.awayPlayers}); } };
+  while (!done) { const r = await reader.read(); done = r.done; if (r.value) buf += r.value; let k;
+    while ((k = buf.indexOf('\n')) >= 0) { take(buf.slice(0, k)); buf = buf.slice(k + 1); } }
+  if (buf) take(buf);
+  const L = m.L, Wd = m.W, nx = x => r1((x + L / 2) / L * 105), ny = y => r1((Wd / 2 - y) / Wd * 68);
+  let n = 0;
+  for (const w of W) {
+    const c = C[w.i], F = w.fr.filter(f => f.b && f.b[0] != null).sort((a, b) => a.gc - b.gc); if (F.length < 10) continue;
+    const per = m.periods.find(p => p.n === c.per) || {hap: true}, attHome = c.tm === m.home.id, sgn = (attHome === (per.hap !== false)) ? 1 : -1;
+    const P = (q, side) => q.map(x => ({p: x.playerId, n: x.number, x: nx(sgn * x.xyz[0]), y: ny(sgn * x.xyz[1]), a: side}));
+    const at = f => [...P(attHome ? f.h : f.w, 1), ...P(attHome ? f.w : f.h, 0)];
+    const B = f => ({x: nx(sgn * f.b[0]), y: ny(sgn * f.b[1]), z: f.b[2] || 0});
+    let i0 = 0, bd = 9; F.forEach((f, i) => { const d = Math.abs(f.gc - c.gc); if (d < bd) { bd = d; i0 = i; } });
+    // arrivée du ballon : près du premier contact Opta, sinon premier changement brusque de trajectoire près d'un joueur
+    let i1 = -1;
+    if (c.c1) for (let i = i0 + 6; i < F.length; i++) { const b = B(F[i]); if (Math.hypot(b.x - c.c1.x, b.y - c.c1.y) < 3 && b.z < 3.6) { i1 = i; break; } if (F[i].gc - F[i0].gc > (c.c1.dt || 3) + 2.5) break; }
+    if (i1 < 0) for (let i = i0 + 6; i < F.length - 2; i++) {
+      const b0 = B(F[i - 2]), b = B(F[i]), b2 = B(F[i + 2]), v1 = [b.x - b0.x, b.y - b0.y, b.z - b0.z], v2 = [b2.x - b.x, b2.y - b.y, b2.z - b.z];
+      const n1 = Math.hypot(...v1) + 1e-6, n2 = Math.hypot(...v2) + 1e-6, cs = (v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2]) / n1 / n2;
+      const near = Math.min(...at(F[i]).map(q => Math.hypot(q.x - b.x, q.y - b.y)));
+      if ((cs < .8 || Math.abs(n2 - n1) / Math.max(n1, n2) > .45) && near < 2 && b.z < 3.5) { i1 = i; break; }
+    }
+    if (i1 < 0) i1 = Math.min(F.length - 1, i0 + 50);
+    const path = []; let zmax = 0;
+    for (let i = i0; i <= i1; i++) { const b = B(F[i]); zmax = Math.max(zmax, b.z); if ((i - i0) % 2 === 0 || i === i1) path.push([r1(b.x), r1(b.y), r1(b.z)]); }
+    const keep = q => q.filter(x => x.x >= 50).map(x => [x.a, x.n, x.x, x.y, x.p]);
+    const arrB = B(F[i1]);
+    // joueur le plus proche du ballon à l'arrivée (si pas de premier contact Opta)
+    const near = at(F[i1]).map(q => ({...q, d: Math.hypot(q.x - arrB.x, q.y - arrB.y)})).sort((a, b) => a.d - b.d)[0];
+    m.trk.c[cornerKey(c)] = {k: keep(at(F[i0])), r: keep(at(F[i1])), b: path, z: r1(zmax), dt: r1(F[i1].gc - F[i0].gc), nr: near ? [near.a, near.p] : null};
+    n++;
+  }
+  return n;
 }
 
 function baseFromMeta(meta, md) {
@@ -1378,7 +1479,7 @@ function baseFromMeta(meta, md) {
     desc,
     L: (meta ? meta.pitchLength : d.pitchLength) || 105,
     W: (meta ? meta.pitchWidth : d.pitchWidth) || 68,
-    periods: (meta || d).periods.map(p => ({n: p.number, dur: (p.endFrameClock - p.startFrameClock) / 1000})),
+    periods: (meta || d).periods.map(p => ({n: p.number, dur: (p.endFrameClock - p.startFrameClock) / 1000, hap: p.homeAttPositive !== false, wc: p.startFrameClock})),
     home: {id: meta ? meta.homeSsiId : d.homeTeam.id, name: d ? d.homeTeam.name : dh || 'Domicile', opta: meta ? meta.homeOptaUuid : d.homeTeam.externalIds.performId, full: !!d},
     away: {id: meta ? meta.awaySsiId : d.awayTeam.id, name: d ? d.awayTeam.name : da || 'Extérieur', opta: meta ? meta.awayOptaUuid : d.awayTeam.externalIds.performId, full: !!d},
     score: [(meta || d).homeScore, (meta || d).awayScore],
@@ -1394,7 +1495,7 @@ function baseFromMeta(meta, md) {
 }
 
 /* ---------- Insight : événements Opta + marquages tracking ---------- */
-const EV_VER = 7; // version du traitement des événements (à incrémenter si procInsight change)
+const EV_VER = 8; // version du traitement des événements (à incrémenter si procInsight change)
 const OPTA_KEEP = new Set([1, 3, 4, 7, 8, 10, 11, 12, 17, 41, 44, 45, 49, 50, 52, 53, 59, 61, 74]);
 function procInsight(m, rows) {
   const L = m.L, W = m.W;
@@ -1431,7 +1532,8 @@ function procInsight(m, rows) {
             st: k.startType || 'autre', vp: k.verticalPassing || 0, vc: k.verticalCarrying || 0, ct: k.isContested ? 1 : 0};
           ev.poss.push(po); if (Array.isArray(k.events) && k.events.length) possRaw.push([po, k.events]); break; }
         case 'corner':
-          ev.corners.push({tm: k.attTeamId, q, p: k.takerId, att: (k.attInBox || []).length + (k.attInGkBox || []).length, def: (k.defInBox || []).length + (k.defInGkBox || []).length, sh: k.shortOption ? 1 : 0, sw: k.crossSwing === 'inswing' ? 'in' : k.crossSwing === 'outswing' ? 'out' : ''}); break;
+          ev.corners.push({tm: k.attTeamId, q, p: k.takerId, att: (k.attInBox || []).length + (k.attInGkBox || []).length, def: (k.defInBox || []).length + (k.defInGkBox || []).length, sh: k.shortOption ? 1 : 0, sw: k.crossSwing === 'inswing' ? 'in' : k.crossSwing === 'outswing' ? 'out' : '',
+            per: k.period, gc: Math.round((k.gameClock || 0) * 100) / 100, f: k.frameIdx, A: [...new Set([...(k.attInBox || []), ...(k.attInGkBox || [])])], D: [...new Set([...(k.defInBox || []), ...(k.defInGkBox || [])])], np: k.nearPostDefender ? 1 : 0, fp: k.farPostDefender ? 1 : 0}); break;
         case 'shot':
           shotMkList.push({k, q});
           if (k.optaId) shotMk[k.optaId] = k; break;
@@ -1519,6 +1621,55 @@ function procInsight(m, rows) {
       let np = 0, npz = null;
       for (const [, x1, isP] of pts) { if (isP) np++; if (npz == null && z1 !== z0 && zone(x1) === z1) npz = np; }
       po.z0 = z0; po.z1 = z1; po.np = np; if (z1 !== z0) po.npz = npz ?? np;
+    }
+  }
+  // Corners : exécution, trajectoire, premier et second contact, issue (événements Opta)
+  {
+    const T = o => (o.periodId === 1 ? o.timeMin : o.timeMin - 45) * 60 + (o.timeSec || 0);
+    const seq = optaRaw.filter(o => (o.periodId === 1 || o.periodId === 2) && teamOf[o.contestantId]).slice().sort((a, b) => a.periodId - b.periodId || T(a) - T(b) || (a.eventId || 0) - (b.eventId || 0));
+    const qOf = o => { const q = {}; (o.qualifier || []).forEach(x => q[x.qualifierId] = x.value ?? ''); return q; };
+    const TOUCH = new Set([1, 2, 3, 7, 8, 10, 11, 12, 13, 14, 15, 16, 41, 44, 49, 50, 52, 61, 74]);
+    const inBox = (x, y) => x >= 83 && y >= 21.1 && y <= 78.9;
+    const used = new Set();
+    for (const c of ev.corners) {
+      // le corner Opta (passe avec qualificatif 6) le plus proche dans le temps
+      let ci = -1, best = 9;
+      seq.forEach((o, i) => { if (o.typeId !== 1 || o.periodId !== c.per || teamOf[o.contestantId] !== c.tm || used.has(i)) return; const q = qOf(o); if (!('6' in q)) return; const d = Math.abs(T(o) - c.gc); if (d < best) { best = d; ci = i; } });
+      if (ci < 0) continue; used.add(ci);
+      const co = seq[ci], cq = qOf(co), t0 = T(co), A = c.tm;
+      c.side = co.y > 50 ? 'G' : 'D';
+      if ('223' in cq) c.sw = 'in'; else if ('224' in cq) c.sw = 'out'; else if ('225' in cq && !c.sw) c.sw = 'dr';
+      c.p = optaToSsi[co.playerId] || c.p;
+      // livraison : première passe de l'équipe qui attaque arrivant dans la surface (ou centre)
+      let k = ci, nP = 0, del = null;
+      for (; k < seq.length && T(seq[k]) - t0 <= 20 && seq[k].periodId === c.per; k++) {
+        const o = seq[k]; if (!TOUCH.has(o.typeId)) continue;
+        if (teamOf[o.contestantId] !== A) { if (k > ci) break; continue; }
+        if (o.typeId === 1) { nP++; const q = qOf(o), ex = +q[140], ey = +q[141]; if ((isFinite(ex) && inBox(ex, ey)) || '2' in q) { del = {o, q, ex, ey}; break; } }
+        else if (o.typeId >= 13 && o.typeId <= 16) break;
+      }
+      c.mode = del ? Math.min(4, nP) : 0; // 1 = direct, 2 = à 2, 3 = à 3, 4 = à 4 et plus, 0 = jamais centré
+      if (del && isFinite(del.ex)) { c.ax = r1(del.ex * 1.05); c.ay = r1((100 - del.ey) * .68); c.dp = optaToSsi[del.o.playerId] || null; }
+      // contacts après la livraison
+      const touches = [];
+      if (del) {
+        const td = T(del.o);
+        for (let j = k + 1; j < seq.length && touches.length < 2; j++) {
+          const o = seq[j]; if (o.periodId !== c.per || T(o) - td > 8) break; if (!TOUCH.has(o.typeId)) continue;
+          // duel aérien : deux événements simultanés, on garde le gagnant
+          if (o.typeId === 44) { const mate = seq.slice(j + 1, j + 4).find(x => x.typeId === 44 && Math.abs(T(x) - T(o)) <= 1); if (mate) { const w = o.outcome ? o : mate.outcome ? mate : o; const l = w === o ? mate : o; touches.push({o: w, duel: l}); j = seq.indexOf(mate); continue; } }
+          if (touches.length && touches[touches.length - 1].o.playerId === o.playerId && T(o) - T(touches[touches.length - 1].o) <= 1) continue;
+          touches.push({o});
+        }
+      }
+      const ct = ({o, duel}) => { const tm = teamOf[o.contestantId], att = tm === A, x = att ? o.x : 100 - o.x, y = att ? o.y : 100 - o.y;
+        return {p: optaToSsi[o.playerId] || null, a: att ? 1 : 0, t: o.typeId, x: r1(x * 1.05), y: r1((100 - y) * .68), dt: r1(T(o) - t0), vs: duel ? (optaToSsi[duel.o ? duel.o.playerId : duel.playerId] || null) : null}; };
+      if (touches[0]) c.c1 = ct(touches[0]);
+      if (touches[1]) c.c2 = ct(touches[1]);
+      // issue : tirs et buts de l'équipe qui attaque dans les 15 s
+      const sh = ev.shots.filter(x => x.tm === A && x.per === c.per && x.mi * 60 - t0 >= -1 && x.mi * 60 - t0 <= 15);
+      c.nsh = sh.length; c.xg = Math.round(sh.reduce((a2, x) => a2 + x.xg, 0) * 100) / 100; c.g = sh.some(x => x.g) ? 1 : 0; c.shp = sh.map(x => [x.p, x.g ? 1 : 0]);
+      c.t0 = t0;
     }
   }
   // Systèmes (Opta 34 = composition, 40 = changement de système) et postes occupés (case du système, qualif. 131 / 145)
@@ -3035,9 +3186,7 @@ function renderTactical() {
   }
 
   if (sub === 'cpa') {
-    const old = ms.filter(m => m.ev && !(m.ev.v >= 2)).length;
-    $('#cpaNote').hidden = !old;
-    $('#cpaNote').innerHTML = old ? `⚠ ${old} match(s) ont été importés avant l’ajout de l’onglet CPA : leurs <b>buts, tirs et penaltys sur CPA</b> et le <b>détail des corners</b> ne sont pas comptés. Pour les compléter, réimportez simplement leurs dossiers dans l’onglet Données (les xG des possessions CPA, eux, sont déjà complets).` : '';
+    renderCorners(ms, TN, PI, f);
     const mpF = F ? (isPl ? null : F.mp) : null;
     $('#cpaKpis').innerHTML = kpiHTML(F ? [
       {l: 'Corners obtenus', v: fmt(F.corners), s: mpF ? `${fmt(F.corners / mpF, 1)} /match` : ''},
@@ -3078,8 +3227,135 @@ function renderTactical() {
   }
 }
 
+/* ---------- Corners (Analyse tactique › CPA) ---------- */
+const CK_Z = [['6g1', '6 m · 1er poteau', 99.5, 105, 24.84, 30.34], ['6gc', '6 m · centre', 99.5, 105, 30.34, 37.66], ['6g2', '6 m · 2e poteau', 99.5, 105, 37.66, 43.16],
+  ['p1', '1er poteau', 94, 105, 13.84, 24.84], ['pen', 'Point de penalty', 94, 99.5, 24.84, 43.16], ['p2', '2e poteau', 94, 105, 43.16, 54.16], ['ent', 'Entrée de surface', 88.5, 94, 13.84, 54.16]];
+const ckZone = (x, yy) => { for (const z of CK_Z) if (x >= z[2] && x <= z[3] && yy >= z[4] && yy <= z[5]) return z[0]; return 'out'; };
+const ckMir = (c, y) => c.side === 'D' ? 68 - y : y;           // corner toujours représenté depuis la gauche
+const ckH = z => z == null ? null : z < 1.2 ? 'sol' : z < 3 ? 'tendu' : 'air';
+const CK_HL = {sol: 'Au sol', tendu: 'Tendu (1-3 m)', air: 'Aérien (> 3 m)'}, CK_SW = {in: 'Rentrant', out: 'Sortant', dr: 'Droit', '': 'Non renseigné'};
+const CK_MODE = {1: 'Direct', 2: 'Joué à 2', 3: 'Joué à 3', 4: 'Joué à 4 ou plus', 0: 'Joué court, jamais centré'};
+const CK_T = {1: 'passe', 2: 'passe', 3: 'dribble', 7: 'tacle', 8: 'interception', 10: 'arrêt', 11: 'sortie (captée)', 12: 'dégagement', 13: 'tir', 14: 'tir (poteau)', 15: 'tir', 16: 'but', 41: 'sortie (boxée)', 44: 'duel aérien', 49: 'récupération', 50: 'perte', 52: 'ballon ramassé', 61: 'contrôle', 74: 'contre'};
+// Demi-terrain vertical (but en haut), zoom sur les 35 derniers mètres
+const ckBox = inner => `<svg viewBox="-1 -2.5 70 29"><defs><clipPath id="ckClip"><rect x="-1" y="-2.5" width="70" height="29"/></clipPath></defs><g clip-path="url(#ckClip)"><g transform="matrix(0,-1,1,0,0,105)">${pitchLines(false)}</g>${inner}</g></svg>`;
+const ckP = (x, y) => [r1(y), r1(105 - x)];
+function renderCorners(ms, TN, PI, f) {
+  S.ck = S.ck || {side: 'for', zm: 'c1', pl: 'r', one: ''};
+  const K = S.ck, tid = f.team || (f.player && PI[f.player] ? PI[f.player].team : '');
+  if (!tid) K.side = 'for';
+  document.querySelectorAll('#ckSide .chip').forEach(b => { b.setAttribute('aria-pressed', b.dataset.v === K.side); b.disabled = !tid && b.dataset.v === 'ag'; });
+  document.querySelectorAll('#ckZoneMode .chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === K.zm));
+  document.querySelectorAll('#ckPlMode .chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === K.pl));
+  const R = []; let nM = 0, oldN = 0;
+  for (const m of ms) {
+    if (!m.ev) continue; if (tid && m.home.id !== tid && m.away.id !== tid) continue; nM++;
+    for (const c of m.ev.corners || []) {
+      if (!f.qs.has(c.q)) continue;
+      if (tid && (K.side === 'for' ? c.tm !== tid : c.tm === tid)) continue;
+      if (c.mode === undefined) { oldN++; continue; }
+      R.push({m, c, t: m.trk && m.trk.c ? m.trk.c[cornerKey(c)] : null});
+    }
+  }
+  const atkCol = K.side === 'for' ? (tid ? clubColor(tid) : css('--s1')) : '#d0453f', defCol = '#8a8a8a';
+  const us = K.side === 'for' ? 'nous' : 'l’adversaire', them = K.side === 'for' ? 'l’adversaire' : 'nous';
+  const pc = (a, b) => b ? Math.round(a / b * 100) + ' %' : '—', n = R.length, nT = R.filter(r => r.t).length;
+  $('#ckSub').innerHTML = `${tid ? `<b style="color:${atkCol}">${esc(TN[tid])}</b> · ${K.side === 'for' ? 'ses corners' : 'corners concédés'}` : 'Tous les corners du championnat'} · ${n} corner(s) sur ${nM} match(s)`;
+  $('#cpaNote').hidden = !oldN; $('#cpaNote').innerHTML = oldN ? `⚠ ${oldN} corner(s) viennent de matchs importés avec une ancienne version : réimportez les dossiers pour les analyser.` : '';
+  $('#ckTrkNote').innerHTML = n && nT < n ? `Positions des joueurs et hauteur de trajectoire disponibles pour ${nT} corner(s) sur ${n} : elles demandent le fichier <b>tracking-produced.jsonl</b> du match (importez le dossier complet ; seuls les quelques secondes autour de chaque corner sont conservées).` : '';
+  const c1 = R.filter(r => r.c.c1), c1W = c1.filter(r => r.c.c1.a).length, shN = R.filter(r => r.c.nsh).length, xg = R.reduce((a, r) => a + (r.c.xg || 0), 0), g = R.filter(r => r.c.g).length, dir = R.filter(r => r.c.mode === 1).length;
+  const kpi = (l, v, sub) => `<div class="phk"><span>${l}</span><div><b style="color:${atkCol}">${v}</b></div><small>${sub}</small></div>`;
+  $('#ckKpis').innerHTML = kpi('Corners', fmt(n / Math.max(1, nM), 1), `par match · ${n} au total`) + kpi('Joués directement', pc(dir, n), `${n - dir} joués court`) + kpi('1er contact gagné', pc(c1W, c1.length), `par ${us} · ${c1.length - c1W} par ${them}`)
+    + kpi('Corners avec tir', pc(shN, n), `dans les 15 s · ${R.reduce((a, r) => a + (r.c.nsh || 0), 0)} tirs`) + kpi('xG par corner', fmt(n ? xg / n : null, 3), `${fmt(xg, 2)} xG au total`) + kpi('Buts', fmt(g), g ? `1 but tous les ${fmt(n / g, 0)} corners` : 'aucun but');
+  // 1. Tireurs
+  const TK = {};
+  for (const r of R) { const k = r.c.p || '?', o = TK[k] || (TK[k] = {id: k, n: 0, G: 0, D: 0, in: 0, out: 0, dr: 0, dir: 0, c1: 0, c1W: 0, sh: 0, xg: 0, g: 0, air: 0, nt: 0});
+    o.n++; o[r.c.side] = (o[r.c.side] || 0) + 1; if (r.c.sw) o[r.c.sw]++; if (r.c.mode === 1) o.dir++; if (r.c.c1) { o.c1++; if (r.c.c1.a) o.c1W++; } if (r.c.nsh) o.sh++; o.xg += r.c.xg || 0; if (r.c.g) o.g++; if (r.t) { o.nt++; if (ckH(r.t.z) === 'air') o.air++; } }
+  const tkRows = Object.values(TK).map(o => ({...o, name: PI[o.id] ? PI[o.id].name : 'Inconnu'}));
+  renderTable('ckTakers', [{k: 'name', l: 'Tireur', txt: 1, v: r => r.name}, {k: 'n', l: 'Corners', v: r => r.n}, {k: 'G', l: 'Côté gauche', v: r => r.G || 0}, {k: 'D', l: 'Côté droit', v: r => r.D || 0},
+    {k: 'in', l: '% rentrants', d: 0, v: r => r.n ? r.in / r.n * 100 : null}, {k: 'out', l: '% sortants', d: 0, v: r => r.n ? r.out / r.n * 100 : null}, {k: 'air', l: '% aériens', d: 0, v: r => r.nt ? r.air / r.nt * 100 : null},
+    {k: 'dir', l: '% directs', d: 0, v: r => r.n ? r.dir / r.n * 100 : null}, {k: 'c1W', l: '% 1er contact gagné', d: 0, v: r => r.c1 ? r.c1W / r.c1 * 100 : null},
+    {k: 'sh', l: 'Corners avec tir', v: r => r.sh}, {k: 'xg', l: 'xG générés', d: 2, v: r => r.xg}, {k: 'g', l: 'Buts', v: r => r.g}], tkRows, {defaultSort: 'n'});
+  // 2. Exécution et trajectoire
+  const mx = Math.max(1, ...[1, 2, 3, 4, 0].map(k => R.filter(r => r.c.mode === k).length));
+  $('#ckMode').innerHTML = `<div class="gkd">${[1, 2, 3, 4, 0].map(k => { const L = R.filter(r => r.c.mode === k), w = L.filter(r => r.c.c1 && r.c.c1.a).length, sh = L.filter(r => r.c.nsh).length;
+    return `<div class="gkdr"><span>${CK_MODE[k]}</span><i><b style="width:${L.length / mx * 100}%;background:${atkCol}"></b></i><em>${L.length} (${pc(L.length, n)}) · ${sh} avec tir · 1er contact ${pc(w, L.filter(r => r.c.c1).length)}</em></div>`; }).join('')}</div>
+    <p class="note">« Joué à 2 » : une passe courte avant le centre ; « à 3 » : deux passes. Le premier contact est compté après le ballon qui entre dans la surface.</p>`;
+  const SW = ['in', 'out', 'dr', ''], HH = ['sol', 'tendu', 'air'];
+  $('#ckTrajSub').textContent = nT ? `Hauteur maximale du ballon mesurée sur ${nT} corner(s) (tracking)` : 'Hauteur : importez le tracking pour la mesurer';
+  $('#ckTraj').innerHTML = `<table class="gkz"><tr><th class="txt">Effet</th>${HH.map(h => `<th>${CK_HL[h]}</th>`).join('')}<th>Total</th><th>1er contact gagné</th><th>Avec tir</th></tr>${SW.map(sw => { const L = R.filter(r => (r.c.sw || '') === sw); if (!L.length) return '';
+    return `<tr><td class="txt"><b>${CK_SW[sw]}</b></td>${HH.map(h => `<td>${L.filter(r => r.t && ckH(r.t.z) === h).length || '<span class="z">0</span>'}</td>`).join('')}<td><b>${L.length}</b> <small class="muted">(${pc(L.length, n)})</small></td><td>${pc(L.filter(r => r.c.c1 && r.c.c1.a).length, L.filter(r => r.c.c1).length)}</td><td>${L.filter(r => r.c.nsh).length}</td></tr>`; }).join('')}</table>
+    <p class="note">Rentrant : le ballon tourne vers le but ; sortant : il s’en éloigne (données Opta / Second Spectrum).</p>`;
+  // 3. Zones : arrivée / 1er / 2e contact
+  const zm = K.zm, P0 = R.map(r => { const c = r.c, q = zm === 'arr' ? (c.ax != null ? {x: c.ax, y: c.ay, a: null} : null) : c[zm]; return q ? {x: q.x, yy: ckMir(c, q.y), a: q.a, r} : null; }).filter(Boolean);
+  const ZC = {}; P0.forEach(q => { const z = ckZone(q.x, q.yy), o = ZC[z] || (ZC[z] = {n: 0, w: 0}); o.n++; if (q.a) o.w++; });
+  const mz = Math.max(1, ...CK_Z.map(z => (ZC[z[0]] || {n: 0}).n));
+  let zs = CK_Z.map(([id, l, x0, x1, y0, y1]) => { const o = ZC[id] || {n: 0, w: 0}, [sx, sy] = ckP(x1, y0), w = y1 - y0, h = x1 - x0, a = o.n / mz;
+    return `<rect x="${sx}" y="${sy}" width="${w}" height="${h}" fill="${atkCol}" fill-opacity="${(.04 + .55 * a).toFixed(2)}" stroke="var(--surface)" stroke-width=".3"><title>${l}</title></rect>`
+      + (o.n ? `<text x="${sx + w / 2}" y="${sy + (id.startsWith('6') ? 1.8 : 2.6)}" text-anchor="middle" font-size="${id.startsWith('6') ? 1.5 : 2.1}" font-weight="800" fill="var(--text)" fill-opacity=".8">${pc(o.n, P0.length)}</text>` : ''); }).join('');
+  zs += P0.map(q => { const [x, y] = ckP(q.x, q.yy); return `<circle cx="${x}" cy="${y}" r=".75" fill="${q.a === 0 ? defCol : atkCol}" stroke="var(--surface)" stroke-width=".2" data-tip="${esc(`J${q.r.m.j} · ${Math.floor(q.r.c.t0 / 60) + (q.r.c.per === 2 ? 45 : 0) + 1}' · ${zm === 'arr' ? 'arrivée du ballon' : (PI[q.r.c[zm].p] ? PI[q.r.c[zm].p].name : '?') + ' (' + (CK_T[q.r.c[zm].t] || '') + ')'}`)}"/>`; }).join('');
+  zs += `<text x="1" y="25.5" font-size="1.7" fill="var(--text-3)">◀ côté du corner</text>`;
+  $('#ckZoneT').textContent = zm === 'arr' ? 'Où arrive le ballon' : zm === 'c1' ? 'Où a lieu le premier contact' : 'Où a lieu le second contact';
+  const out = (ZC.out || {n: 0}).n;
+  $('#ckZoneSub').textContent = `${P0.length} corner(s) · % par zone${zm !== 'arr' ? ` et part gagnée par ${us}` : ''} · corner représenté depuis la gauche${out ? ` · ${out} hors de ces zones` : ''}`;
+  const ztab = `<table class="gkz ckzt"><tr><th class="txt">Zone</th><th>Part</th>${zm !== 'arr' ? `<th>Gagné par ${us}</th>` : '<th>1er contact gagné</th>'}</tr>${[...CK_Z.map(z => [z[0], z[1]]), ['out', 'Hors de ces zones']].map(([id, l]) => { const o = ZC[id]; if (!o) return '';
+    const w1 = zm === 'arr' ? (() => { const L = P0.filter(q => ckZone(q.x, q.yy) === id && q.r.c.c1); return pc(L.filter(q => q.r.c.c1.a).length, L.length); })() : pc(o.w, o.n);
+    return `<tr><td class="txt">${l}</td><td><b>${pc(o.n, P0.length)}</b> <small class="muted">(${o.n})</small></td><td>${w1}</td></tr>`; }).join('')}</table>`;
+  $('#ckZones').innerHTML = ckBox(zs) + ztab + `<div class="legend"><span><i style="background:${atkCol}"></i>${K.side === 'for' ? 'Nous' : 'Adversaire'}</span>${zm !== 'arr' ? `<span><i style="background:${defCol}"></i>${K.side === 'for' ? 'Adversaire' : 'Nous'}</span>` : ''}</div>`;
+  const who = key => { const A = {}, D = {}; R.forEach(r => { const q = r.c[key]; if (!q || !q.p) return; const M = q.a ? A : D; M[q.p] = (M[q.p] || 0) + 1; });
+    const tot = R.filter(r => r.c[key]).length, top = (M, col) => { const L = Object.entries(M).sort((a, b) => b[1] - a[1]).slice(0, 5), mxv = Math.max(1, ...L.map(x => x[1]));
+      return L.length ? `<div class="top5">${L.map(([id, v]) => `<div class="t5"><span class="t5n">${esc(PI[id] ? PI[id].name : '?')}</span><i><b style="width:${v / mxv * 100}%;background:${col}"></b></i><em>${v} (${pc(v, tot)})</em></div>`).join('')}</div>` : '<div class="empty">—</div>'; };
+    return `<div class="ck2"><div><h4>${K.side === 'for' ? 'Nos joueurs' : 'Joueurs adverses'}</h4>${top(A, atkCol)}</div><div><h4>${K.side === 'for' ? 'Joueurs adverses' : 'Nos joueurs'}</h4>${top(D, defCol)}</div></div>`; };
+  $('#ckC1').innerHTML = who('c1'); $('#ckC2').innerHTML = who('c2');
+  // 4. Qui monte
+  const UP = {};
+  R.forEach(r => { (r.c.A || []).forEach(id => { const o = UP[id] || (UP[id] = {id, n: 0, c1: 0, sh: 0, g: 0}); o.n++; });
+    if (r.c.c1 && r.c.c1.a && r.c.c1.p) (UP[r.c.c1.p] = UP[r.c.c1.p] || {id: r.c.c1.p, n: 0, c1: 0, sh: 0, g: 0}).c1++;
+    (r.c.shp || []).forEach(([id, gl]) => { if (!id) return; const o = UP[id] || (UP[id] = {id, n: 0, c1: 0, sh: 0, g: 0}); o.sh++; if (gl) o.g++; }); });
+  const nA = R.filter(r => r.c.A && r.c.A.length).length, defAvg = mean(R.map(r => r.c.def).filter(v => v != null)), attAvg = mean(R.map(r => r.c.att).filter(v => v != null));
+  $('#ckUpSub').textContent = `En moyenne ${fmt(attAvg, 1)} ${K.side === 'for' ? 'de nos joueurs' : 'attaquants adverses'} et ${fmt(defAvg, 1)} défenseurs dans la surface · défenseur au 1er poteau ${pc(R.filter(r => r.c.np).length, n)} · au 2e poteau ${pc(R.filter(r => r.c.fp).length, n)}`;
+  const upRows = Object.values(UP).filter(o => PI[o.id]).map(o => ({...o, name: PI[o.id].name, tid: PI[o.id].team}));
+  renderTable('ckUp', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'n', l: 'Dans la surface', v: r => r.n}, {k: 'pct', l: '% des corners', d: 0, v: r => nA ? r.n / nA * 100 : null},
+    {k: 'c1', l: '1ers contacts gagnés', v: r => r.c1}, {k: 'sh', l: 'Tirs', v: r => r.sh}, {k: 'g', l: 'Buts', v: r => r.g}], upRows, {defaultSort: 'n'});
+  // placement moyen (tracking)
+  const RT = R.filter(r => r.t), side = K.pl;
+  const PZ = {}; RT.forEach(r => (r.t[side] || []).forEach(([a, num, x, y]) => { const z = ckZone(x, ckMir(r.c, y)); if (z === 'out') return; const o = PZ[z] || (PZ[z] = {a: 0, d: 0}); if (a) o.a++; else o.d++; }));
+  const mp = Math.max(1, ...CK_Z.map(z => (PZ[z[0]] || {a: 0}).a));
+  let pz = CK_Z.map(([id, l, x0, x1, y0, y1]) => { const o = PZ[id] || {a: 0, d: 0}, [sx, sy] = ckP(x1, y0), w = y1 - y0, h = x1 - x0;
+    return `<rect x="${sx}" y="${sy}" width="${w}" height="${h}" fill="${atkCol}" fill-opacity="${(.04 + .55 * o.a / mp).toFixed(2)}" stroke="var(--surface)" stroke-width=".3"><title>${l}</title></rect>`
+      + (RT.length && (o.a || o.d) ? `<text x="${sx + w / 2}" y="${sy + h / 2 + .5}" text-anchor="middle" font-size="${id.startsWith('6') ? 1.7 : 2.4}" font-weight="800" fill="var(--text)">${fmt(o.a / RT.length, 1)}<tspan font-size="${id.startsWith('6') ? 1.1 : 1.5}" font-weight="600" fill="var(--text-3)"> / ${fmt(o.d / RT.length, 1)}</tspan></text>` : ''); }).join('');
+  $('#ckPlSub').textContent = RT.length ? `Nombre moyen de joueurs par zone ${side === 'k' ? 'au moment où le corner est tiré' : 'quand le ballon arrive'} · ${RT.length} corner(s) avec tracking · chiffre = ${K.side === 'for' ? 'nos joueurs' : 'attaquants adverses'} / défenseurs` : 'Importez le tracking des matchs pour voir le placement.';
+  $('#ckPlace').innerHTML = ckBox(pz + `<text x="1" y="25.5" font-size="1.7" fill="var(--text-3)">◀ côté du corner</text>`);
+  // 5. Corner par corner
+  const list = R.slice().sort((a, b) => a.m.j - b.m.j || a.c.per - b.c.per || a.c.t0 - b.c.t0);
+  const keyOf = r => r.m.id + '|' + cornerKey(r.c), minOf = c => Math.floor((c.t0 || c.gc) / 60) + (c.per === 2 ? 45 : 0) + 1;
+  if (!list.some(r => keyOf(r) === K.one)) K.one = (list.find(r => r.t) || list[0] || {m: {id: ''}, c: {}}) && list.length ? keyOf(list.find(r => r.t) || list[0]) : '';
+  $('#ckOne').innerHTML = list.map(r => `<option value="${esc(keyOf(r))}">J${r.m.j} · ${esc(TN[otherSide(r.m, r.c.tm)] || '')} · ${minOf(r.c)}' · ${esc(PI[r.c.p] ? PI[r.c.p].name : '?')} · ${r.c.side === 'G' ? 'gauche' : 'droite'}${r.c.g ? ' · ⚽' : r.c.nsh ? ' · tir' : ''}${r.t ? '' : ' (sans tracking)'}</option>`).join('');
+  $('#ckOne').value = K.one;
+  const one = list.find(r => keyOf(r) === K.one);
+  if (!one) { $('#ckOneMap').innerHTML = '<div class="empty">Aucun corner.</div>'; $('#ckOneInfo').innerHTML = ''; }
+  else {
+    const c = one.c, t = one.t; $('#ckLegA').style.background = atkCol;
+    let g = '';
+    if (t) {
+      const byP = {}; (t.r || []).forEach(q => byP[q[4]] = q);
+      (t.k || []).forEach(([a, num, x, y, pid]) => { const e = byP[pid]; if (!e) return; const [x0, y0] = ckP(x, y), [x1, y1] = ckP(e[2], e[3]); g += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${a ? atkCol : defCol}" stroke-width=".18" stroke-opacity=".6"/>`; });
+      (t.k || []).forEach(([a, num, x, y]) => { const [px, py] = ckP(x, y); g += `<circle cx="${px}" cy="${py}" r=".9" fill="none" stroke="${a ? atkCol : defCol}" stroke-width=".25"/>`; });
+      const bp = (t.b || []).map(([x, y]) => ckP(x, y).join(',')).join(' ');
+      if (bp) g += `<polyline points="${bp}" fill="none" stroke="#e08a00" stroke-width=".35" stroke-dasharray=".9 .5"/>`;
+      (t.r || []).forEach(([a, num, x, y, pid]) => { const [px, py] = ckP(x, y), hl = c.c1 && c.c1.p === pid; g += `<g data-tip="${esc((PI[pid] ? PI[pid].name : '#' + num) + (hl ? ' · 1er contact' : ''))}"><circle cx="${px}" cy="${py}" r="${hl ? 1.5 : 1.15}" fill="${a ? atkCol : defCol}" stroke="${hl ? '#e08a00' : 'var(--surface)'}" stroke-width="${hl ? .45 : .2}"/><text x="${px}" y="${py + .45}" text-anchor="middle" font-size="1.2" font-weight="700" fill="#fff">${num ?? ''}</text></g>`; });
+    } else if (c.ax != null) { const [px, py] = ckP(c.ax, c.ay); g += `<circle cx="${px}" cy="${py}" r="1" fill="#e08a00"/>`; }
+    $('#ckOneMap').innerHTML = ckBox(g) + (t ? '' : '<p class="note">Pas de tracking pour ce corner : seul le point d’arrivée du ballon est affiché.</p>');
+    const nm = id => id && PI[id] ? esc(PI[id].name) : '—', ctc = q => q ? `${nm(q.p)} <small class="muted">(${q.a ? (K.side === 'for' ? 'nous' : 'adversaire') : (K.side === 'for' ? 'adversaire' : 'nous')} · ${CK_T[q.t] || ''}${q.vs ? ' · duel avec ' + nm(q.vs) : ''} · ${CK_Z.find(z => z[0] === ckZone(q.x, ckMir(c, q.y)))?.[1] || 'hors zones'})</small>` : '—';
+    $('#ckOneInfo').innerHTML = `<div class="ck-info"><dl><dt>Match</dt><dd>J${one.m.j} · ${esc(TN[one.m.home.id])} – ${esc(TN[one.m.away.id])} · ${minOf(c)}'</dd><dt>Tireur</dt><dd>${nm(c.p)} · côté ${c.side === 'G' ? 'gauche' : 'droit'}</dd>
+      <dt>Exécution</dt><dd>${CK_MODE[c.mode]}</dd><dt>Trajectoire</dt><dd>${CK_SW[c.sw || '']}${t ? ' · ' + CK_HL[ckH(t.z)] + ` (max ${fmt(t.z, 1)} m, ${fmt(t.dt, 1)} s de vol)` : ''}</dd>
+      <dt>Dans la surface</dt><dd>${c.att ?? '—'} attaquant(s) · ${c.def ?? '—'} défenseur(s)${c.np ? ' · défenseur au 1er poteau' : ''}${c.fp ? ' · au 2e poteau' : ''}</dd>
+      <dt>1er contact</dt><dd>${ctc(c.c1)}</dd><dt>2e contact</dt><dd>${ctc(c.c2)}</dd>
+      <dt>Issue</dt><dd>${c.g ? '⚽ But' : c.nsh ? `${c.nsh} tir(s) · ${fmt(c.xg, 2)} xG` : 'Pas de tir dans les 15 s'}</dd></dl></div>`;
+  }
+}
+
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-06 10:42 UTC';
+const BUILD = '2026-11-06 10:57 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4754,6 +5030,8 @@ function bindUI() {
   bindReportUI();
   document.addEventListener('click', e => { const t = e.target.closest('.shf [data-sh]'); if (!t) return; const sc = t.closest('.subpanel, .rpage, .card') || document.body; sc.classList.toggle('shh-' + t.dataset.sh); });
   document.addEventListener('click', e => { const b = e.target.closest('[data-more]'); if (!b) return; const w = document.getElementById(b.dataset.more + 'Wrap'); if (!w) return; w.hidden = !w.hidden; b.textContent = b.textContent.replace(/^(Voir|Masquer)/, w.hidden ? 'Voir' : 'Masquer'); });
+  [['#ckSide', 'side'], ['#ckZoneMode', 'zm'], ['#ckPlMode', 'pl']].forEach(([id, k]) => $(id).onclick = e => { const b = e.target.closest('[data-v]'); if (!b || b.disabled) return; S.ck = S.ck || {}; S.ck[k] = b.dataset.v; scheduleRender(); });
+  $('#ckOne').onchange = e => { S.ck = S.ck || {}; S.ck.one = e.target.value; scheduleRender(); };
   $('#offDet').addEventListener('toggle', () => scheduleRender()); $('#defDet').addEventListener('toggle', () => scheduleRender());
   $('#gkSel').onchange = e => { S.gkSel = e.target.value; scheduleRender(); };
   document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => {
