@@ -168,16 +168,16 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .ktbl td.kd.up{color:#2e9e5b;font-weight:700}.ktbl td.kd.down{color:#d0453f;font-weight:700}.ktbl .kb{white-space:nowrap;color:var(--text-2)}.ktbl .kb .tlogo{height:16px;vertical-align:-3px;margin-right:5px}.ktbl .kb b{color:var(--text);margin-left:4px}
 .kbar{position:relative;display:inline-block;width:180px;height:8px;border-radius:4px;background:linear-gradient(90deg,#d0453f33,#5a8fd633 50%,#2e9e5b44);vertical-align:middle}.kbar b{position:absolute;top:-3px;width:14px;height:14px;margin-left:-7px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px rgba(0,0,0,.15)}.kbar i.avg{position:absolute;top:-4px;width:2px;height:16px;margin-left:-1px;background:var(--text-3)}
 .pmleg svg{vertical-align:middle;margin-right:4px}.lbl.chk{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;white-space:nowrap}
-.synth .syn{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}@media (max-width:900px){.synth .syn{grid-template-columns:1fr}}
+.synth .syn{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.synth .syn.syn4{grid-template-columns:repeat(4,1fr)}@media (max-width:1100px){.synth .syn.syn4{grid-template-columns:repeat(2,1fr)}}@media (max-width:900px){.synth .syn{grid-template-columns:1fr}}
 .syc{background:var(--surface-2);border-radius:10px;padding:10px 12px}.syc-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}.syc-h b{font-size:14px}.chap-n.sm{width:22px;height:22px;font-size:12px}
 .syr{display:grid;grid-template-columns:1fr auto auto;gap:4px 8px;align-items:center;padding:5px 0;border-top:1px solid var(--grid);font-size:12.5px}.syr b{font-size:16px}.syr small{grid-column:1/-1;color:var(--text-3);font-size:11px;margin-top:-3px}
-.vd{margin-left:auto;font-size:11px;font-weight:800;padding:2px 8px;border-radius:10px;color:#fff;background:#5a8fd6}.vd.top{background:#2e9e5b}.vd.low{background:#d0453f}
+.vd{white-space:nowrap;margin-left:auto;font-size:11px;font-weight:800;padding:2px 8px;border-radius:10px;color:#fff;background:#5a8fd6}.vd.top{background:#2e9e5b}.vd.low{background:#d0453f}
 .syn-read{margin:12px 2px 0;font-size:13px;color:var(--text-2)}
 .ph{padding:16px 18px}.ph-head{display:flex;gap:12px;align-items:center;margin-bottom:12px}.ph-head h2{margin:0;font-size:18px}.ph-head p{margin:2px 0 0;color:var(--text-2);font-size:13px}.ph-verdict{margin-left:auto}
 .ph-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}@media (max-width:900px){.ph-kpis{grid-template-columns:repeat(2,1fr)}}
 .phk{background:var(--surface-2);border-radius:10px;padding:9px 12px;display:flex;flex-direction:column;gap:4px}.phk>span{font-size:12px;color:var(--text-2)}.phk>span small{color:var(--text-3)}.phk>div{display:flex;align-items:center;gap:8px}.phk>div b{font-size:20px}.phk small{font-size:11px;color:var(--text-3)}.phk .kbar{width:100%;margin:4px 0 2px}
 .ph-vis{display:grid;grid-template-columns:1.25fr 1fr;gap:20px;margin-top:6px}.ph-vis+.ph-vis{margin-top:18px;padding-top:14px;border-top:1px solid var(--grid)}@media (max-width:900px){.ph-vis{grid-template-columns:1fr}}
-.ph-one{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--grid)}.ph-one h3{font-size:13.5px;margin:0 0 2px}.pitch.zhalf{max-width:380px;display:block;margin:6px auto 0}#ph3 #shotMap{max-width:430px;margin:0 auto}
+.ph-one{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--grid)}.ph-one h3{font-size:13.5px;margin:0 0 2px}.pitch.zhalf{max-width:380px;display:block;margin:6px auto 0}#ph3 #shotMap,#dph3 #shotMapAg{max-width:430px;margin:0 auto}
 .ph-vis h3{font-size:13.5px;margin:0 0 2px}.ph-more{margin-top:8px;font-size:12px}.ph-arrows{margin-top:8px}
 .top5{display:flex;flex-direction:column;gap:8px;margin-top:8px}.t5{display:grid;grid-template-columns:minmax(0,1.3fr) 1fr 74px;gap:10px;align-items:center;font-size:12.5px}.t5n{display:flex;flex-direction:column;min-width:0}.t5n small{color:var(--text-3);font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.t5 i{display:block;height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden}.t5 i b{display:block;height:100%}.t5 em{font-style:normal;font-weight:700;text-align:right}
 details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}
@@ -583,73 +583,81 @@ input.j{width:64px}
     <!-- Défensif -->
     <div class="subpanel" data-sub="def">
       <div class="grid">
-        <div class="card c12 chap"><span class="chap-n">1</span><div><h2>Pressing et récupération</h2><p>À quelle hauteur et avec quelle intensité l’équipe presse, et où elle récupère le ballon.</p></div></div>
-        <div class="card c12 kpis-card"><div class="kpis" id="defK1"></div></div>
-        <div class="card c7">
-          <div class="card-head"><div><h2>Zones de récupération</h2><p class="sub" id="recSub"></p></div>
-          <div class="ctrl"><select id="recType"><option value="all">Toutes les actions</option><option value="49">Récupérations</option><option value="8">Interceptions</option><option value="7">Tacles gagnés</option></select></div></div>
-          <div id="recMap"></div>
-          <div class="legend"><span><i style="background:var(--s1)"></i>Récupération</span><span><i style="background:var(--s2)"></i>Interception</span><span><i style="background:var(--s3)"></i>Tacle gagné</span></div>
-          <p class="note">Sens d'attaque de l'équipe de gauche à droite (à droite = camp adverse).</p>
+        <div class="card c12 synth">
+          <div class="card-head"><div><h2>En résumé</h2><p class="sub" id="dsynSub"></p></div>
+          <div class="ctrl"><span class="muted" style="font-size:12px">Visuels :</span><select id="defMode"><option value="pm">Par match</option><option value="tot">Total</option></select></div></div>
+          <div class="syn syn4" id="dsynCols"></div>
+          <p class="syn-read" id="dsynRead"></p>
         </div>
-        <div class="card c5">
-          <div class="card-head"><div><h2>Pressing vs xG concédés</h2><p class="sub">PPDA (bas = pressing intense) · lignes = moyennes</p></div></div>
-          <div class="chart-box tall"><canvas id="chPpda"></canvas></div>
-        </div>
-        <div class="card c12 chap"><span class="chap-n">2</span><div><h2>Zones de déséquilibre concédées</h2><p>Comment l’adversaire progresse contre le bloc : passes qui cassent nos lignes, entrées dans notre dernier tiers et zones où il nous déséquilibre.</p></div></div>
-        <div class="card c12 kpis-card"><div class="kpis" id="defK2"></div></div>
-        <div class="card c7">
-          <div class="card-head"><div><h2>Passes adverses qui nous déséquilibrent</h2><p class="sub" id="lbASub"></p></div>
-          <div class="ctrl"><select id="lbAType"><option value="lb">Cassent la ligne (réussies)</option><option value="f3">Entrées dans notre dernier tiers</option><option value="box">Entrées dans notre surface</option></select></div></div>
-          <div id="lbAMap" style="max-width:900px;margin:0 auto"></div>
-          <p class="note">Sens d'attaque de l’adversaire de gauche à droite (notre but à droite).</p>
-        </div>
-        <div class="card c5">
-          <div class="card-head"><div><h2>Où l’adversaire nous déséquilibre</h2><p class="sub" id="dzASub"></p></div></div>
-          <div id="dzAGrid"></div>
-        </div>
-        <div class="card c12 chap"><span class="chap-n">3</span><div><h2>30 derniers mètres</h2><p>Ce que l’équipe concède près de son but : tirs, qualité des occasions, tirs cadrés et buts.</p></div></div>
-        <div class="card c12 kpis-card"><div class="kpis" id="defK3"></div></div>
-        <div class="card c5">
-          <div class="card-head"><div><h2>Tirs concédés</h2><p class="sub" id="shotAgSub"></p></div></div>
-          <div id="shotMapAg"></div>
-          <div class="legend shleg"><span><b class="lgball">⚽</b>But</span><span><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG</span></div>
-        </div>
-        <div class="card c7">
-          <div class="card-head"><div><h2>Où arrivent les tirs concédés</h2><p class="sub" id="cageAgSub"></p></div></div>
-          <div id="cageAg" class="cage-wrap"></div>
-        </div>
-        <div class="card c12 chap"><span class="chap-n">4</span><div><h2>Duels</h2><p>Les duels au sol et aériens : volume, taux de réussite, zones et joueurs.</p></div></div>
-        <div class="card c12 kpis-card"><div class="kpis" id="defK4"></div></div>
-        <div class="card c7">
-          <div class="card-head"><div><h2>Carte des duels</h2><p class="sub" id="duelSub"></p></div>
-          <div class="ctrl"><select id="duelType"><option value="all">Tous les duels</option><option value="g">Au sol</option><option value="a">Aériens</option></select></div></div>
-          <div id="duelMap"></div>
-          <div class="legend"><span><i style="background:#2e9e5b"></i>Gagné</span><span><i style="background:#d0453f"></i>Perdu</span><span class="muted">● au sol · ▲ aérien</span></div>
-        </div>
-        <div class="card c5">
-          <div class="card-head"><div><h2>Duels par zone</h2><p class="sub" id="duelZSub"></p></div></div>
-          <div id="duelZones"></div>
-        </div>
-        <div class="card c12">
-          <div class="card-head"><div><h2>Duels par joueur</h2><p class="sub" id="duelTblSub"></p></div>
-          <div class="ctrl"><label class="lbl" style="margin:0">Min. duels <input type="number" id="duelMin" value="10" min="0" step="5" style="width:60px"></label><button class="btn" data-csv="tblDuels">CSV</button></div></div>
-          <div class="tbl-wrap" id="tblDuels"></div>
-        </div>
-        <div class="card c12">
-          <div class="card-head">
-            <div><h2>Classement joueurs défensif</h2><p class="sub" id="defRankSub"></p></div>
-            <div class="ctrl"><select id="defMetric"></select></div>
+        <div class="card c12 ph" id="dph1">
+          <div class="ph-head"><span class="chap-n">1</span><div><h2>Pressing et récupération</h2><p>Est-ce que l’équipe récupère le ballon haut et souvent ?</p></div><span class="ph-verdict" id="dphV1"></span></div>
+          <div class="ph-kpis" id="dphK1"></div>
+          <div class="ph-vis">
+            <div><h3>Où l’équipe récupère le ballon</h3><p class="sub" id="recSub"></p><div id="recGrid"></div>
+              <button class="btn ph-more" data-more="rec">Voir chaque action</button><div class="ph-arrows" id="recWrap" hidden><div id="recMap"></div>
+              <div class="legend"><span><i style="background:var(--s1)"></i>Récupération</span><span><i style="background:var(--s2)"></i>Interception</span><span><i style="background:var(--s3)"></i>Tacle gagné</span></div></div></div>
+            <div><h3>Les joueurs qui récupèrent le plus</h3><p class="sub" id="recTopSub"></p><div id="recTop"></div>
+              <h3 style="margin-top:16px">Récupérations par tiers</h3><div id="recThirds"></div></div>
           </div>
-          <div class="chart-box tall"><canvas id="chDefRank"></canvas></div>
         </div>
-        <div class="card c12">
-          <div class="card-head">
-            <div><h2>Statistiques défensives par équipe</h2><p class="sub">Cliquez sur une équipe pour filtrer</p></div>
-            <div class="ctrl"><select id="defTeamMode"><option value="pm">Moyenne par match</option><option value="tot">Total</option></select><button class="btn" data-csv="tblDefTeams">CSV</button></div>
+        <div class="card c12 ph" id="dph2">
+          <div class="ph-head"><span class="chap-n">2</span><div><h2>Déséquilibres concédés</h2><p>Est-ce que l’adversaire arrive à casser nos lignes et à entrer chez nous ?</p></div><span class="ph-verdict" id="dphV2"></span></div>
+          <div class="ph-kpis" id="dphK2"></div>
+          <div class="ph-vis">
+            <div><h3>Où l’adversaire casse nos lignes</h3><p class="sub" id="dzASub"></p><div id="dzAGrid"></div>
+              <button class="btn ph-more" data-more="lbA">Voir les passes adverses</button><div class="ph-arrows" id="lbAWrap" hidden><div id="lbAMap"></div></div></div>
+            <div><h3>Par où l’adversaire entre dans notre surface</h3><p class="sub" id="boxASub"></p><div id="boxALanes"></div>
+              <h3 style="margin-top:16px">Les adversaires qui nous ont fait le plus mal</h3><p class="sub">Passes cassant nos lignes + entrées dans notre surface</p><div id="oppTop"></div></div>
           </div>
-          <div class="tbl-wrap" id="tblDefTeams"></div>
         </div>
+        <div class="card c12 ph" id="dph3">
+          <div class="ph-head"><span class="chap-n">3</span><div><h2>30 derniers mètres</h2><p>Est-ce que l’équipe protège son but ?</p></div><span class="ph-verdict" id="dphV3"></span></div>
+          <div class="ph-kpis" id="dphK3"></div>
+          <div class="ph-vis">
+            <div><h3>D’où l’adversaire tire</h3><p class="sub" id="shotAgSub"></p><div id="shotMapAg"></div><div class="legend shleg"><span><b class="lgball">⚽</b>But</span><span><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG</span></div></div>
+            <div><h3>Où arrivent les tirs concédés</h3><p class="sub" id="cageAgSub"></p><div id="cageAg" class="cage-wrap"></div>
+              <h3 style="margin-top:14px">Type de tirs concédés</h3><div id="shATypes"></div></div>
+          </div>
+        </div>
+        <div class="card c12 ph" id="dph4">
+          <div class="ph-head"><span class="chap-n">4</span><div><h2>Duels</h2><p>Est-ce que l’équipe gagne ses duels ?</p></div><span class="ph-verdict" id="dphV4"></span></div>
+          <div class="ph-kpis" id="dphK4"></div>
+          <div class="ph-vis">
+            <div><h3>Où l’équipe gagne et perd ses duels</h3><p class="sub" id="duelSub"></p><div id="duelGrid"></div>
+              <button class="btn ph-more" data-more="duel">Voir chaque duel</button><div class="ph-arrows" id="duelWrap" hidden><div id="duelMap"></div>
+              <div class="legend"><span><i style="background:#2e9e5b"></i>Gagné</span><span><i style="background:#d0453f"></i>Perdu</span><span class="muted">● au sol · ▲ aérien</span></div></div></div>
+            <div><h3>Au sol et dans les airs</h3><div id="duelSplit"></div>
+              <h3 style="margin-top:16px">Les joueurs les plus forts dans les duels</h3><p class="sub" id="duelTopSub"></p><div id="duelTop"></div></div>
+          </div>
+        </div>
+        <details class="card c12 det" id="defDet">
+          <summary><b>Détails</b> <span class="muted">— pressing vs xG concédés, duels par joueur, classement des joueurs, tableau des équipes</span></summary>
+          <div class="grid" style="margin-top:12px">
+            <div class="card c6">
+              <div class="card-head"><div><h2>Pressing vs xG concédés</h2><p class="sub">PPDA (bas = pressing intense) · lignes = moyennes</p></div></div>
+              <div class="chart-box tall"><canvas id="chPpda"></canvas></div>
+            </div>
+            <div class="card c6">
+              <div class="card-head">
+                <div><h2>Classement joueurs défensif</h2><p class="sub" id="defRankSub"></p></div>
+                <div class="ctrl"><select id="defMetric"></select></div>
+              </div>
+              <div class="chart-box tall"><canvas id="chDefRank"></canvas></div>
+            </div>
+            <div class="card c12">
+              <div class="card-head"><div><h2>Duels par joueur</h2><p class="sub" id="duelTblSub"></p></div>
+              <div class="ctrl"><label class="lbl" style="margin:0">Min. duels <input type="number" id="duelMin" value="10" min="0" step="5" style="width:60px"></label><button class="btn" data-csv="tblDuels">CSV</button></div></div>
+              <div class="tbl-wrap" id="tblDuels"></div>
+            </div>
+            <div class="card c12">
+              <div class="card-head">
+                <div><h2>Statistiques défensives par équipe</h2><p class="sub">Cliquez sur une équipe pour filtrer</p></div>
+                <div class="ctrl"><select id="defTeamMode"><option value="pm">Moyenne par match</option><option value="tot">Total</option></select><button class="btn" data-csv="tblDefTeams">CSV</button></div>
+              </div>
+              <div class="tbl-wrap" id="tblDefTeams"></div>
+            </div>
+          </div>
+        </details>
       </div>
     </div>
 
@@ -1713,7 +1721,7 @@ const TAC_FIELDS = ['mp', 'secs', 'gf', 'ga', 'xg', 'xga', 'xgot', 'xgota', 'gfo
   'cross', 'crossOk', 'carry', 'carryD', 'carryProg', 'rec', 'intc', 'possN', 'possT', 'possTot', 'possXg', 'vp', 'vc', 'tk', 'tkW', 'int', 'recov', 'clr',
   'aer', 'aerW', 'foul', 'fouled', 'drb', 'drbOk', 'lost', 'yc', 'rc', 'saves', 'blk', 'opp60', 'defAct', 'corners',
   'recovH', 'shCtr', 'xgCtr', 'shCpa', 'xgCpa', 'gfCpa', 'gaCpa', 'shaCpa', 'xgaCpa', 'pen', 'penG', 'cpaPoss', 'cpaXgP', 'cpaXgaP', 'cornD', 'cornAtt', 'cornShort', 'cornIn', 'cornOut', 'mV2',
-  'gd', 'gdW', 'lbA', 'f3A', 'boxA', 'progA', 'passA', 'own60', 'defActA', 'lostLow', 'bpass', 'bpassOk', 'blong', 'blongOk', 'bout', 'carryF3', 'possD', 'possD2', 'possD3'];
+  'gd', 'gdW', 'lbA', 'f3A', 'boxA', 'progA', 'passA', 'own60', 'defActA', 'lostLow', 'bpass', 'bpassOk', 'blong', 'blongOk', 'bout', 'carryF3', 'possD', 'possD2', 'possD3', 'recX', 'recN'];
 const newAgg = () => { const o = {starts: {}, cpaT: {}, cpaTa: {}, byQ: [0, 1, 2, 3, 4, 5].map(() => ({xg: 0, xga: 0, gf: 0, ga: 0, sh: 0, lb: 0, pass: 0, possT: 0, possTot: 0}))}; TAC_FIELDS.forEach(k => o[k] = 0); return o; };
 
 /* Cache des agrégations : changer d'onglet ou de sous-onglet ne recalcule rien
@@ -1819,11 +1827,11 @@ function aggTacticalRaw(ms, qsOverride) {
       const defZone = e.x >= 40;
       switch (e.t) {
         case 1: if (e.x < 60) { t(opp(e.tm)).opp60++; t(e.tm).own60++; } for (const o of tgt) if (o) { if (e.kp) o.kp++; if (e.cr) { o.cross++; if (e.o) o.crossOk++; } } break;
-        case 7: for (const o of tgt) if (o) { o.tk++; if (e.o) o.tkW++; o.gd++; o.gdW++; } if (defZone) { t(e.tm).defAct++; t(opp(e.tm)).defActA++; } break;
-        case 8: for (const o of tgt) if (o) o.int++; if (defZone) { t(e.tm).defAct++; t(opp(e.tm)).defActA++; } break;
+        case 7: for (const o of tgt) if (o) { o.tk++; if (e.o) { o.tkW++; o.recX += e.x * 1.05; o.recN++; } o.gd++; o.gdW++; } if (defZone) { t(e.tm).defAct++; t(opp(e.tm)).defActA++; } break;
+        case 8: for (const o of tgt) if (o) { o.int++; o.recX += e.x * 1.05; o.recN++; } if (defZone) { t(e.tm).defAct++; t(opp(e.tm)).defActA++; } break;
         case 4: for (const o of tgt) if (o) { if (e.o) o.fouled++; else o.foul++; } if (!e.o && defZone) { t(e.tm).defAct++; t(opp(e.tm)).defActA++; } break;
         case 45: for (const o of tgt) if (o) o.gd++; if (defZone) { t(e.tm).defAct++; t(opp(e.tm)).defActA++; } break;
-        case 49: for (const o of tgt) if (o) { o.recov++; if (e.x >= 50) o.recovH++; } break;
+        case 49: for (const o of tgt) if (o) { o.recov++; if (e.x >= 50) o.recovH++; o.recX += e.x * 1.05; o.recN++; } break;
         case 12: for (const o of tgt) if (o) o.clr++; break;
         case 44: for (const o of tgt) if (o) { o.aer++; if (e.o) o.aerW++; } break;
         case 3: for (const o of tgt) if (o) { o.drb++; if (e.o) o.drbOk++; o.gd++; if (e.o) o.gdW++; } break;
@@ -1889,7 +1897,7 @@ const TAC = {
   ppdaF: {l: 'PPDA subi', t: 'ratio', d: 1, f: o => o.defActA ? o.own60 / o.defActA : null, h: 'Passes de l’équipe dans ses 60 % de terrain / actions défensives adverses : bas = l’équipe est pressée'},
   bpass: {l: 'Passes tiers déf.', t: 'add'}, bpassPct: {l: '% passes tiers déf.', t: 'ratio', d: 1, f: o => o.bpass ? o.bpassOk / o.bpass * 100 : null},
   blongPct: {l: '% jeu long (tiers déf.)', t: 'ratio', d: 1, f: o => o.bpass ? o.blong / o.bpass * 100 : null}, bout: {l: 'Sorties de balle réussies', t: 'add', h: 'Passes réussies partant du tiers défensif et arrivant au-delà'},
-  lostLow: {l: 'Pertes dans son tiers', t: 'add'}, carryF3: {l: 'Conduites dans le dernier tiers', t: 'add'},
+  lostLow: {l: 'Pertes dans son tiers', t: 'add'}, recH: {l: 'Hauteur moyenne des récupérations (m)', t: 'ratio', d: 1, f: o => o.recN ? o.recX / o.recN : null}, xgsha: {l: 'xG concédé / tir', t: 'ratio', d: 2, f: o => o.sha ? o.xga / o.sha : null}, recAll: {l: 'Ballons récupérés', t: 'add', f: o => o.recN}, carryF3: {l: 'Conduites dans le dernier tiers', t: 'add'},
   possD: {l: 'Possessions depuis le tiers déf.', t: 'add'}, possD2Pct: {l: '% atteignant le tiers médian', t: 'ratio', d: 1, f: o => o.possD ? o.possD2 / o.possD * 100 : null}, possD3Pct: {l: '% atteignant le tiers offensif', t: 'ratio', d: 1, f: o => o.possD ? o.possD3 / o.possD * 100 : null},
   sh: {l: 'Tirs', t: 'add'}, sot: {l: 'Tirs cadrés', t: 'add'}, sha: {l: 'Tirs concédés', t: 'add'},
   xgsh: {l: 'xG / tir', t: 'ratio', d: 2, f: o => o.sh ? o.xg / o.sh : null},
@@ -2839,119 +2847,96 @@ function renderTactical() {
   }
 
   if (sub === 'def') {
-    const tid = tmFocus;
+    const tid = tmFocus, PMODE = $('#defMode').value === 'pm';
+    const nM = Math.max(1, (isPl ? F && F.mp : (tid && T[tid] ? T[tid].mp : ms.filter(m => m.ev).length)) || 1), cnt = v => PMODE ? fmt(v / nM, 1) : fmt(v);
+    phaseUI('d', [
+      [['PPDA (bas = pressing intense)', 'ppda', -1, 'r'], ['Récupérations dans le camp adverse', 'recovH', 1, 'pm'], ['Hauteur moyenne des récupérations', 'recH', 1, 'm'], ['Ballons récupérés', 'recAll', 1, 'pm']],
+      [['Passes adverses qui cassent nos lignes', 'lbA', -1, 'pm'], ['Passes progressives concédées', 'progA', -1, 'pm'], ['Entrées adverses dans notre dernier tiers', 'f3A', -1, 'pm'], ['Entrées adverses dans notre surface', 'boxA', -1, 'pm']],
+      [['Tirs concédés', 'sha', -1, 'pm'], ['xG concédés', 'xga', -1, 'pm2'], ['xG concédé par tir', 'xgsha', -1, 'r2'], ['Buts encaissés', 'ga', -1, 'pm2']],
+      [['Duels gagnés', 'duelPct', 1, '%'], ['Duels au sol gagnés', 'gdPct', 1, '%'], ['Duels aériens gagnés', 'aerPct', 1, '%'], ['Fautes commises', 'foul', -1, 'pm']]
+    ], ['Pressing et récupération', 'Déséquilibres concédés', '30 derniers mètres', 'Duels'], tid, TN, f);
+    const topBy = (fn, n = 5) => plRows.filter(r => !tid || r.tid === tid).map(r => ({r, v: fn(r.o)})).filter(x => x.v > 0).sort((a, b) => b.v - a.v).slice(0, n);
     // 1. Pressing et récupération
-    const rt = $('#recType').value, evs = [];
-    for (const m of ms) if (m.ev) for (const e of m.ev.opta) {
-      if (!f.qs.has(e.q) || !(e.t === 49 || e.t === 8 || (e.t === 7 && e.o)) || !mine(e)) continue;
-      if (rt !== 'all' && e.t !== +rt) continue; evs.push(e);
-    }
-    const hi = evs.filter(e => e.x >= 50).length, hAvg = evs.length ? mean(evs.map(e => e.x * 1.05)) : null;
-    $('#defK1').innerHTML = kpiHTML(F ? [
-      isPl ? {l: 'Actions défensives', v: fmt(F.tkW + F.int + F.recov), s: 'tacles gagnés + interceptions + récupérations'} : {l: 'PPDA', v: fmt(TAC.ppda.f(F), 1), s: 'passes adverses par action défensive (bas = intense)'},
-      {l: 'Récupérations', v: pm(F.recov, 1), s: `${pct(F.recovH, F.recov)} dans le camp adverse`},
-      {l: 'Récupérations hautes', v: pm(F.recovH, 1), s: 'dans le camp adverse'},
-      {l: 'Hauteur moyenne', v: hAvg != null ? fmt(hAvg, 1) + ' m' : '—', s: 'des récupérations, depuis son but'},
-      {l: 'Interceptions', v: pm(F.int, 1), s: `${fmt(F.int)} au total`},
-      {l: 'Tacles gagnés', v: pm(F.tkW, 1), s: `${fmt(TAC.tkPct.f(F), 0)} % des tacles`},
-      {l: 'Fautes', v: pm(F.foul, 1), s: `${fmt(F.yc)} jaune(s) · ${fmt(F.rc)} rouge(s)`}
-    ] : []);
-    if (!f.team && !f.player && ms.length > 1) needFocus('#recMap', '#recSub', 'Sélectionnez une équipe, un joueur ou un match pour afficher les zones de récupération.');
-    else { $('#recSub').textContent = `${evs.length} actions · ${fmt(evs.length ? hi / evs.length * 100 : null, 0)} % dans le camp adverse`; $('#recMap').innerHTML = eventMapSVG(evs, PI, TN); }
-    const pp = teamRows.filter(r => r.o.mp && TAC.ppda.f(r.o) != null).map(r => ({x: TAC.ppda.f(r.o), y: r.o.xga / r.o.mp, lab: r.name, id: r.id}));
-    pp.forEach(p => { p.img = logoImg(p.id, p.id === f.team ? 34 : 26); if (p.img) p.off = p.id === f.team ? 20 : 16; });
-    chart('chPpda', {type: 'scatter', data: {datasets: [{label: 'Équipes', data: pp, pointStyle: pp.map(p => p.img || 'circle'), pointRadius: pp.map(p => p.img ? 13 : (p.id === f.team ? 7 : 5)),
-        backgroundColor: pp.map(p => p.id === f.team ? s2 : s1), borderColor: css('--surface'), borderWidth: 2}]},
-      options: {layout: {padding: {right: 90}}, plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${c.raw.lab} : PPDA ${fmt(c.raw.x, 1)} · xG contre ${fmt(c.raw.y, 2)}/match`}}},
-        scales: {x: {grace: '10%', reverse: true, title: {display: true, text: 'PPDA (inversé : à droite = pressing intense)'}, grid: {color: css('--grid')}}, y: {grace: '10%', reverse: true, title: {display: true, text: 'xG concédés / match (inversé)'}, grid: {color: css('--grid')}}}},
-      plugins: [pointLabels, avgLines(mean(pp.map(p => p.x)), mean(pp.map(p => p.y)),
-        {tl: 'Bloc bas solide', tr: 'Presse et protège', bl: 'Passif et exposé', br: 'Presse mais concède'}, v => fmt(v, 1), v => fmt(v, 2))]});
-    // 2. Déséquilibres concédés (indicateurs d'équipe)
-    const TF = tid ? T[tid] : (F && !isPl ? F : null);
-    $('#defK2').innerHTML = kpiHTML(TF ? [
-      {l: 'Passes adverses qui cassent nos lignes', v: fmt(TF.lbA / (TF.mp || 1), 1), s: 'par match'},
-      {l: 'Passes progressives concédées', v: fmt(TF.progA / (TF.mp || 1), 1), s: 'par match'},
-      {l: 'Entrées adverses dernier tiers', v: fmt(TF.f3A / (TF.mp || 1), 1), s: 'par match (passes)'},
-      {l: 'Entrées adverses dans la surface', v: fmt(TF.boxA / (TF.mp || 1), 1), s: 'par match (passes)'},
-      {l: 'Passes adverses', v: fmt(TF.passA / (TF.mp || 1), 0), s: 'par match'}
-    ] : []);
-    if (!tid) { needFocus('#lbAMap', '#lbASub', 'Sélectionnez une équipe pour voir comment l’adversaire la déséquilibre.'); needFocus('#dzAGrid', '#dzASub', 'Sélectionnez une équipe.'); }
+    const evs = [];
+    for (const m of ms) if (m.ev) for (const e of m.ev.opta) if (f.qs.has(e.q) && (e.t === 49 || e.t === 8 || (e.t === 7 && e.o)) && mine(e)) evs.push(e);
+    const RP = evs.map(e => ({x: e.x * 1.05, y: (100 - e.y) * .68}));
+    $('#recSub').textContent = `${cnt(evs.length)} ballons récupérés${PMODE ? ' par match' : ''} (récupérations, interceptions, tacles gagnés) · sens d’attaque →`;
+    $('#recGrid').innerHTML = zoneGridSVG(RP, cF, {xs: [0, 35, 70, 105], div: PMODE ? nM : 1});
+    $('#recMap').innerHTML = eventMapSVG(evs, PI, TN);
+    $('#recTopSub').textContent = `Récupérations + interceptions + tacles gagnés${tid ? '' : ' · tout le championnat'}`;
+    $('#recTop').innerHTML = topList(topBy(o => o.recov + o.int + o.tkW), v => fmt(v), o => `${fmt(o.recov)} récup. · ${fmt(o.int)} interc. · ${fmt(o.tkW)} tacles · ${fmt(o.recovH)} dans le camp adverse`);
+    const th = [0, 0, 0]; RP.forEach(p => th[Math.min(2, Math.floor(p.x / 35))]++);
+    $('#recThirds').innerHTML = laneBars(th, ['Tiers défensif', 'Tiers médian', 'Tiers offensif'], cF, RP.length, cnt);
+    // 2. Déséquilibres concédés
+    if (!tid) { needFocus('#dzAGrid', '#dzASub', 'Sélectionnez une équipe pour voir comment l’adversaire la déséquilibre.'); needFocus('#boxALanes', '#boxASub', 'Sélectionnez une équipe.'); $('#lbAMap').innerHTML = ''; $('#oppTop').innerHTML = ''; }
     else {
-      const at = $('#lbAType').value, inBox = (x, y) => x >= 88.5 && Math.abs(y - 34) <= 20.16, L = [], dz = [];
+      const inBox = (x, y) => x >= 88.5 && Math.abs(y - 34) <= 20.16, dz = [], lbP = [], BX = [], hurt = {};
       for (const m of ms) if (m.ev && (m.home.id === tid || m.away.id === tid)) for (const e of m.ev.passes) {
         if (e.tm === tid || !f.qs.has(e.q) || !e.c) continue;
-        if (e.br) dz.push({x: e.x1, y: e.y1});
-        if (at === 'lb' ? e.br : at === 'f3' ? (e.x1 >= 70 && e.x0 < 70) : (inBox(e.x1, e.y1) && !inBox(e.x0, e.y0))) L.push(e);
+        if (e.br) { dz.push({x: e.x1, y: e.y1}); lbP.push(e); (hurt[e.p] = hurt[e.p] || {lb: 0, bx: 0, tm: e.tm}).lb++; }
+        if (inBox(e.x1, e.y1) && !inBox(e.x0, e.y0)) { BX.push(e); (hurt[e.p] = hurt[e.p] || {lb: 0, bx: 0, tm: e.tm}).bx++; }
       }
-      $('#lbASub').textContent = `${L.length} passe(s) adverses`;
-      $('#lbAMap').innerHTML = passMapSVG(L, PI, TN, '#d0453f');
-      $('#dzASub').textContent = `${dz.length} passes adverses cassant nos lignes · où elles sont reçues`;
-      $('#dzAGrid').innerHTML = thirdsGridSVG(dz, '#d0453f', 'attaque adverse');
+      $('#dzASub').textContent = `${cnt(dz.length)} passes adverses${PMODE ? ' par match' : ''} cassant nos lignes · où elles sont reçues (attaque adverse →, notre but à droite)`;
+      $('#dzAGrid').innerHTML = zoneGridSVG(dz, '#d0453f', {xs: [0, 35, 52.5, 70, 88.5, 105], div: PMODE ? nM : 1});
+      $('#lbAMap').innerHTML = passMapSVG(lbP, PI, TN, '#d0453f');
+      const lc = [0, 0, 0]; BX.forEach(e => lc[e.y0 < 22.67 ? 0 : e.y0 < 45.33 ? 1 : 2]++);
+      $('#boxASub').textContent = `${cnt(BX.length)} entrées adverses${PMODE ? ' par match' : ''} dans notre surface par la passe · selon le couloir d’où part la passe (vu par l’adversaire)`;
+      $('#boxALanes').innerHTML = laneBars(lc, ['Côté gauche adverse', 'Axe', 'Côté droit adverse'], '#d0453f', BX.length, cnt);
+      const HT = Object.entries(hurt).filter(([id]) => PI[id]).map(([id, h]) => ({r: {name: PI[id].name, tid: h.tm, o: h}, v: h.lb + h.bx})).sort((a, b) => b.v - a.v).slice(0, 5);
+      $('#oppTop').innerHTML = topList(HT, v => fmt(v), o => `${fmt(o.lb)} passes cassant nos lignes · ${fmt(o.bx)} entrées dans la surface · ${TN[o.tm] || ''}`);
     }
-    // 3. 30 derniers mètres concédés
+    // 3. 30 derniers mètres
     const sa = [];
     if (tid) for (const m of ms) if (m.ev && (m.home.id === tid || m.away.id === tid)) for (const x of m.ev.shots) if (f.qs.has(x.q) && x.tm !== tid) sa.push(x);
-    const saOt = sa.filter(x => x.ot || x.g).length, saBox = sa.filter(x => x.x >= 88.5 && Math.abs(x.y - 34) <= 20.16).length;
-    $('#defK3').innerHTML = kpiHTML(TF ? [
-      {l: 'Buts encaissés', v: fmt(TF.ga), s: `${fmt(TF.ga / (TF.mp || 1), 2)} par match`},
-      {l: 'xG concédés', v: fmt(TF.xga, 2), s: `${fmt(TF.xga / (TF.mp || 1), 2)} par match · ${fmt(TF.sha ? TF.xga / TF.sha : null, 2)} / tir`},
-      {l: 'xGOT concédés', v: fmt(TF.xgota, 2), s: `buts − xGOT : ${(TF.ga - TF.xgota >= 0 ? '+' : '') + fmt(TF.ga - TF.xgota, 2)}`},
-      {l: 'Tirs concédés', v: fmt(TF.sha / (TF.mp || 1), 1), s: tid ? `par match · ${pct(saOt, sa.length)} cadrés` : 'par match'},
-      {l: 'Tirs concédés dans la surface', v: tid ? pct(saBox, sa.length) : '—', s: tid ? `${saBox} tirs` : 'sélectionnez une équipe'},
-      {l: 'Tirs contrés', v: fmt(TF.blk / (TF.mp || 1), 1), s: 'par match'}
-    ] : []);
-    if (!tid) { needFocus('#shotMapAg', '#shotAgSub', 'Sélectionnez une équipe pour voir les tirs qu’elle a concédés.'); needFocus('#cageAg', '#cageAgSub', 'Sélectionnez une équipe.'); }
+    if (!tid) { needFocus('#shotMapAg', '#shotAgSub', 'Sélectionnez une équipe pour voir les tirs qu’elle a concédés.'); needFocus('#cageAg', '#cageAgSub', 'Sélectionnez une équipe.'); $('#shATypes').innerHTML = ''; }
     else {
-      $('#shotAgSub').textContent = `${sa.length} tirs · ${sa.filter(x => x.g).length} buts · ${fmt(sa.reduce((a, x) => a + x.xg, 0), 2)} xG`;
+      $('#shotAgSub').textContent = `${cnt(sa.length)} tirs concédés${PMODE ? ' par match' : ''} · ${sa.filter(x => x.g).length} buts · ${fmt(sa.reduce((a, x) => a + x.xg, 0), 2)} xG au total`;
       $('#shotMapAg').innerHTML = shotMapColored(sa, PI, TN, '#d0453f'); { const lg = $('#shotMapAg').parentElement.querySelector('.shleg'); if (lg) lg.style.setProperty('--s1', '#d0453f'); }
       const c = cageSVG(sa, '#d0453f'); $('#cageAg').innerHTML = c.svg; $('#cageAgSub').textContent = c.sub;
+      const STY = [['Jeu placé', x => !x.pat || x.pat === 'jeu'], ['Contre-attaque', x => x.pat === 'ctr'], ['Coup de pied arrêté', x => ['cor', 'cfd', 'cfi', 'tou'].includes(x.pat)], ['Penalty', x => x.pat === 'pen' || x.pen]];
+      $('#shATypes').innerHTML = `<table class="gkz"><tr><th class="txt">Situation</th><th>Tirs</th><th>Buts</th><th>xG</th><th>xG / tir</th></tr>${STY.map(([l, fn]) => { const L = sa.filter(fn), xg = L.reduce((a, x) => a + x.xg, 0); return `<tr><td class="txt">${l}</td><td>${cnt(L.length)}</td><td>${L.filter(x => x.g).length}</td><td>${fmt(xg, 2)}</td><td>${L.length ? fmt(xg / L.length, 2) : '—'}</td></tr>`; }).join('')}</table>`;
     }
     // 4. Duels
-    $('#defK4').innerHTML = kpiHTML(F ? [
-      {l: 'Duels', v: pm(F.gd + F.aer, 1), s: `${fmt(TAC.duelPct.f(F), 1)} % gagnés`},
-      {l: 'Duels au sol', v: fmt(TAC.gdPct.f(F), 1) + ' %', s: `${fmt(F.gdW)} gagnés sur ${fmt(F.gd)}`},
-      {l: 'Duels aériens', v: fmt(TAC.aerPct.f(F), 1) + ' %', s: `${fmt(F.aerW)} gagnés sur ${fmt(F.aer)}`},
-      {l: 'Tacles', v: pm(F.tk, 1), s: `${fmt(F.tkW)} avec ballon récupéré`},
-      {l: 'Dribbles subis', v: pm(Math.max(0, F.gd - F.tk - F.drb), 1), s: 'défenseur éliminé balle au pied'},
-      {l: 'Dribbles réussis', v: pm(F.drbOk, 1), s: `${fmt(TAC.drbPct.f(F), 0)} % de réussite`},
-      {l: 'Fautes commises', v: pm(F.foul, 1), s: `${fmt(F.fouled)} subies`}
-    ] : []);
-    const dt = $('#duelType').value, DU = [];
+    const DU = [];
     for (const m of ms) if (m.ev) for (const e of m.ev.opta) {
       if (!f.qs.has(e.q) || !mine(e)) continue;
       const g = e.t === 7 || e.t === 45 || e.t === 3, a = e.t === 44; if (!g && !a) continue;
-      if ((dt === 'g' && !g) || (dt === 'a' && !a)) continue;
-      DU.push({x: e.x * 1.05, y: (100 - e.y) * .68, w: e.t === 7 ? 1 : e.t === 45 ? 0 : e.o ? 1 : 0, a, p: e.p, tm: e.tm, t: e.t});
+      DU.push({x: e.x * 1.05, y: (100 - e.y) * .68, w: e.t === 7 ? 1 : e.t === 45 ? 0 : e.o ? 1 : 0, a, p: e.p, t: e.t});
     }
+    $('#duelSub').textContent = `${cnt(DU.length)} duels${PMODE ? ' par match' : ''} · couleur = % de duels gagnés dans la zone (vert ≥ 55 %, rouge ≤ 45 %) · sens d’attaque →`;
+    $('#duelGrid').innerHTML = winGridSVG(DU);
     const DL = {7: 'Tacle', 45: 'Dribblé (duel perdu)', 3: 'Dribble', 44: 'Duel aérien'};
-    if (!f.team && !f.player && ms.length > 1) { needFocus('#duelMap', '#duelSub', 'Sélectionnez une équipe, un joueur ou un match pour afficher les duels.'); needFocus('#duelZones', '#duelZSub', 'Sélectionnez une équipe, un joueur ou un match.'); }
-    else {
-      const dots = DU.slice(0, 2000).map(d => { const c = d.w ? '#2e9e5b' : '#d0453f', tip = esc(`${DL[d.t]} ${d.w ? 'gagné' : 'perdu'} · ${PI[d.p] ? PI[d.p].name : ''}`);
-        return d.a ? `<path d="M${r1(d.x)} ${r1(d.y - 1.1)}L${r1(d.x + 1)} ${r1(d.y + .7)}L${r1(d.x - 1)} ${r1(d.y + .7)}Z" fill="${c}" fill-opacity=".8" data-tip="${tip}"/>` : `<circle cx="${r1(d.x)}" cy="${r1(d.y)}" r=".85" fill="${c}" fill-opacity=".75" data-tip="${tip}"/>`; }).join('');
-      $('#duelSub').textContent = `${DU.length} duels · ${pct(DU.filter(d => d.w).length, DU.length)} gagnés · sens d’attaque →`;
-      $('#duelMap').innerHTML = `<svg class="pitch" viewBox="-2 -2 109 72">${pitchLines(true)}${dots}</svg>`;
-      const Z = [0, 1, 2].map(z => { const L = DU.filter(d => Math.min(2, Math.floor(d.x / 35)) === z), G = L.filter(d => !d.a), A = L.filter(d => d.a);
-        return {n: L.length, w: L.filter(d => d.w).length, g: G.length, gw: G.filter(d => d.w).length, a: A.length, aw: A.filter(d => d.w).length}; });
-      const ZL = ['Tiers défensif', 'Tiers médian', 'Tiers offensif'];
-      $('#duelZSub').textContent = 'Taux de duels gagnés selon la zone';
-      $('#duelZones').innerHTML = `<table class="gkz"><tr><th class="txt">Zone</th><th>Duels</th><th>% gagnés</th><th>Au sol</th><th>Aériens</th></tr>${Z.map((z, i) => `<tr><td class="txt">${ZL[i]}</td><td>${z.n}</td><td><b>${pct(z.w, z.n)}</b></td><td>${pct(z.gw, z.g)} <span class="muted">(${z.g})</span></td><td>${pct(z.aw, z.a)} <span class="muted">(${z.a})</span></td></tr>`).join('')}</table>`
-        + `<div class="gkd" style="margin-top:14px">${Z.map((z, i) => `<div class="gkdr"><span>${ZL[i]}</span><i><b style="width:100%;background:#d0453f55"></b><b class="ok" style="width:${z.n ? z.w / z.n * 100 : 0}%;background:#2e9e5b"></b></i><em>${pct(z.w, z.n)}</em></div>`).join('')}</div><p class="note">Vert = part des duels gagnés.</p>`;
+    $('#duelMap').innerHTML = `<svg class="pitch" viewBox="-2 -2 109 72">${pitchLines(true)}${DU.slice(0, 2000).map(d => { const c = d.w ? '#2e9e5b' : '#d0453f', tip = esc(`${DL[d.t]} ${d.w ? 'gagné' : 'perdu'} · ${PI[d.p] ? PI[d.p].name : ''}`);
+      return d.a ? `<path d="M${r1(d.x)} ${r1(d.y - 1.1)}L${r1(d.x + 1)} ${r1(d.y + .7)}L${r1(d.x - 1)} ${r1(d.y + .7)}Z" fill="${c}" fill-opacity=".8" data-tip="${tip}"/>` : `<circle cx="${r1(d.x)}" cy="${r1(d.y)}" r=".85" fill="${c}" fill-opacity=".75" data-tip="${tip}"/>`; }).join('')}</svg>`;
+    const G = DU.filter(d => !d.a), A = DU.filter(d => d.a), pc = L => L.length ? L.filter(d => d.w).length / L.length * 100 : 0;
+    $('#duelSplit').innerHTML = `<div class="gkd">${[['Au sol', G], ['Aériens', A], ['Total', DU]].map(([l, L]) => `<div class="gkdr"><span>${l} <small class="muted">(${cnt(L.length)})</small></span><i><b style="width:100%;background:#d0453f55"></b><b class="ok" style="width:${pc(L)}%;background:#2e9e5b"></b></i><em>${fmt(pc(L), 0)} % gagnés</em></div>`).join('')}</div>`;
+    const dMinTop = Math.max(10, +$('#duelMin').value || 0);
+    $('#duelTopSub').textContent = `% de duels gagnés · au moins ${dMinTop} duels${tid ? '' : ' · tout le championnat'}`;
+    $('#duelTop').innerHTML = topList(plRows.filter(r => (!tid || r.tid === tid) && (r.o.gd + r.o.aer) >= dMinTop).map(r => ({r, v: TAC.duelPct.f(r.o)})).sort((a, b) => b.v - a.v).slice(0, 5), v => fmt(v, 0) + ' %', o => `${fmt(o.gdW + o.aerW)} gagnés sur ${fmt(o.gd + o.aer)} · au sol ${fmt(TAC.gdPct.f(o), 0)} % · aériens ${fmt(TAC.aerPct.f(o), 0)} %`);
+    // Détails
+    if ($('#defDet').open) {
+      const pp = teamRows.filter(r => r.o.mp && TAC.ppda.f(r.o) != null).map(r => ({x: TAC.ppda.f(r.o), y: r.o.xga / r.o.mp, lab: r.name, id: r.id}));
+      pp.forEach(p => { p.img = logoImg(p.id, p.id === f.team ? 34 : 26); if (p.img) p.off = p.id === f.team ? 20 : 16; });
+      chart('chPpda', {type: 'scatter', data: {datasets: [{label: 'Équipes', data: pp, pointStyle: pp.map(p => p.img || 'circle'), pointRadius: pp.map(p => p.img ? 13 : (p.id === f.team ? 7 : 5)),
+          backgroundColor: pp.map(p => p.id === f.team ? s2 : s1), borderColor: css('--surface'), borderWidth: 2}]},
+        options: {layout: {padding: {right: 90}}, plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${c.raw.lab} : PPDA ${fmt(c.raw.x, 1)} · xG contre ${fmt(c.raw.y, 2)}/match`}}},
+          scales: {x: {grace: '10%', reverse: true, title: {display: true, text: 'PPDA (inversé : à droite = pressing intense)'}, grid: {color: css('--grid')}}, y: {grace: '10%', reverse: true, title: {display: true, text: 'xG concédés / match (inversé)'}, grid: {color: css('--grid')}}}},
+        plugins: [pointLabels, avgLines(mean(pp.map(p => p.x)), mean(pp.map(p => p.y)), {tl: 'Bloc bas solide', tr: 'Presse et protège', bl: 'Passif et exposé', br: 'Presse mais concède'}, v => fmt(v, 1), v => fmt(v, 2))]});
+      rankPlayers('chDefRank', '#defRankSub', $('#defMetric').value, TAC, plRows, pmP, minMin, f.player);
+      const dMin = +$('#duelMin').value || 0;
+      const dRows = Object.entries(P).filter(([id, o]) => PI[id] && (!tid || PI[id].team === tid) && (o.gd + o.aer) >= dMin && (o.gd + o.aer) > 0).map(([id, o]) => ({id, tid: PI[id].team, name: PI[id].name, team: TN[PI[id].team] || '', o}));
+      $('#duelTblSub').textContent = `${dRows.length} joueurs · ≥ ${dMin} duels${tid ? ' · ' + TN[tid] : ''} · cliquez sur un joueur pour le sélectionner`;
+      if (!S.sort.tblDuels) S.sort.tblDuels = {k: 'duel', asc: false};
+      renderTable('tblDuels', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'team', l: 'Équipe', txt: 1, v: r => r.team, html: r => logoHTML(r.tid) + esc(r.team)},
+        {k: 'min', l: 'Min', v: r => Math.round(r.o.secs / 60)}, {k: 'duel', l: 'Duels', v: r => r.o.gd + r.o.aer}, {k: 'duelW', l: 'Gagnés', v: r => r.o.gdW + r.o.aerW},
+        {k: 'duelPct', l: '% gagnés', d: 1, v: r => TAC.duelPct.f(r.o)}, {k: 'd90', l: 'Duels /90', d: 1, v: r => r.o.secs ? (r.o.gd + r.o.aer) / r.o.secs * 5400 : null},
+        {k: 'gd', l: 'Au sol', v: r => r.o.gd}, {k: 'gdPct', l: '% sol', d: 1, v: r => TAC.gdPct.f(r.o)}, {k: 'aer', l: 'Aériens', v: r => r.o.aer}, {k: 'aerPct', l: '% aériens', d: 1, v: r => TAC.aerPct.f(r.o)},
+        {k: 'tkW', l: 'Tacles gagnés', v: r => r.o.tkW}, {k: 'chl', l: 'Dribblé', v: r => Math.max(0, r.o.gd - r.o.tk - r.o.drb)}, {k: 'foul', l: 'Fautes', v: r => r.o.foul}],
+        dRows, {hl: r => r.id === f.player, onRow: id => setFilter('player', id)});
+      if (!S.sort.tblDefTeams) S.sort.tblDefTeams = {k: 'ppda', asc: true};
+      teamTable('tblDefTeams', ['mp', 'ppda', 'recov', 'recovH', 'recH', 'int', 'tkW', 'lbA', 'progA', 'f3A', 'boxA', 'ga', 'xga', 'xgota', 'sha', 'xgsha', 'blk', 'clr', 'duelPct', 'gdPct', 'aerPct', 'foul', 'yc', 'rc'],
+        teamRows, $('#defTeamMode').value, 'ppda', f);
     }
-    const dMin = +$('#duelMin').value || 0;
-    const dRows = Object.entries(P).filter(([id, o]) => PI[id] && (!tid || PI[id].team === tid) && (o.gd + o.aer) >= dMin && (o.gd + o.aer) > 0)
-      .map(([id, o]) => ({id, tid: PI[id].team, name: PI[id].name, team: TN[PI[id].team] || '', o}));
-    $('#duelTblSub').textContent = `${dRows.length} joueurs · ≥ ${dMin} duels${tid ? ' · ' + TN[tid] : ''} · cliquez sur un joueur pour le sélectionner`;
-    if (!S.sort.tblDuels) S.sort.tblDuels = {k: 'duel', asc: false};
-    renderTable('tblDuels', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'team', l: 'Équipe', txt: 1, v: r => r.team, html: r => logoHTML(r.tid) + esc(r.team)},
-      {k: 'min', l: 'Min', v: r => Math.round(r.o.secs / 60)}, {k: 'duel', l: 'Duels', v: r => r.o.gd + r.o.aer}, {k: 'duelW', l: 'Gagnés', v: r => r.o.gdW + r.o.aerW},
-      {k: 'duelPct', l: '% gagnés', d: 1, v: r => TAC.duelPct.f(r.o)}, {k: 'd90', l: 'Duels /90', d: 1, v: r => r.o.secs ? (r.o.gd + r.o.aer) / r.o.secs * 5400 : null},
-      {k: 'gd', l: 'Au sol', v: r => r.o.gd}, {k: 'gdPct', l: '% sol', d: 1, v: r => TAC.gdPct.f(r.o)}, {k: 'aer', l: 'Aériens', v: r => r.o.aer}, {k: 'aerPct', l: '% aériens', d: 1, v: r => TAC.aerPct.f(r.o)},
-      {k: 'tkW', l: 'Tacles gagnés', v: r => r.o.tkW}, {k: 'chl', l: 'Dribblé', v: r => Math.max(0, r.o.gd - r.o.tk - r.o.drb)}, {k: 'foul', l: 'Fautes', v: r => r.o.foul}],
-      dRows, {hl: r => r.id === f.player, onRow: id => setFilter('player', id)});
-    rankPlayers('chDefRank', '#defRankSub', $('#defMetric').value, TAC, plRows, pmP, minMin, f.player);
-    if (!S.sort.tblDefTeams) S.sort.tblDefTeams = {k: 'ppda', asc: true};
-    teamTable('tblDefTeams', ['mp', 'ppda', 'recov', 'recovH', 'int', 'tkW', 'lbA', 'progA', 'f3A', 'boxA', 'ga', 'xga', 'xgota', 'sha', 'blk', 'clr', 'duelPct', 'gdPct', 'aerPct', 'foul', 'yc', 'rc'],
-      teamRows, $('#defTeamMode').value, 'ppda', f);
   }
 
   if (sub === 'cls') {
@@ -3999,11 +3984,47 @@ function donutSVG(parts, center, sub, size = 108) {
 }
 const shade = (col, k) => `color-mix(in srgb, ${col} ${Math.round(8 + k * 80)}%, var(--surface))`;
 // Grille 3 × 3 (tiers × couloirs), attaque de gauche à droite
+const ordFr = n => n + (n === 1 ? 'er' : 'e');
+function topList(L, lab, sub) {
+  const mx = Math.max(1e-9, ...L.map(x => x.v));
+  return L.length ? `<div class="top5">${L.map(x => `<div class="t5"><span class="t5n">${esc(x.r.name)}<small>${esc(sub(x.r.o))}</small></span><i><b style="width:${x.v / mx * 100}%;background:${clubColor(x.r.tid)}"></b></i><em>${lab(x.v)}</em></div>`).join('')}</div>` : '<div class="empty">Aucun joueur.</div>';
+}
+// Synthèse + chiffres de chaque phase (bandeau « En résumé » et en-têtes des blocs)
+function phaseUI(pre, PH, NAMES, tF, TN, f) {
+  const LG = leagueRanks(f);
+  const res = PH.map(M => M.map(([l, k, dir, u]) => ({l, k, dir, u, ...LG.get(k, dir, u, tF)})));
+  const fmtV = (r, v) => v == null ? '—' : r.u === '%' ? fmt(v, 1) + ' %' : r.u === 'm' ? fmt(v, 1) + ' m' : (r.u === 'pm2' || r.u === 'r2') ? fmt(v, 2) : fmt(v, 1);
+  const pill = r => r.rank ? `<em class="rk ${r.q}">${ordFr(r.rank)}</em>` : '';
+  const verdict = L => { const q = L.filter(r => r.rank).map(r => 1 - (r.rank - 1) / Math.max(1, r.n - 1)); if (!q.length) return null; const m = mean(q); return m >= .67 ? ['top', 'Point fort'] : m <= .33 ? ['low', 'À améliorer'] : ['mid', 'Dans la moyenne']; };
+  const cT = tF ? clubColor(tF) : css('--text-3'), unit = r => r.u === 'pm' || r.u === 'pm2' ? ' <small>/ match</small>' : '';
+  $('#' + pre + 'synSub').innerHTML = tF ? `<b style="color:${cT}">${esc(TN[tF])}</b> · comparé à la moyenne ${compShort()} · rang sur ${LG.n} équipes` : `Moyenne ${compShort()} · sélectionnez une équipe pour voir ses rangs`;
+  $('#' + pre + 'synCols').innerHTML = res.map((L, i) => { const v = tF ? verdict(L) : null; return `<div class="syc"><div class="syc-h"><span class="chap-n sm">${i + 1}</span><b>${NAMES[i]}</b>${v ? `<span class="vd ${v[0]}">${v[1]}</span>` : ''}</div>${L.slice(0, 3).map(r => `<div class="syr"><span>${esc(r.l)}${unit(r)}</span><b style="color:${tF ? cT : 'var(--text)'}">${fmtV(r, tF ? r.v : r.avg)}</b>${tF ? pill(r) : ''}<small>moy. ${fmtV(r, r.avg)}</small></div>`).join('')}</div>`; }).join('');
+  if (tF) { const all = res.flat().filter(r => r.rank), best = all.slice().sort((a, b) => a.rank - b.rank)[0], worst = all.slice().sort((a, b) => b.rank - a.rank)[0];
+    $('#' + pre + 'synRead').innerHTML = best && worst ? `<b>À retenir :</b> point fort — ${esc(best.l.toLowerCase())} (${ordFr(best.rank)}, ${fmtV(best, best.v)} contre ${fmtV(best, best.avg)} en moyenne) ; point faible — ${esc(worst.l.toLowerCase())} (${ordFr(worst.rank)}, ${fmtV(worst, worst.v)} contre ${fmtV(worst, worst.avg)}).` : ''; }
+  else $('#' + pre + 'synRead').innerHTML = '';
+  res.forEach((L, i) => {
+    const v = tF ? verdict(L) : null; $('#' + pre + 'phV' + (i + 1)).innerHTML = v ? `<span class="vd ${v[0]}">${v[1]}</span>` : '';
+    $('#' + pre + 'phK' + (i + 1)).innerHTML = L.map(r => `<div class="phk"><span>${esc(r.l)}${unit(r)}</span><div><b style="color:${tF ? cT : 'var(--text)'}">${fmtV(r, tF ? r.v : r.avg)}</b>${tF ? pill(r) : ''}</div>${tF ? `<span class="kbar"><i class="avg" style="left:${r.pAvg}%"></i><b style="left:${r.pV}%;background:${cT}"></b></span><small>moy. ${fmtV(r, r.avg)} · meilleur ${fmtV(r, r.best)}</small>` : `<small>meilleur ${fmtV(r, r.best)}</small>`}</div>`).join('');
+  });
+}
+// Terrain en zones colorées selon le % de duels gagnés
+function winGridSVG(D) {
+  const xs = [0, 35, 70, 105], ys = [0, 22.67, 45.33, 68]; let out = '';
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+    const L = D.filter(d => d.x >= xs[i] && d.x < xs[i + 1] + (i === 2 ? .01 : 0) && d.y >= ys[j] && d.y < ys[j + 1] + (j === 2 ? .01 : 0)), n = L.length, w = n ? L.filter(d => d.w).length / n : null;
+    const col = w == null ? 'var(--surface-2)' : w >= .55 ? '#2e9e5b' : w <= .45 ? '#d0453f' : '#5a8fd6', op = w == null ? 1 : Math.min(.85, .25 + Math.abs(w - .5) * 2.2);
+    out += `<rect x="${xs[i]}" y="${ys[j]}" width="35" height="22.67" fill="${col}" fill-opacity="${op.toFixed(2)}" stroke="var(--surface)" stroke-width=".35"/>`;
+    if (n) out += `<text x="${xs[i] + 17.5}" y="${ys[j] + 11.6}" text-anchor="middle" font-size="4.6" font-weight="800" fill="${op > .65 ? '#fff' : 'var(--text)'}">${Math.round(w * 100)} %</text><text x="${xs[i] + 17.5}" y="${ys[j] + 16.4}" text-anchor="middle" font-size="2.4" fill="${op > .65 ? '#fff' : 'var(--text-2)'}">${n} duels</text>`;
+  }
+  const lab = ['Gauche', 'Axe', 'Droite'].map((l, j) => `<text x=".8" y="${ys[j] + 3.2}" font-size="2.4" fill="var(--text-3)" font-weight="700">${l.toUpperCase()}</text>`).join('');
+  return `<svg class="pitch" viewBox="-1.5 -1.5 107 71">${out}<g opacity=".55" pointer-events="none">${pitchLines(true)}</g>${lab}</svg>`;
+}
+
 /* ---------- Aides de lecture (rangs championnat, grilles de zones, couloirs) ---------- */
 function leagueRanks(f) {
   const lg = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1));
   const T = aggTactical(lg, f.qs).T, ids = Object.keys(T).filter(t => T[t].mp);
-  const valOf = (o, k, u) => u === '%' || !(k in o) ? (TAC[k] && TAC[k].f ? TAC[k].f(o) : null) : o[k] / o.mp;
+  const valOf = (o, k, u) => { const base = k in o ? o[k] : (TAC[k] && TAC[k].f ? TAC[k].f(o) : null); return base == null ? null : String(u).startsWith('pm') ? base / o.mp : base; };
   return {n: ids.length, get(k, dir, u, tid) {
     const vals = ids.map(t => [t, valOf(T[t], k, u)]).filter(x => x[1] != null && isFinite(x[1])).sort((a, b) => dir > 0 ? b[1] - a[1] : a[1] - b[1]);
     const avg = mean(vals.map(x => x[1])), best = vals.length ? vals[0][1] : null, worst = vals.length ? vals[vals.length - 1][1] : null;
@@ -4587,7 +4608,7 @@ function bindUI() {
   bindPhyUI();
   bindReportUI();
   document.addEventListener('click', e => { const b = e.target.closest('[data-more]'); if (!b) return; const w = document.getElementById(b.dataset.more + 'Wrap'); if (!w) return; w.hidden = !w.hidden; b.textContent = b.textContent.replace(/^(Voir|Masquer)/, w.hidden ? 'Voir' : 'Masquer'); });
-  $('#offDet').addEventListener('toggle', () => scheduleRender());
+  $('#offDet').addEventListener('toggle', () => scheduleRender()); $('#defDet').addEventListener('toggle', () => scheduleRender());
   $('#gkSel').onchange = e => { S.gkSel = e.target.value; scheduleRender(); };
   document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => {
     S.tab = b.dataset.tab;
@@ -4617,8 +4638,8 @@ function bindUI() {
     refreshAll();
   };
   $('#fReset').onclick = () => { S.f = {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0, 1, 2, 3, 4, 5])}; refreshAll(); };
-  ['#offMode', '#bmGk', '#lbAType', '#duelType', '#duelMin', '#gkCrType', '#gkDepType', '#gkShotType', '#gkPassType', '#gkTblMode', '#gkMinMin', '#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyEvoMetric', '#phyTeamMode', '#phyTX', '#phyTY', '#phyPX', '#phyPY', '#phyPEvoMetric', '#h2hEvoMetric', '#momOffMode', '#xtPlMode',
-   '#offMetric', '#offTeamMode', '#recType', '#defMetric', '#defTeamMode', '#cpaTeamMode']
+  ['#offMode', '#bmGk', '#defMode', '#duelMin', '#gkCrType', '#gkDepType', '#gkShotType', '#gkPassType', '#gkTblMode', '#gkMinMin', '#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyEvoMetric', '#phyTeamMode', '#phyTX', '#phyTY', '#phyPX', '#phyPY', '#phyPEvoMetric', '#h2hEvoMetric', '#momOffMode', '#xtPlMode',
+   '#offMetric', '#offTeamMode', '#defMetric', '#defTeamMode', '#cpaTeamMode']
     .forEach(s => $(s).onchange = () => scheduleRender());
   document.querySelectorAll('[data-csv]').forEach(b => b.onclick = () => exportCSV(b.dataset.csv));
 
