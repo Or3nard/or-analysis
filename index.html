@@ -164,6 +164,9 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .formrow{display:flex;gap:4px;margin:2px 0 12px;flex-wrap:wrap}.fm{display:inline-flex;width:24px;height:24px;border-radius:5px;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff;background:#c9a227}.fm.V{background:#2e9e5b}.fm.D{background:#d0453f}
 .resl{list-style:none;margin:12px 0 0;padding:0;font-size:12.5px;max-height:360px;overflow:auto}.resl .rn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.resl .rl{display:inline-flex;width:22px}.resl li{display:grid;grid-template-columns:24px 34px 22px minmax(0,1fr) auto;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid var(--grid)}.resl .fm{width:20px;height:20px;font-size:10.5px}.resl .tlogo{height:18px}
 .kpi .v .kpu{font-size:12px;font-weight:600;color:var(--text-3);margin-left:4px}
+.tbl-wrap.ktbl{max-height:none}.ktbl table{font-size:13px}.ktbl td,.ktbl th{padding:6px 10px}.ktbl tr.kgrp td{background:var(--surface-2);font-weight:800;font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-2);text-align:left;padding-top:9px}
+.ktbl td.kd.up{color:#2e9e5b;font-weight:700}.ktbl td.kd.down{color:#d0453f;font-weight:700}.ktbl .kb{white-space:nowrap;color:var(--text-2)}.ktbl .kb .tlogo{height:16px;vertical-align:-3px;margin-right:5px}.ktbl .kb b{color:var(--text);margin-left:4px}
+.kbar{position:relative;display:inline-block;width:180px;height:8px;border-radius:4px;background:linear-gradient(90deg,#d0453f33,#5a8fd633 50%,#2e9e5b44);vertical-align:middle}.kbar b{position:absolute;top:-3px;width:14px;height:14px;margin-left:-7px;border-radius:50%;border:2px solid var(--surface);box-shadow:0 0 0 1px rgba(0,0,0,.15)}.kbar i.avg{position:absolute;top:-4px;width:2px;height:16px;margin-left:-1px;background:var(--text-3)}
 .gk-ctl{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:10px 14px}.gk-ctl select{min-width:280px}.gk-ctl .tlogo{height:18px;vertical-align:-4px}
 .gkz{width:100%;font-size:12.5px;margin-top:10px;border-collapse:collapse}.gkz th{font-size:11px;color:var(--text-2);text-align:right;padding:4px 6px;border-bottom:1px solid var(--border)}.gkz td{text-align:right;padding:5px 6px;border-bottom:1px solid var(--grid)}.gkz .txt{text-align:left}
 .gkd{font-size:12px}.gkdr{display:grid;grid-template-columns:130px 1fr 74px;gap:8px;align-items:center;margin:6px 0}.gkdr span{color:var(--text-2)}.gkdr i{position:relative;height:12px;background:var(--surface-2);border-radius:6px;overflow:hidden;display:block}.gkdr i b{position:absolute;left:0;top:0;height:100%;border-radius:6px}.gkdr em{font-style:normal;font-weight:700}
@@ -2602,42 +2605,56 @@ function renderXt(ms, TN, PI, P) {
 /* ---------- Chiffres clés (Résumé) : équipe vs moyenne L1, avec rang ---------- */
 const KM = (l, fn, d, dir) => [l, fn, d, dir];
 const perM = k => w => w.A && w.A.mp ? w.A[k] / w.A.mp : null;
+const perP = k => w => w.P && w.P.mp ? w.P[k] / w.P.mp : null;
 const KEY_GROUPS = [
-  ['Résultats', [KM('Points / match', w => w.R && w.R.mj ? w.R.pts / w.R.mj : null, 2, 1), KM('Buts marqués / match', perM('gf'), 2, 1), KM('Buts encaissés / match', perM('ga'), 2, -1), KM('Différence xG / match', w => w.A && w.A.mp ? (w.A.xg - w.A.xga) / w.A.mp : null, 2, 1)]],
-  ['Construction', [KM('Possession %', w => val(TAC, 'possPct', w.A), 1, 1), KM('% passes réussies', w => val(TAC, 'passPct', w.A), 1, 1), KM('Possessions tiers déf. → tiers off. %', w => val(TAC, 'possD3Pct', w.A), 1, 1), KM('PPDA subi', w => val(TAC, 'ppdaF', w.A), 1, 1)]],
-  ['Déséquilibre', [KM('Passes cassant une ligne / match', perM('lb'), 1, 1), KM('Passes progressives / match', perM('prog'), 1, 1), KM('Entrées dernier tiers / match', perM('f3'), 1, 1), KM('Entrées surface / match', perM('box'), 1, 1)]],
-  ['Finition', [KM('Tirs / match', perM('sh'), 1, 1), KM('xG / match', perM('xg'), 2, 1), KM('xGOT / match', perM('xgot'), 2, 1), KM('xG / tir', w => val(TAC, 'xgsh', w.A), 2, 1)]],
-  ['Défense', [KM('PPDA (pressing)', w => val(TAC, 'ppda', w.A), 1, -1), KM('Récup. camp adverse / match', perM('recovH'), 1, 1), KM('Tirs concédés / match', perM('sha'), 1, -1), KM('xG concédés / match', perM('xga'), 2, -1)]],
-  ['Duels', [KM('% duels gagnés', w => val(TAC, 'duelPct', w.A), 1, 1), KM('% duels au sol', w => val(TAC, 'gdPct', w.A), 1, 1), KM('% duels aériens', w => val(TAC, 'aerPct', w.A), 1, 1), KM('Fautes / match', perM('foul'), 1, -1)]],
-  ['CPA et physique', [KM('xG sur CPA / match', perM('xgCpa'), 2, 1), KM('xG concédés sur CPA / match', perM('xgaCpa'), 2, -1), KM('Distance / match (km)', w => w.P && w.P.mp ? w.P.dist / w.P.mp / 1000 : null, 1, 1), KM('>25 km/h / match (m)', w => w.P && w.P.mp ? w.P.spr / w.P.mp : null, 0, 1)]]
+  ['Points', [KM('Points', w => w.R ? w.R.pts : null, 0, 1), KM('Points / match', w => w.R && w.R.mj ? w.R.pts / w.R.mj : null, 2, 1), KM('% de victoires', w => w.R && w.R.mj ? w.R.v / w.R.mj * 100 : null, 0, 1)]],
+  ['Buts', [KM('Buts marqués / match', perM('gf'), 2, 1), KM('Buts encaissés / match', perM('ga'), 2, -1), KM('Différence de buts / match', w => w.A && w.A.mp ? (w.A.gf - w.A.ga) / w.A.mp : null, 2, 1)]],
+  ['xG', [KM('xG / match', perM('xg'), 2, 1), KM('xG concédés / match', perM('xga'), 2, -1), KM('Différence xG / match', w => w.A && w.A.mp ? (w.A.xg - w.A.xga) / w.A.mp : null, 2, 1),
+    KM('xGOT / match', perM('xgot'), 2, 1), KM('xGOT concédés / match', perM('xgota'), 2, -1), KM('Buts − xG (total)', w => w.A ? w.A.gf - w.A.xg : null, 2, 1)]],
+  ['Possession', [KM('Possession %', w => val(TAC, 'possPct', w.A), 1, 1), KM('Passes / match', perM('pass'), 0, 1), KM('% passes réussies', w => val(TAC, 'passPct', w.A), 1, 1),
+    KM('Possessions tiers déf. → tiers off. %', w => val(TAC, 'possD3Pct', w.A), 1, 1), KM('PPDA subi (bas = très pressé)', w => val(TAC, 'ppdaF', w.A), 1, 1)]],
+  ['Événements offensifs', [KM('Tirs / match', perM('sh'), 1, 1), KM('Tirs cadrés / match', perM('sot'), 1, 1), KM('xG / tir', w => val(TAC, 'xgsh', w.A), 2, 1),
+    KM('Passes cassant une ligne / match', perM('lb'), 1, 1), KM('Passes progressives / match', perM('prog'), 1, 1), KM('Entrées dernier tiers / match', perM('f3'), 1, 1),
+    KM('Entrées surface / match', perM('box'), 1, 1), KM('Passes clés / match', perM('kp'), 1, 1), KM('Centres / match', perM('cross'), 1, 1), KM('Dribbles réussis / match', perM('drbOk'), 1, 1)]],
+  ['Événements défensifs', [KM('PPDA (bas = pressing intense)', w => val(TAC, 'ppda', w.A), 1, -1), KM('Récupérations / match', perM('recov'), 1, 1), KM('Récup. camp adverse / match', perM('recovH'), 1, 1),
+    KM('Interceptions / match', perM('int'), 1, 1), KM('Tacles gagnés / match', perM('tkW'), 1, 1), KM('% duels gagnés', w => val(TAC, 'duelPct', w.A), 1, 1), KM('% duels aériens', w => val(TAC, 'aerPct', w.A), 1, 1),
+    KM('Tirs concédés / match', perM('sha'), 1, -1), KM('Entrées surface concédées / match', perM('boxA'), 1, -1), KM('Fautes / match', perM('foul'), 1, -1)]],
+  ['CPA', [KM('Buts sur CPA / match', perM('gfCpa'), 2, 1), KM('xG sur CPA / match', perM('xgCpa'), 2, 1), KM('Buts encaissés sur CPA / match', perM('gaCpa'), 2, -1),
+    KM('xG concédés sur CPA / match', perM('xgaCpa'), 2, -1), KM('Corners / match', perM('corners'), 1, 1)]],
+  ['Physique', [KM('Distance / match (km)', w => w.P && w.P.mp ? w.P.dist / w.P.mp / 1000 : null, 1, 1), KM('Haute intensité > 20 km/h / match (m)', w => w.P && w.P.mp ? (w.P.hsr + w.P.spr) / w.P.mp : null, 0, 1),
+    KM('Sprint > 25 km/h / match (m)', perP('spr'), 0, 1), KM('Nombre de sprints / match', perP('nspr'), 0, 1), KM('Distance HI avec ballon / match (m)', perP('hIP'), 0, 1), KM('Distance HI sans ballon / match (m)', perP('hOP'), 0, 1)]]
 ];
 function renderKeyFigures(TN, PI) {
   const f = S.f;
-  // contexte championnat : journées choisies, quarts d'heure choisis, toutes équipes
   const lg = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1));
   const T = aggTactical(lg, f.qs).T, PT = aggPhys(lg, f.qs).T;
-  const RS = {}; for (const m of lg) { if (!m.score) continue; for (const [id, gf, ga] of [[m.home.id, m.score[0], m.score[1]], [m.away.id, m.score[1], m.score[0]]]) { const r = RS[id] || (RS[id] = {mj: 0, pts: 0}); r.mj++; r.pts += gf > ga ? 3 : gf === ga ? 1 : 0; } }
+  const RS = {}; for (const m of lg) { if (!m.score) continue; for (const [id, gf, ga] of [[m.home.id, m.score[0], m.score[1]], [m.away.id, m.score[1], m.score[0]]]) { const r = RS[id] || (RS[id] = {mj: 0, pts: 0, v: 0}); r.mj++; r.pts += gf > ga ? 3 : gf === ga ? 1 : 0; if (gf > ga) r.v++; } }
   const teams = Object.keys(T).filter(t => T[t].mp);
   const W = t => ({A: T[t], P: PT[t], R: RS[t]});
   const tid = f.team || (f.player && PI[f.player] ? PI[f.player].team : '');
-  const cT = tid ? clubColor(tid) : css('--s1'), cL = css('--text-3');
+  const cT = tid ? clubColor(tid) : css('--s1');
   const ord = n => n + (n === 1 ? 'er' : 'e');
   const jTxt = (f.j0 != null || f.j1 != null) ? `J${f.j0 ?? ''} à J${f.j1 ?? ''}` : 'toutes les journées';
   const qTxt = f.qs.size === 6 ? '' : ' · ' + [...f.qs].sort().map(q => Q_LABELS[q]).join(', ');
   $('#keyFigSub').innerHTML = tid
-    ? `<b style="color:${cT}">${esc(TN[tid])}</b> · <b style="color:${cL}">Moyenne ${compShort()}</b> · rang sur ${teams.length} équipes (vert = quart supérieur, rouge = quart inférieur) · ${jTxt}${qTxt}`
-    : `<b style="color:${cL}">Moyenne ${compShort()}</b> et meilleure équipe · ${jTxt}${qTxt} · sélectionnez une équipe pour voir ses chiffres et son rang`;
-  const tile = ([l, fn, d, dir]) => {
+    ? `<b style="color:${cT}">${esc(TN[tid])}</b> comparé à la moyenne ${compShort()} · rang sur ${teams.length} équipes (vert = quart supérieur, rouge = quart inférieur) · ${jTxt}${qTxt}`
+    : `Moyenne ${compShort()}, extrêmes et meilleure équipe · ${jTxt}${qTxt} · sélectionnez une équipe pour voir ses chiffres et son rang`;
+  const row = ([l, fn, d, dir]) => {
     const vals = teams.map(t => [t, fn(W(t))]).filter(v => v[1] != null && isFinite(v[1])).sort((a, b) => dir > 0 ? b[1] - a[1] : a[1] - b[1]);
-    const avg = mean(vals.map(v => v[1]));
-    if (tid) {
-      const v = fn(W(tid)), i = vals.findIndex(x => x[0] === tid), q = i < 0 ? '' : i < vals.length / 4 ? 'top' : i >= vals.length * 3 / 4 ? 'low' : 'mid';
-      return `<div class="rtile"><span>${esc(l)}</span><div><b style="color:${cT}">${fmt(v, d)}</b><b style="color:${cL}">${fmt(avg, d)}</b></div><small>${i >= 0 ? `<em class="rk ${q}">${ord(i + 1)}</em> / ${vals.length}` : '—'}</small></div>`;
-    }
-    const best = vals[0];
-    return `<div class="rtile"><span>${esc(l)}</span><div><b style="color:${cL}">${fmt(avg, d)}</b>${best ? `<b style="color:${clubColor(best[0])}">${fmt(best[1], d)}</b>` : ''}</div><small>${best ? 'meilleur : ' + esc(TN[best[0]]) : ''}</small></div>`;
+    if (!vals.length) return `<tr><td class="txt">${esc(l)}</td><td colspan="6" class="muted">—</td></tr>`;
+    const avg = mean(vals.map(v => v[1])), best = vals[0], worst = vals[vals.length - 1];
+    const lo = Math.min(best[1], worst[1]), hi = Math.max(best[1], worst[1]), pos = v => hi > lo ? (dir > 0 ? (v - lo) / (hi - lo) : (hi - v) / (hi - lo)) * 100 : 50;
+    const bestC = `<td class="txt kb">${logoHTML(best[0])}<span>${esc(TN[best[0]] || '')}</span> <b>${fmt(best[1], d)}</b></td>`;
+    if (!tid) return `<tr><td class="txt">${esc(l)}</td><td><b>${fmt(avg, d)}</b></td><td>${fmt(dir > 0 ? worst[1] : best[1], d)} – ${fmt(dir > 0 ? best[1] : worst[1], d)}</td>${bestC}</tr>`;
+    const v = fn(W(tid)), i = vals.findIndex(x => x[0] === tid), q = i < 0 ? '' : i < vals.length / 4 ? 'top' : i >= vals.length * 3 / 4 ? 'low' : 'mid';
+    const diff = v != null && avg != null ? v - avg : null, good = diff == null ? '' : (diff * dir > 0 ? 'up' : diff * dir < 0 ? 'down' : '');
+    const bar = v == null ? '' : `<span class="kbar"><i class="avg" style="left:${pos(avg)}%"></i><b style="left:${pos(v)}%;background:${cT}"></b></span>`;
+    return `<tr><td class="txt">${esc(l)}</td><td><b style="color:${cT}">${fmt(v, d)}</b></td><td>${fmt(avg, d)}</td><td class="kd ${good}">${diff == null ? '—' : (diff >= 0 ? '+' : '') + fmt(diff, d)}</td><td>${i >= 0 ? `<em class="rk ${q}">${ord(i + 1)}</em>` : '—'}</td><td class="txt">${bar}</td>${bestC}</tr>`;
   };
-  $('#keyFig').innerHTML = KEY_GROUPS.map(([g, L]) => `<div class="kg"><h3>${esc(g)}</h3><div class="rtiles">${L.map(tile).join('')}</div></div>`).join('');
+  const head = tid ? `<tr><th class="txt">Indicateur</th><th>${esc(TN[tid])}</th><th>Moy. ${compShort()}</th><th>Écart</th><th>Rang</th><th class="txt">Position (← moins bon · meilleur →)</th><th class="txt">Meilleure équipe</th></tr>`
+    : `<tr><th class="txt">Indicateur</th><th>Moy. ${compShort()}</th><th>Fourchette</th><th class="txt">Meilleure équipe</th></tr>`;
+  const ncol = tid ? 7 : 4;
+  $('#keyFig').innerHTML = `<div class="tbl-wrap ktbl"><table>${head}${KEY_GROUPS.map(([g, L]) => `<tr class="kgrp"><td colspan="${ncol}">${esc(g)}</td></tr>${L.map(row).join('')}`).join('')}</table></div>`;
 }
 function renderTactical() {
   const TN = teamNames(), PI = playerInfo();
