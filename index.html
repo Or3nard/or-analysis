@@ -500,7 +500,7 @@ input.j{width:64px}
       <div class="grid">
         <div class="card c12 synth">
           <div class="card-head"><div><h2>En résumé</h2><p class="sub" id="synSub"></p></div>
-          <div class="ctrl"><span class="muted" style="font-size:12px">Visuels :</span><select id="offMode"><option value="pm">Par match</option><option value="tot">Total</option></select></div></div>
+          <div class="ctrl"><select id="offMode"><option value="pm">Par match</option><option value="tot">Total</option></select></div></div>
           <div class="syn" id="synCols"></div>
           <p class="syn-read" id="synRead"></p>
         </div>
@@ -585,7 +585,7 @@ input.j{width:64px}
       <div class="grid">
         <div class="card c12 synth">
           <div class="card-head"><div><h2>En résumé</h2><p class="sub" id="dsynSub"></p></div>
-          <div class="ctrl"><span class="muted" style="font-size:12px">Visuels :</span><select id="defMode"><option value="pm">Par match</option><option value="tot">Total</option></select></div></div>
+          <div class="ctrl"><select id="defMode"><option value="pm">Par match</option><option value="tot">Total</option></select></div></div>
           <div class="syn syn4" id="dsynCols"></div>
           <p class="syn-read" id="dsynRead"></p>
         </div>
@@ -2758,31 +2758,11 @@ function renderTactical() {
   if (sub === 'off') {
     const PMODE = $('#offMode').value === 'pm', nM = Math.max(1, (isPl ? F && F.mp : (tmFocus && T[tmFocus] ? T[tmFocus].mp : ms.filter(m => m.ev).length)) || 1);
     const cnt = v => PMODE ? fmt(v / nM, 1) : fmt(v);
-    // ---- Rangs dans le championnat (journées + quarts d'heure filtrés)
-    const LG = leagueRanks(f);
-    const tF = tmFocus;
-    const PH = [
-      {n: 1, M: [['Possessions de derrière qui atteignent le milieu', 'possD2Pct', 1, '%'], ['Passes réussies dans son tiers', 'bpassPct', 1, '%'], ['Pertes de balle dans son tiers', 'lostLow', -1, 'pm'], ['Sorties de balle réussies', 'bout', 1, 'pm']]},
-      {n: 2, M: [['Passes qui cassent une ligne', 'lb', 1, 'pm'], ['Passes progressives', 'prog', 1, 'pm'], ['Conduites progressives', 'carryProg', 1, 'pm'], ['Entrées dans le dernier tiers', 'f3', 1, 'pm']]},
-      {n: 3, M: [['Entrées dans la surface', 'box', 1, 'pm'], ['Tirs', 'sh', 1, 'pm'], ['xG', 'xg', 1, 'pm2'], ['Buts', 'gf', 1, 'pm2']]}
-    ];
-    const NAMES = ['Construction basse', 'Zones de déséquilibre', '30 derniers mètres'];
-    const res = PH.map(ph => ph.M.map(([l, k, dir, u]) => ({l, k, dir, u, ...LG.get(k, dir, u, tF)})));
-    const ord = n => n + (n === 1 ? 'er' : 'e');
-    const fmtV = (r, v) => v == null ? '—' : r.u === '%' ? fmt(v, 1) + ' %' : r.u === 'pm2' ? fmt(v, 2) : fmt(v, 1);
-    const pill = r => r.rank ? `<em class="rk ${r.q}">${ord(r.rank)}</em>` : '';
-    const verdict = L => { const qs = L.filter(r => r.rank).map(r => 1 - (r.rank - 1) / Math.max(1, r.n - 1)); if (!qs.length) return null; const m = mean(qs); return m >= .67 ? ['top', 'Point fort'] : m <= .33 ? ['low', 'À améliorer'] : ['mid', 'Dans la moyenne']; };
-    const cT = tF ? clubColor(tF) : css('--text-3');
-    $('#synSub').innerHTML = tF ? `<b style="color:${cT}">${esc(TN[tF])}</b> · valeurs par match comparées à la moyenne ${compShort()} · rang sur ${LG.n} équipes` : `Moyenne ${compShort()} par match · sélectionnez une équipe pour voir ses rangs`;
-    $('#synCols').innerHTML = res.map((L, i) => { const v = tF ? verdict(L) : null; return `<div class="syc"><div class="syc-h"><span class="chap-n sm">${i + 1}</span><b>${NAMES[i]}</b>${v ? `<span class="vd ${v[0]}">${v[1]}</span>` : ''}</div>${L.slice(0, 3).map(r => `<div class="syr"><span>${esc(r.l)}</span><b style="color:${tF ? cT : 'var(--text)'}">${fmtV(r, tF ? r.v : r.avg)}</b>${tF ? pill(r) : ''}<small>moy. ${fmtV(r, r.avg)}</small></div>`).join('')}</div>`; }).join('');
-    if (tF) {
-      const all = res.flat().filter(r => r.rank), best = all.slice().sort((a, b) => a.rank - b.rank)[0], worst = all.slice().sort((a, b) => b.rank - a.rank)[0];
-      $('#synRead').innerHTML = best && worst ? `<b>À retenir :</b> point fort — ${esc(best.l.toLowerCase())} (${ord(best.rank)}, ${fmtV(best, best.v)} contre ${fmtV(best, best.avg)} en moyenne) ; point faible — ${esc(worst.l.toLowerCase())} (${ord(worst.rank)}, ${fmtV(worst, worst.v)} contre ${fmtV(worst, worst.avg)}).` : '';
-    } else $('#synRead').innerHTML = '';
-    res.forEach((L, i) => {
-      const v = tF ? verdict(L) : null; $('#phV' + (i + 1)).innerHTML = v ? `<span class="vd ${v[0]}">${v[1]}</span>` : '';
-      $('#phK' + (i + 1)).innerHTML = L.map(r => `<div class="phk"><span>${esc(r.l)}${r.u === 'pm' || r.u === 'pm2' ? ' <small>/ match</small>' : ''}</span><div><b style="color:${tF ? cT : 'var(--text)'}">${fmtV(r, tF ? r.v : r.avg)}</b>${tF ? pill(r) : ''}</div>${tF ? `<span class="kbar"><i class="avg" style="left:${r.pAvg}%"></i><b style="left:${r.pV}%;background:${cT}"></b></span><small>moy. ${fmtV(r, r.avg)} · meilleur ${fmtV(r, r.best)}</small>` : `<small>meilleur ${fmtV(r, r.best)}</small>`}</div>`).join('');
-    });
+    phaseUI('', [
+      [['Possessions de derrière qui atteignent le milieu', 'possD2Pct', 1, '%'], ['Passes réussies dans son tiers', 'bpassPct', 1, '%'], ['Pertes de balle dans son tiers', 'lostLow', -1, 'pm'], ['Sorties de balle réussies', 'bout', 1, 'pm']],
+      [['Passes qui cassent une ligne', 'lb', 1, 'pm'], ['Passes progressives', 'prog', 1, 'pm'], ['Conduites progressives', 'carryProg', 1, 'pm'], ['Entrées dans le dernier tiers', 'f3', 1, 'pm']],
+      [['Entrées dans la surface', 'box', 1, 'pm'], ['Tirs', 'sh', 1, 'pm'], ['xG', 'xg', 1, 'pm2'], ['Buts', 'gf', 1, 'pm2']]
+    ], ['Construction basse', 'Zones de déséquilibre', '30 derniers mètres'], tmFocus, TN, f, !PMODE, tmFocus && T[tmFocus] ? T[tmFocus].mp : 1);
     // ---- 1. Construction basse
     { const r = possZones(ms, tmFocus, f.qs, PMODE, cF, 0);
       $('#pzBody').innerHTML = r.html; $('#pzSub').textContent = r.sub; bindPossZones($('#pzBody')); }
@@ -2854,7 +2834,7 @@ function renderTactical() {
       [['Passes adverses qui cassent nos lignes', 'lbA', -1, 'pm'], ['Passes progressives concédées', 'progA', -1, 'pm'], ['Entrées adverses dans notre dernier tiers', 'f3A', -1, 'pm'], ['Entrées adverses dans notre surface', 'boxA', -1, 'pm']],
       [['Tirs concédés', 'sha', -1, 'pm'], ['xG concédés', 'xga', -1, 'pm2'], ['xG concédé par tir', 'xgsha', -1, 'r2'], ['Buts encaissés', 'ga', -1, 'pm2']],
       [['Duels gagnés', 'duelPct', 1, '%'], ['Duels au sol gagnés', 'gdPct', 1, '%'], ['Duels aériens gagnés', 'aerPct', 1, '%'], ['Fautes commises', 'foul', -1, 'pm']]
-    ], ['Pressing et récupération', 'Déséquilibres concédés', '30 derniers mètres', 'Duels'], tid, TN, f);
+    ], ['Pressing et récupération', 'Déséquilibres concédés', '30 derniers mètres', 'Duels'], tid, TN, f, !PMODE, tid && T[tid] ? T[tid].mp : 1);
     const topBy = (fn, n = 5) => plRows.filter(r => !tid || r.tid === tid).map(r => ({r, v: fn(r.o)})).filter(x => x.v > 0).sort((a, b) => b.v - a.v).slice(0, n);
     // 1. Pressing et récupération
     const evs = [];
@@ -3990,21 +3970,25 @@ function topList(L, lab, sub) {
   return L.length ? `<div class="top5">${L.map(x => `<div class="t5"><span class="t5n">${esc(x.r.name)}<small>${esc(sub(x.r.o))}</small></span><i><b style="width:${x.v / mx * 100}%;background:${clubColor(x.r.tid)}"></b></i><em>${lab(x.v)}</em></div>`).join('')}</div>` : '<div class="empty">Aucun joueur.</div>';
 }
 // Synthèse + chiffres de chaque phase (bandeau « En résumé » et en-têtes des blocs)
-function phaseUI(pre, PH, NAMES, tF, TN, f) {
-  const LG = leagueRanks(f);
+function phaseUI(pre, PH, NAMES, tF, TN, f, TOT, mp) {
+  const LG = leagueRanks(f); mp = mp || 1;
   const res = PH.map(M => M.map(([l, k, dir, u]) => ({l, k, dir, u, ...LG.get(k, dir, u, tF)})));
   const fmtV = (r, v) => v == null ? '—' : r.u === '%' ? fmt(v, 1) + ' %' : r.u === 'm' ? fmt(v, 1) + ' m' : (r.u === 'pm2' || r.u === 'r2') ? fmt(v, 2) : fmt(v, 1);
   const pill = r => r.rank ? `<em class="rk ${r.q}">${ordFr(r.rank)}</em>` : '';
   const verdict = L => { const q = L.filter(r => r.rank).map(r => 1 - (r.rank - 1) / Math.max(1, r.n - 1)); if (!q.length) return null; const m = mean(q); return m >= .67 ? ['top', 'Point fort'] : m <= .33 ? ['low', 'À améliorer'] : ['mid', 'Dans la moyenne']; };
-  const cT = tF ? clubColor(tF) : css('--text-3'), unit = r => r.u === 'pm' || r.u === 'pm2' ? ' <small>/ match</small>' : '';
-  $('#' + pre + 'synSub').innerHTML = tF ? `<b style="color:${cT}">${esc(TN[tF])}</b> · comparé à la moyenne ${compShort()} · rang sur ${LG.n} équipes` : `Moyenne ${compShort()} · sélectionnez une équipe pour voir ses rangs`;
-  $('#' + pre + 'synCols').innerHTML = res.map((L, i) => { const v = tF ? verdict(L) : null; return `<div class="syc"><div class="syc-h"><span class="chap-n sm">${i + 1}</span><b>${NAMES[i]}</b>${v ? `<span class="vd ${v[0]}">${v[1]}</span>` : ''}</div>${L.slice(0, 3).map(r => `<div class="syr"><span>${esc(r.l)}${unit(r)}</span><b style="color:${tF ? cT : 'var(--text)'}">${fmtV(r, tF ? r.v : r.avg)}</b>${tF ? pill(r) : ''}<small>moy. ${fmtV(r, r.avg)}</small></div>`).join('')}</div>`; }).join('');
+  const isPm = r => r.u === 'pm' || r.u === 'pm2', tot = r => TOT && tF && isPm(r);
+  const cT = tF ? clubColor(tF) : css('--text-3'), unit = r => isPm(r) ? (tot(r) ? ' <small>au total</small>' : ' <small>/ match</small>') : '';
+  const shown = r => tot(r) ? (r.v == null ? null : r.v * mp) : (tF ? r.v : r.avg);
+  const fmtS = (r, v) => tot(r) ? fmt(v, r.u === 'pm2' ? 2 : 0) : fmtV(r, v);
+  const cmp = r => tot(r) ? `soit ${fmtV(r, r.v)} / match · moy. ${fmtV(r, r.avg)} · meilleur ${fmtV(r, r.best)}` : `moy. ${fmtV(r, r.avg)} · meilleur ${fmtV(r, r.best)}`;
+  $('#' + pre + 'synSub').innerHTML = tF ? `<b style="color:${cT}">${esc(TN[tF])}</b> · ${TOT ? `totaux sur ${mp} match(s)` : 'valeurs par match'} · comparé à la moyenne ${compShort()} · rang sur ${LG.n} équipes (calculé par match)` : `Moyenne ${compShort()} · sélectionnez une équipe pour voir ses rangs`;
+  $('#' + pre + 'synCols').innerHTML = res.map((L, i) => { const v = tF ? verdict(L) : null; return `<div class="syc"><div class="syc-h"><span class="chap-n sm">${i + 1}</span><b>${NAMES[i]}</b>${v ? `<span class="vd ${v[0]}">${v[1]}</span>` : ''}</div>${L.slice(0, 3).map(r => `<div class="syr"><span>${esc(r.l)}${unit(r)}</span><b style="color:${tF ? cT : 'var(--text)'}">${fmtS(r, shown(r))}</b>${tF ? pill(r) : ''}<small>${tot(r) ? `soit ${fmtV(r, r.v)} / match · ` : ''}moy. ${fmtV(r, r.avg)}${tot(r) ? ' / match' : ''}</small></div>`).join('')}</div>`; }).join('');
   if (tF) { const all = res.flat().filter(r => r.rank), best = all.slice().sort((a, b) => a.rank - b.rank)[0], worst = all.slice().sort((a, b) => b.rank - a.rank)[0];
     $('#' + pre + 'synRead').innerHTML = best && worst ? `<b>À retenir :</b> point fort — ${esc(best.l.toLowerCase())} (${ordFr(best.rank)}, ${fmtV(best, best.v)} contre ${fmtV(best, best.avg)} en moyenne) ; point faible — ${esc(worst.l.toLowerCase())} (${ordFr(worst.rank)}, ${fmtV(worst, worst.v)} contre ${fmtV(worst, worst.avg)}).` : ''; }
   else $('#' + pre + 'synRead').innerHTML = '';
   res.forEach((L, i) => {
     const v = tF ? verdict(L) : null; $('#' + pre + 'phV' + (i + 1)).innerHTML = v ? `<span class="vd ${v[0]}">${v[1]}</span>` : '';
-    $('#' + pre + 'phK' + (i + 1)).innerHTML = L.map(r => `<div class="phk"><span>${esc(r.l)}${unit(r)}</span><div><b style="color:${tF ? cT : 'var(--text)'}">${fmtV(r, tF ? r.v : r.avg)}</b>${tF ? pill(r) : ''}</div>${tF ? `<span class="kbar"><i class="avg" style="left:${r.pAvg}%"></i><b style="left:${r.pV}%;background:${cT}"></b></span><small>moy. ${fmtV(r, r.avg)} · meilleur ${fmtV(r, r.best)}</small>` : `<small>meilleur ${fmtV(r, r.best)}</small>`}</div>`).join('');
+    $('#' + pre + 'phK' + (i + 1)).innerHTML = L.map(r => `<div class="phk"><span>${esc(r.l)}${unit(r)}</span><div><b style="color:${tF ? cT : 'var(--text)'}">${fmtS(r, shown(r))}</b>${tF ? pill(r) : ''}</div>${tF ? `<span class="kbar"><i class="avg" style="left:${r.pAvg}%"></i><b style="left:${r.pV}%;background:${cT}"></b></span><small>${cmp(r)}</small>` : `<small>meilleur ${fmtV(r, r.best)}</small>`}</div>`).join('');
   });
 }
 // Terrain en zones colorées selon le % de duels gagnés
