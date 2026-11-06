@@ -177,6 +177,7 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .ph-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}@media (max-width:900px){.ph-kpis{grid-template-columns:repeat(2,1fr)}}
 .phk{background:var(--surface-2);border-radius:10px;padding:9px 12px;display:flex;flex-direction:column;gap:4px}.phk>span{font-size:12px;color:var(--text-2)}.phk>span small{color:var(--text-3)}.phk>div{display:flex;align-items:center;gap:8px}.phk>div b{font-size:20px}.phk small{font-size:11px;color:var(--text-3)}.phk .kbar{width:100%;margin:4px 0 2px}
 .ph-vis{display:grid;grid-template-columns:1.25fr 1fr;gap:20px;margin-top:6px}.ph-vis+.ph-vis{margin-top:18px;padding-top:14px;border-top:1px solid var(--grid)}@media (max-width:900px){.ph-vis{grid-template-columns:1fr}}
+.rel-sec{margin-top:10px}.rel-sec h4{font-size:12px;margin:0 0 4px;color:var(--text-2);font-weight:700}.rel-sec h4 small{font-weight:400;color:var(--text-3)}
 .ph-one{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--grid)}.ph-one h3{font-size:13.5px;margin:0 0 2px}.pitch.zhalf{max-width:380px;display:block;margin:6px auto 0}#ph3 #shotMap,#dph3 #shotMapAg,#plyShotMap{max-width:430px;margin:0 auto}
 .ph-vis h3{font-size:13.5px;margin:0 0 2px}.ph-more{margin-top:8px;font-size:12px}.ph-arrows{margin-top:8px}
 .top5{display:flex;flex-direction:column;gap:8px;margin-top:8px}.t5{display:grid;grid-template-columns:minmax(0,1.3fr) 1fr 74px;gap:10px;align-items:center;font-size:12.5px}.t5n{display:flex;flex-direction:column;min-width:0}.t5n small{color:var(--text-3);font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.t5 i{display:block;height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden}.t5 i b{display:block;height:100%}.t5 em{font-style:normal;font-weight:700;text-align:right}
@@ -372,7 +373,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-06 10:33 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-06 10:42 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -2829,14 +2830,24 @@ function renderTactical() {
       for (const e of m.ev.passes) if (f.qs.has(e.q) && mine(e) && !e.c && e.x0 < 52.5 && (withGk || !GK.has(e.p))) { loss.push({x: e.x0, y: e.y0}); if (e.x0 < 35) lostP.push(e); }
       for (const e of m.ev.opta) if ((e.t === 50 || (e.t === 61 && !e.o)) && f.qs.has(e.q) && mine(e) && e.x < 50 && (withGk || !GK.has(e.p))) loss.push({x: e.x * 1.05, y: (100 - e.y) * .68});
     }
-    $('#lossSub').textContent = `${cnt(loss.length)} pertes${PMODE ? ' par match' : ''} (passes ratées + dépossessions)${withGk ? '' : ', hors gardien'} · sens d’attaque →`;
-    $('#lossGrid').innerHTML = zoneGridSVG(loss, '#d0453f', {xs: [0, 17.5, 35, 52.5], half: 1, div: PMODE ? nM : 1});
+    $('#lossSub').textContent = `${cnt(loss.length)} pertes${PMODE ? ' par match' : ''} (passes ratées + dépossessions)${withGk ? '' : ', hors gardien'} · son but à gauche`;
+    $('#lossGrid').innerHTML = zoneGridSVG(loss, '#d0453f', {xs: [0, 17.5, 35, 52.5], div: PMODE ? nM : 1, restLabel: 'camp adverse (non compté)'});
     $('#bmMap').innerHTML = passMapSVG(lostP, PI, TN, cF);
     { const RB = [[0, 15, 'Courtes (< 15 m)'], [15, 30, 'Moyennes (15-30 m)'], [30, 200, 'Longues (≥ 30 m)']].map(x => ({l: x[2], a: x[0], b: x[1], n: 0, ok: 0})); let tot = 0;
-      for (const m of ms) if (m.ev) { const GK = gkSetOf(m); for (const e of m.ev.passes) if (f.qs.has(e.q) && mine(e) && e.x0 < 35 && (withGk || !GK.has(e.p))) { const L = Math.hypot(e.x1 - e.x0, e.y1 - e.y0), r = RB.find(x => L >= x.a && L < x.b); r.n++; if (e.c) r.ok++; tot++; } }
-      const mx = Math.max(1, ...RB.map(r => r.n));
-      $('#relSub').textContent = `${cnt(tot)} passes${PMODE ? ' par match' : ''} depuis son tiers défensif${withGk ? '' : ', hors gardien'} · part et réussite selon la longueur`;
-      $('#relBars').innerHTML = `<div class="gkd">${RB.map(r => `<div class="gkdr"><span>${r.l}</span><i><b style="width:${r.n / mx * 100}%;background:${cF}44"></b><b class="ok" style="width:${r.ok / mx * 100}%;background:${cF}"></b></i><em>${tot ? Math.round(r.n / tot * 100) : 0} % · ${r.n ? Math.round(r.ok / r.n * 100) : 0} % réussies</em></div>`).join('')}</div><p class="note">Barre claire = volume, barre foncée = passes réussies. La case « Gardien inclus » s’applique aussi aux pertes de balle.</p>`; }
+      const LN = [0, 1, 2].map(() => ({n: 0, ok: 0})), WHO = {};
+      for (const m of ms) if (m.ev) { const GK = gkSetOf(m); for (const e of m.ev.passes) if (f.qs.has(e.q) && mine(e) && e.x0 < 35 && (withGk || !GK.has(e.p))) {
+        const L = Math.hypot(e.x1 - e.x0, e.y1 - e.y0), r = RB.find(x => L >= x.a && L < x.b); r.n++; if (e.c) r.ok++; tot++;
+        if (e.x1 >= 35) { const l = LN[e.y0 < 22.67 ? 0 : e.y0 < 45.33 ? 1 : 2]; l.n++; if (e.c) l.ok++; }
+        const w = WHO[e.p] || (WHO[e.p] = {n: 0, ok: 0, out: 0, tm: e.tm}); w.n++; if (e.c) { w.ok++; if (e.x1 >= 35) w.out++; } } }
+      const bar = (l, n, ok, mx, extra) => `<div class="gkdr"><span>${l}</span><i><b style="width:${n / mx * 100}%;background:${cF}44"></b><b class="ok" style="width:${ok / mx * 100}%;background:${cF}"></b></i><em>${extra}</em></div>`;
+      const mx = Math.max(1, ...RB.map(r => r.n)), mxL = Math.max(1, ...LN.map(r => r.n)), totL = LN.reduce((a, x) => a + x.n, 0);
+      $('#relSub').textContent = `${cnt(tot)} passes${PMODE ? ' par match' : ''} depuis son tiers défensif${withGk ? '' : ', hors gardien'}`;
+      const top = Object.entries(WHO).filter(([id]) => PI[id]).sort((a, b) => b[1].out - a[1].out).slice(0, 5);
+      const mxW = Math.max(1, ...top.map(([, w]) => w.out));
+      $('#relBars').innerHTML = `<div class="rel-sec"><h4>Longueur des passes</h4><div class="gkd">${RB.map(r => bar(r.l, r.n, r.ok, mx, `${tot ? Math.round(r.n / tot * 100) : 0} % des passes · ${r.n ? Math.round(r.ok / r.n * 100) : 0} % réussies`)).join('')}</div></div>`
+        + `<div class="rel-sec"><h4>Couloir de sortie <small>(passes qui quittent le tiers défensif)</small></h4><div class="gkd">${['Côté gauche', 'Axe', 'Côté droit'].map((l, i) => bar(l, LN[i].n, LN[i].ok, mxL, `${totL ? Math.round(LN[i].n / totL * 100) : 0} % · ${LN[i].n ? Math.round(LN[i].ok / LN[i].n * 100) : 0} % réussies`)).join('')}</div></div>`
+        + `<div class="rel-sec"><h4>Qui sort le ballon <small>(passes réussies vers le tiers médian)</small></h4>${top.length ? `<div class="top5">${top.map(([id, w]) => `<div class="t5"><span class="t5n">${esc(PI[id].name)}<small>${fmt(w.n)} passes dans son tiers · ${w.n ? Math.round(w.ok / w.n * 100) : 0} % réussies</small></span><i><b style="width:${w.out / mxW * 100}%;background:${clubColor(w.tm)}"></b></i><em>${cnt(w.out)}</em></div>`).join('')}</div>` : '<div class="empty">—</div>'}</div>`
+        + `<p class="note">Barre claire = volume, barre foncée = passes réussies. « Gardien inclus » s’applique aussi aux pertes de balle.</p>`; }
     // ---- 2. Zones de déséquilibre
     const dz = [], lbP = [];
     for (const m of ms) if (m.ev) {
@@ -3068,7 +3079,7 @@ function renderTactical() {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-06 10:33 UTC';
+const BUILD = '2026-11-06 10:42 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4168,17 +4179,18 @@ function leagueRanks(f) {
 }
 // Terrain horizontal découpé en zones (bandes en x × 3 couloirs) : nombre et part des actions
 function zoneGridSVG(pts, col, o = {}) {
-  const xs = o.xs || [0, 35, 70, 105], ys = [0, 22.67, 45.33, 68], div = o.div || 1, W = o.half ? 54.5 : 107;
+  const xs = o.xs || [0, 35, 70, 105], ys = [0, 22.67, 45.33, 68], div = o.div || 1, W = 107;
   const C = []; let tot = 0;
   for (let i = 0; i < xs.length - 1; i++) for (let j = 0; j < 3; j++) C.push({i, j, n: 0});
   for (const p of pts) { if (p.x < xs[0] || p.x > xs[xs.length - 1]) continue; let i = xs.findIndex((x, k) => k < xs.length - 1 && p.x >= x && p.x <= xs[k + 1]); if (i < 0) continue; const j = p.y < 22.67 ? 0 : p.y < 45.33 ? 1 : 2; C[i * 3 + j].n++; tot++; }
   const mx = Math.max(1, ...C.map(c => c.n));
   const cells = C.map(c => { const x0 = xs[c.i], x1 = xs[c.i + 1], y0 = ys[c.j], y1 = ys[c.j + 1], a = c.n / mx, w = x1 - x0;
-    const fs = Math.min(3.8, w / 5), txt = a > .55 ? '#fff' : 'var(--text)';
+    const fs = Math.min(3.8, w / 5), txt = a > .9 ? '#fff' : 'var(--text)';
     return `<rect x="${x0}" y="${y0}" width="${w}" height="${y1 - y0}" fill="${col}" fill-opacity="${(.05 + .8 * a).toFixed(2)}" stroke="var(--surface)" stroke-width=".35"/>`
       + (c.n ? `<text x="${x0 + w / 2}" y="${(y0 + y1) / 2 + .6}" text-anchor="middle" font-size="${fs.toFixed(1)}" font-weight="800" fill="${txt}">${div > 1 ? fmt(c.n / div, 1) : c.n}</text><text x="${x0 + w / 2}" y="${(y0 + y1) / 2 + fs * .55 + 2.2}" text-anchor="middle" font-size="${(fs * .55).toFixed(1)}" fill="${txt}" fill-opacity=".85">${Math.round(c.n / (tot || 1) * 100)} %</text>` : ''); }).join('');
-  const lab = ['Gauche', 'Axe', 'Droite'].map((l, j) => `<text x="${xs[0] + .8}" y="${ys[j] + 3.2}" font-size="2.4" fill="var(--text-3)" font-weight="700">${l.toUpperCase()}</text>`).join('');
-  return `<svg class="pitch${o.half ? ' zhalf' : ''}" viewBox="-1.5 -1.5 ${W} 71">${cells}<g opacity=".55" pointer-events="none">${pitchLines(true)}</g>${lab}</svg>`;
+  const lab = ['Gauche', 'Axe', 'Droite'].map((l, j) => `<rect x="${xs[0] + .5}" y="${ys[j] + .6}" width="${l.length * 1.55 + 1.6}" height="3.4" rx="1" fill="var(--surface)" fill-opacity=".85"/><text x="${xs[0] + 1.3}" y="${ys[j] + 3.1}" font-size="2.3" fill="var(--text-2)" font-weight="700">${l.toUpperCase()}</text>`).join('');
+  const rest = xs[xs.length - 1] < 105 ? `<rect x="${xs[xs.length - 1]}" y="0" width="${105 - xs[xs.length - 1]}" height="68" fill="var(--surface-2)" fill-opacity=".55"/><text x="${(xs[xs.length - 1] + 105) / 2}" y="64" text-anchor="middle" font-size="2.4" fill="var(--text-3)">${esc(o.restLabel || '')}</text>` : '';
+  return `<svg class="pitch" viewBox="-1.5 -1.5 ${W} 71">${rest}${cells}<g opacity=".55" pointer-events="none">${pitchLines(true)}</g>${lab}</svg>`;
 }
 function laneBars(cnts, labels, col, tot, cnt) {
   const mx = Math.max(1, ...cnts);
