@@ -186,6 +186,7 @@ details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}
 .empty-card{padding:28px;text-align:center}.empty-card p{color:var(--text-2)}
 .shf [data-sh]{cursor:pointer;user-select:none;border-radius:6px;padding:1px 5px;transition:opacity .15s}.shf [data-sh]:hover{background:var(--surface-2)}
 .shh-g .sh-g,.shh-ot .sh-ot,.shh-off .sh-off{display:none}
+.cage .cz-g,.cage .cz-ot{display:none}.shh-g .cage .cz-all,.shh-ot .cage .cz-all{display:none}.shh-ot .cage .cz-g{display:inline}.shh-g .cage .cz-ot{display:inline}.shh-g.shh-ot .cage .cz-g,.shh-g.shh-ot .cage .cz-ot{display:none}
 .shh-g .shf [data-sh=g],.shh-ot .shf [data-sh=ot],.shh-off .shf [data-sh=off]{opacity:.35;text-decoration:line-through}
 #verBar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;background:var(--text);color:var(--surface);padding:10px 14px;border-radius:10px;font-size:13.5px;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;gap:12px;align-items:center}#verBar .btn{background:var(--surface);color:var(--text)}
 .gk-ctl{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:10px 14px}.gk-ctl select{min-width:280px}.gk-ctl .tlogo{height:18px;vertical-align:-4px}
@@ -371,7 +372,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-06 10:29 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-06 10:33 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -2416,14 +2417,14 @@ function cageSVG(shots, col) {
   const blk = shots.filter(s => s.blk).length, miss = shots.filter(s => s.gy == null && !s.blk).length;
   // grille 3 × 3 dans le cadre
   const cx = [PY1, PY1 - 3.2, PY0 + 3.2, PY0], cz = [BAR, BAR * 2 / 3, BAR / 3, 0];
-  const G = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]; let inF = 0;
-  for (const s of ok) if ((s.ot || s.g) && s.gy >= PY0 && s.gy <= PY1 && s.gz <= BAR) { const c = s.gy > cx[1] ? 0 : s.gy > cx[2] ? 1 : 2, r = s.gz > cz[1] ? 0 : s.gz > cz[2] ? 1 : 2; G[r][c]++; inF++; }
+  const G = [[0, 0, 0], [0, 0, 0], [0, 0, 0]], GG = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]; let inF = 0;
+  for (const s of ok) if ((s.ot || s.g) && s.gy >= PY0 && s.gy <= PY1 && s.gz <= BAR) { const c = s.gy > cx[1] ? 0 : s.gy > cx[2] ? 1 : 2, r = s.gz > cz[1] ? 0 : s.gz > cz[2] ? 1 : 2; G[r][c]++; if (s.g) GG[r][c]++; inF++; }
   const mx = Math.max(1, ...G.flat());
   let cells = '';
   for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
     const x0 = X(cx[c]), x1 = X(cx[c + 1]), z0 = Z(cz[r]), z1 = Z(cz[r + 1]), v = G[r][c];
     cells += `<rect x="${x0}" y="${z0}" width="${x1 - x0}" height="${z1 - z0}" fill="${v ? `color-mix(in srgb, ${col} ${Math.round(10 + v / mx * 45)}%, var(--surface))` : 'var(--surface)'}" stroke="var(--grid)" stroke-width=".02"/>`
-      + `<text x="${(x0 + x1) / 2}" y="${(z0 + z1) / 2 + .09}" text-anchor="middle" font-size=".26" font-weight="700" fill="var(--text-3)">${v || ''}</text>`;
+      + [['cz-all', v], ['cz-g', GG[r][c]], ['cz-ot', v - GG[r][c]]].map(([k, n]) => `<text class="${k}" x="${(x0 + x1) / 2}" y="${(z0 + z1) / 2 + .09}" text-anchor="middle" font-size=".26" font-weight="700" fill="var(--text-3)">${n || ''}</text>`).join('');
   }
   const PSC = psModel();
   const dots = ok.slice().sort((a, b) => (a.g - b.g) || ((a.ot || 0) - (b.ot || 0))).map(s => {
@@ -2438,8 +2439,8 @@ function cageSVG(shots, col) {
   const lab = ['lucarne', 'mi-hauteur', 'ras de terre'].map((l, r) => `<text x="${X(PY1) - .12}" y="${(Z(cz[r]) + Z(cz[r + 1])) / 2 + .06}" text-anchor="end" font-size=".17" fill="var(--text-3)">${l}</text>`).join('');
   const gl = ok.filter(s => s.g).length, sv = ok.filter(s => s.ot && !s.g).length, off = ok.length - gl - sv;
   return {svg: `<svg class="cage" viewBox="-.1 -.1 ${W + .2} ${H + .35}"><rect x="-.1" y="-.1" width="${W + .2}" height="${H + .35}" fill="var(--pitch)"/>${cells}${frame}${lab}${dots}<text x="${W / 2}" y="${H + .25}" text-anchor="middle" font-size=".16" fill="var(--text-3)">vue depuis le tireur</text></svg>`
-    + `<div class="cage-leg shf"><span data-sh="g" title="Cliquer pour masquer / afficher">⚽ but (${gl})</span><span data-sh="ot" title="Cliquer pour masquer / afficher"><i style="background:${col}"></i>arrêté (${sv})</span><span data-sh="off" title="Cliquer pour masquer / afficher"><i style="border:1.5px dashed ${col}"></i>non cadré (${off})</span>${blk ? `<span>${blk} contré(s), non placés</span>` : ''}</div>`,
-    sub: `${shots.length} tirs · ${inF} cadrés placés dans le cadre · xGOT ${fmt(ok.filter(s => s.ot || s.g).reduce((a, s) => a + PSC(s), 0), 2)} · taille = xG${miss ? ` · ${miss} tir(s) sans position (réimportez les matchs)` : ''}`};
+    + `<div class="cage-leg shf" title="Chiffres des zones = tirs cadrés (buts + arrêtés) arrivés dans chaque partie du cadre"><span data-sh="g" title="Cliquer pour masquer / afficher">⚽ but (${gl})</span><span data-sh="ot" title="Cliquer pour masquer / afficher"><i style="background:${col}"></i>arrêté (${sv})</span><span data-sh="off" title="Cliquer pour masquer / afficher"><i style="border:1.5px dashed ${col}"></i>non cadré (${off})</span>${blk ? `<span>${blk} contré(s), non placés</span>` : ''}</div>`,
+    sub: `${shots.length} tirs · ${inF} cadrés placés dans le cadre (chiffres = tirs cadrés par zone) · xGOT ${fmt(ok.filter(s => s.ot || s.g).reduce((a, s) => a + PSC(s), 0), 2)} · taille = xG${miss ? ` · ${miss} tir(s) sans position (réimportez les matchs)` : ''}`};
 }
 /* =====================================================================
    xT (Expected Threat) — modèle de Karun Singh, calculé sur les matchs importés
@@ -3067,7 +3068,7 @@ function renderTactical() {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-06 10:29 UTC';
+const BUILD = '2026-11-06 10:33 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
