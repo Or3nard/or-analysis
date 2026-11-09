@@ -380,7 +380,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-09 12:51 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-09 12:58 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -1666,11 +1666,12 @@ function procInsight(m, rows) {
       c.t0 = t0;
     };
     const used = new Set();
-    for (const c of ev.corners) {
+    for (const lim of [9, 30]) for (const c of ev.corners) { // d'abord les correspondances proches, puis jusqu'à 30 s d'écart
+      if (c.mode !== undefined) continue;
       // le corner Opta (passe avec qualificatif 6) le plus proche dans le temps
-      let ci = -1, best = 9;
+      let ci = -1, best = lim;
       seq.forEach((o, i) => { if (o.typeId !== 1 || o.periodId !== c.per || teamOf[o.contestantId] !== c.tm || used.has(i)) return; const q = qOf(o); if (!('6' in q)) return; const d = Math.abs(T(o) - c.gc); if (d < best) { best = d; ci = i; } });
-      if (ci < 0) continue; used.add(ci);
+      if (ci < 0) { if (lim === 30) c.nm = 1; continue; } used.add(ci);
       const co = seq[ci], cq = qOf(co), t0 = T(co), A = c.tm;
       c.side = co.y > 50 ? 'G' : 'D';
       if ('223' in cq) c.sw = 'in'; else if ('224' in cq) c.sw = 'out'; else if ('225' in cq && !c.sw) c.sw = 'dr';
@@ -3288,7 +3289,7 @@ function renderCorners(ms, TN, PI, f) {
   $('#fkDir').hidden = !FK;
   document.querySelectorAll('#ckZoneMode .chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === K.zm));
   document.querySelectorAll('#ckPlMode .chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === K.pl));
-  const R0 = []; let nM = 0, oldN = 0;
+  const R0 = []; let nM = 0, oldN = 0, nmN = 0;
   for (const m of ms) {
     if (!m.ev) continue; if (tid && m.home.id !== tid && m.away.id !== tid) continue; nM++;
     if (FK && !m.ev.fks) { oldN++; continue; }
@@ -3296,7 +3297,7 @@ function renderCorners(ms, TN, PI, f) {
     for (const c of (FK ? m.ev.fks : m.ev.corners) || []) {
       if (!f.qs.has(c.q)) continue;
       if (tid && (K.side === 'for' ? c.tm !== tid : c.tm === tid)) continue;
-      if (c.mode === undefined) { oldN++; continue; }
+      if (c.mode === undefined) { if (c.nm || (m.ev.v || 0) >= 9) nmN++; else oldN++; continue; }
       const r = {m, c, t: TT ? TT[cornerKey(c)] || null : null};
       if (FK) { // joueurs dans la surface au moment du coup franc (tracking)
         if (r.t && r.t.k) { const ib = r.t.k.filter(q => inBoxP(q[2], q[3])); r.A = ib.filter(q => q[0]).map(q => q[4]).filter(Boolean); r.att = ib.filter(q => q[0]).length; r.def = ib.filter(q => !q[0]).length; }
@@ -3311,7 +3312,7 @@ function renderCorners(ms, TN, PI, f) {
   const fdL = FK && K.fd !== 'all' ? (K.fd === 'dir' ? ' · joués direct' : ' · non direct') : '';
   $('#ckSub').innerHTML = `${tid ? `<b style="color:${atkCol}">${esc(TN[tid])}</b> · ${K.side === 'for' ? L.nos : L.conc}` : L.all}${fdL} · ${n} ${L.one}${n > 1 && !FK ? 's' : ''} sur ${nM} match(s)`;
   $('#cpaNote').hidden = !oldN; $('#cpaNote').innerHTML = oldN ? `⚠ ${oldN} ${FK ? 'match(s) importé(s)' : 'corner(s) viennent de matchs importés'} avec une ancienne version : réimportez les dossiers pour analyser ${FK ? 'leurs coups francs' : 'ces corners'}.` : '';
-  $('#ckTrkNote').innerHTML = n && nT < n ? `Positions des joueurs et hauteur de trajectoire disponibles pour ${nT} ${L.one}(s) sur ${n} : elles demandent le fichier <b>tracking-produced.jsonl</b> du match (importez le dossier complet ; seules les quelques secondes autour de chaque corner et coup franc sont conservées).` : '';
+  $('#ckTrkNote').innerHTML = (nmN ? `${nmN} corner(s) écarté(s) : pas d’événement Opta correspondant (corner annulé ou retiré). ` : '') + (n && nT < n ? `Positions des joueurs et hauteur de trajectoire disponibles pour ${nT} ${L.one}(s) sur ${n} : elles demandent le fichier <b>tracking-produced.jsonl</b> du match (importez le dossier complet ; seules les quelques secondes autour de chaque corner et coup franc sont conservées).` : '');
   const c1 = R.filter(r => r.c.c1), c1W = c1.filter(r => r.c.c1.a).length, shN = R.filter(r => r.c.nsh).length, xg = R.reduce((a, r) => a + (r.c.xg || 0), 0), g = R.filter(r => r.c.g).length, dir = R.filter(r => r.c.mode === 1).length;
   const kpi = (l, v, sub) => `<div class="phk"><span>${l}</span><div><b style="color:${atkCol}">${v}</b></div><small>${sub}</small></div>`;
   const dir0 = R0.filter(r => r.c.dir).length;
@@ -3419,7 +3420,7 @@ function renderCorners(ms, TN, PI, f) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-09 12:51 UTC';
+const BUILD = '2026-11-09 12:58 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
