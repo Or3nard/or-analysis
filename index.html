@@ -196,6 +196,11 @@ details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}
 .ck-info dl{display:grid;grid-template-columns:150px 1fr;gap:6px 10px;margin:6px 0;font-size:13px}.ck-info dt{color:var(--text-3)}.ck-info dd{margin:0;font-weight:600}
 .ck-box.ck-big{max-width:720px}
 .ckzt{margin-top:8px}
+.ck-ex{display:grid;grid-template-columns:1fr;gap:24px;margin-top:6px}.ck-ex.fk{grid-template-columns:1.5fr 1fr}@media (max-width:900px){.ck-ex.fk{grid-template-columns:1fr}}
+.sbar{margin:12px 0}.sbar-t{display:flex;align-items:baseline;gap:8px;font-size:12.5px;margin-bottom:4px}.sbar-t small{color:var(--text-3)}
+.sbar-b{display:flex;height:30px;border-radius:7px;overflow:hidden;gap:2px}.sbar-b span{display:flex;align-items:center;justify-content:center;gap:4px;font-size:11.5px;white-space:nowrap;overflow:hidden;min-width:3px;padding:0 4px}
+.cke td{vertical-align:middle}.cke tr.grp td{padding-top:12px;font-weight:700;font-size:12px;color:var(--text-2);border-bottom:1px solid var(--border)}.cke tr.ref td{background:var(--surface-2)}
+.mbar{display:inline-block;width:60px;height:6px;border-radius:3px;background:var(--surface-2);margin-right:6px;vertical-align:middle;overflow:hidden}.mbar i{display:block;height:100%}
 .ck2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.ck2 h4{font-size:12px;margin:4px 0;color:var(--text-2)}
 .gk-ctl{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:10px 14px}.gk-ctl select{min-width:280px}.gk-ctl .tlogo{height:18px;vertical-align:-4px}
 .gkz{width:100%;font-size:12.5px;margin-top:10px;border-collapse:collapse}.gkz th{font-size:11px;color:var(--text-2);text-align:right;padding:4px 6px;border-bottom:1px solid var(--border)}.gkz td{text-align:right;padding:5px 6px;border-bottom:1px solid var(--grid)}.gkz .txt{text-align:left}
@@ -380,7 +385,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-09 13:26 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-09 13:33 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -697,7 +702,7 @@ input.j{width:64px}
         </div>
         <div class="card c12 ph">
           <div class="ph-head"><span class="chap-n">2</span><div><h2>Exécution et trajectoire</h2><p class="spl" data-fk="D’où sont tirés les CFI, comment ils sont joués (direct dans la surface ou non) et la trajectoire du ballon.">Comment le corner est joué (direct, à 2, à 3) et la trajectoire du ballon.</p></div></div>
-          <div class="ph-vis"><div><h3 class="spl" data-fk="Comment le CFI est joué">Comment le corner est joué</h3><div id="ckMode"></div></div><div><h3>Trajectoire</h3><p class="sub" id="ckTrajSub"></p><div id="ckTraj"></div></div></div>
+          <div id="ckMode"></div>
         </div>
         <div class="card c12 ph">
           <div class="ph-head"><span class="chap-n">3</span><div><h2>Premier et second contact</h2><p>Où arrive le ballon, qui le touche en premier, puis qui récupère le second ballon.</p></div>
@@ -3369,23 +3374,37 @@ function renderCorners(ms, TN, PI, f) {
     {k: 'in', l: '% rentrants', d: 0, v: r => (FK ? r.swN : r.n) ? r.in / (FK ? r.swN : r.n) * 100 : null}, {k: 'out', l: '% sortants', d: 0, v: r => (FK ? r.swN : r.n) ? r.out / (FK ? r.swN : r.n) * 100 : null}, {k: 'air', l: '% aériens', d: 0, v: r => r.nt ? r.air / r.nt * 100 : null},
     {k: 'dir', l: '% directs', d: 0, v: r => r.n ? r.dir / r.n * 100 : null}, {k: 'c1W', l: '% 1er contact gagné', d: 0, v: r => r.c1 ? r.c1W / r.c1 * 100 : null},
     {k: 'sh', l: `${L.Pl} avec tir`, v: r => r.sh}, {k: 'xg', l: 'xG générés', d: 2, v: r => r.xg}, {k: 'g', l: 'Buts', v: r => r.g}], tkRows, {defaultSort: 'n'});
-  // 2. Exécution et trajectoire
+  // 2. Exécution et trajectoire : trois profils (barres 100 %), puis ce que chaque façon de faire rapporte
   const MODE = FK ? FK_MODE : CK_MODE, MK = FK ? [1, 2, 3, 4, 0].filter(k => K.fd === 'all' || (K.fd === 'dir') === (k === 1)) : [1, 2, 3, 4, 0];
-  const mx = Math.max(1, ...MK.map(k => R.filter(r => r.c.mode === k).length));
   let origin = '';
   if (FK) { // d'où sont tirés les CFI : moitié de terrain, ronds pleins = joués direct
     const pts = R.map(r => { const [x, y] = ckP(r.c.x0, r.c.y0); return `<circle cx="${x}" cy="${y}" r=".95" fill="${r.c.dir ? atkCol : 'var(--surface)'}" stroke="${atkCol}" stroke-width=".3" data-tip="${esc(`J${r.m.j} · ${Math.floor(r.c.t0 / 60) + (r.c.per === 2 ? 45 : 0) + 1}' · ${PI[r.c.p] ? PI[r.c.p].name : '?'} · ${fmt(r.c.dg, 0)} m du but · ${MODE[r.c.mode]}${r.c.g ? ' · ⚽' : r.c.nsh ? ' · tir' : ''}`)}"/>`; }).join('');
-    const bands = [[0, 25, 'à moins de 25 m'], [25, 35, '25-35 m'], [35, 999, 'à plus de 35 m']].map(([a, b, l]) => { const Lb = R.filter(r => r.c.dg >= a && r.c.dg < b); return `<li>${l}<b>${Lb.length} <small class="muted">· ${pc(Lb.filter(r => r.c.dir).length, Lb.length)} direct · ${Lb.filter(r => r.c.nsh).length} avec tir</small></b></li>`; }).join('');
-    origin = `<h3 style="margin-top:14px">D’où sont tirés les CFI</h3><div class="ck-box" style="max-width:380px">${ckBox(pts, 56)}</div><div class="legend"><span><i style="background:${atkCol}"></i>Joué direct</span><span><i style="border:1.5px solid ${atkCol};background:transparent"></i>Non direct</span></div><ul class="rkv">${bands}</ul>`;
+    origin = `<div><h3>D’où sont tirés les CFI</h3><div class="ck-box" style="max-width:340px">${ckBox(pts, 56)}</div><div class="legend"><span><i style="background:${atkCol}"></i>Joué direct</span><span><i style="border:1.5px solid ${atkCol};background:transparent"></i>Non direct</span></div></div>`;
   }
-  $('#ckMode').innerHTML = `<div class="gkd">${MK.map(k => { const Lm = R.filter(r => r.c.mode === k), w = Lm.filter(r => r.c.c1 && r.c.c1.a).length, sh = Lm.filter(r => r.c.nsh).length;
-    return `<div class="gkdr"><span>${MODE[k]}</span><i><b style="width:${Lm.length / mx * 100}%;background:${atkCol}"></b></i><em>${Lm.length} (${pc(Lm.length, n)}) · ${sh} avec tir · 1er contact ${pc(w, Lm.filter(r => r.c.c1).length)}</em></div>`; }).join('')}</div>
-    <p class="note">${FK ? '« Direct » : le ballon ou le premier contact arrive dans la surface. Sinon, « joué à 2 » : une passe avant que le ballon n’entre dans la surface ; « jamais joué dans la surface » : le ballon n’y entre pas dans les 20 s.' : '« Joué à 2 » : une passe courte avant le centre ; « à 3 » : deux passes. Le premier contact est compté après le ballon qui entre dans la surface.'}</p>${origin}`;
-  const SW = FK ? ['in', 'out', 'dr', '', 'court'] : ['in', 'out', 'dr', ''], HH = ['sol', 'tendu', 'air'];
-  $('#ckTrajSub').textContent = nT ? `Hauteur maximale du ballon mesurée sur ${nT} ${L.one}(s) (tracking)` : 'Hauteur : importez le tracking pour la mesurer';
-  $('#ckTraj').innerHTML = `<table class="gkz"><tr><th class="txt">Effet</th>${HH.map(h => `<th>${CK_HL[h]}</th>`).join('')}<th>Total</th><th>1er contact gagné</th><th>Avec tir</th></tr>${SW.map(sw => { const Ls = R.filter(r => (r.sw || '') === sw); if (!Ls.length) return '';
-    return `<tr><td class="txt"><b>${CK_SW[sw]}</b></td>${HH.map(h => `<td>${Ls.filter(r => r.t && ckH(r.t.z) === h).length || '<span class="z">0</span>'}</td>`).join('')}<td><b>${Ls.length}</b> <small class="muted">(${pc(Ls.length, n)})</small></td><td>${pc(Ls.filter(r => r.c.c1 && r.c.c1.a).length, Ls.filter(r => r.c.c1).length)}</td><td>${Ls.filter(r => r.c.nsh).length}</td></tr>`; }).join('')}</table>
-    <p class="note">Rentrant : le ballon tourne vers le but ; sortant : il s’en éloigne. ${FK ? `Pour les CFI joués direct, l’effet vient d’Opta quand il est renseigné (${R.filter(r => r.swSrc === 'o').length} cas), sinon il est mesuré sur la trajectoire du ballon dans le tracking (${R.filter(r => r.swSrc === 't').length} cas) ; à défaut, il est déduit du pied qui frappe et du côté de la frappe (pied droit côté gauche = rentrant, pied gauche côté gauche = sortant, et inversement à droite). Le pied utilisé est celui noté par Opta sur le coup franc (${R.filter(r => r.swSrc === 'f').length} cas) ; quand il ne l’est pas, on prend le pied fort du tireur (${R.filter(r => r.swSrc === 'p').length} cas). Non renseigné : CFI tiré dans l’axe ou pied inconnu.` : `(données Opta / Second Spectrum${R.some(r => r.swSrc === 't') ? ` ; ${R.filter(r => r.swSrc === 't').length} corner(s) non renseigné(s) mesuré(s) sur la trajectoire du ballon dans le tracking` : ''})`}${' Tracking : on regarde de quel côté la trajectoire s’écarte de la ligne droite entre le départ et l’arrivée ; moins de 1 m d’écart = droit.'}</p>`;
+  // centres = corners centrés / CFI joués direct : seuls concernés par l'effet et la hauteur
+  const D = R.filter(r => FK ? r.c.dir : r.c.mode !== 0), DT = D.filter(r => r.t);
+  const SWK = ['in', 'out', 'dr', ''], HH = ['sol', 'tendu', 'air'];
+  const groups = [
+    {t: 'Exécution', s: `${n} ${L.pl}`, base: R, rows: MK.map(k => ({l: MODE[k], L: R.filter(r => r.c.mode === k)}))},
+    ...(FK ? [{t: 'Distance au but', s: `${n} CFI`, base: R, rows: [[0, 25, 'Moins de 25 m'], [25, 35, '25 à 35 m'], [35, 45, '35 à 45 m'], [45, 999, 'Plus de 45 m']].map(([a, b, l]) => ({l, L: R.filter(r => r.c.dg >= a && r.c.dg < b)}))}] : []),
+    {t: 'Effet', s: `${D.length} ${FK ? 'CFI joués direct' : 'corners centrés'}`, base: D, rows: SWK.map(k => ({l: CK_SW[k], L: D.filter(r => (r.sw || '') === k), muted: !k}))},
+    {t: 'Hauteur', s: DT.length ? `${DT.length} ${FK ? 'CFI joués direct' : 'corners centrés'} avec tracking` : 'importez le tracking pour la mesurer', base: DT, rows: HH.map(h => ({l: CK_HL[h], L: DT.filter(r => ckH(r.t.z) === h)}))}
+  ];
+  const shade = i => `color-mix(in srgb, ${atkCol} ${[100, 72, 48, 30, 18][i] || 12}%, var(--surface))`;
+  const bars = groups.map(gp => { const tot = gp.base.length; if (!tot) return `<div class="sbar"><div class="sbar-t"><b>${gp.t}</b><small>${gp.s}</small></div><div class="empty">—</div></div>`;
+    const rows = gp.rows.filter(x => x.L.length);
+    return `<div class="sbar"><div class="sbar-t"><b>${gp.t}</b><small>${gp.s}</small></div><div class="sbar-b">${rows.map((x, i) => { const p = x.L.length / tot * 100;
+      return `<span style="flex:${x.L.length};background:${x.muted ? 'var(--surface-2)' : shade(i)};color:${!x.muted && i < 2 ? '#fff' : 'var(--text)'}" data-tip="${esc(`${x.l} : ${x.L.length} (${Math.round(p)} %)`)}">${p >= Math.max(7, x.l.length * (FK ? 1.25 : .8)) ? `${esc(x.l)} <b>${Math.round(p)} %</b>` : p >= 5 ? `<b>${Math.round(p)} %</b>` : ''}</span>`; }).join('')}</div></div>`; }).join('');
+  const all1 = R.filter(r => r.c.c1), wAll = all1.length ? all1.filter(r => r.c.c1.a).length / all1.length * 100 : null, shAll = n ? shN / n * 100 : null;
+  const cell = (v, ref, txt, nn = 99) => v == null ? '<td class="muted">—</td>' : `<td><span class="mbar"><i style="width:${Math.min(100, v)}%;background:${atkCol}"></i></span><b${ref != null && nn >= 5 && Math.abs(v - ref) >= 5 ? ` style="color:${v > ref ? '#2e9e5b' : '#d0453f'}"` : ''}>${txt || Math.round(v) + ' %'}</b></td>`;
+  const line = (l, Lx, tot, cls) => { const c1x = Lx.filter(r => r.c.c1), w = c1x.length ? c1x.filter(r => r.c.c1.a).length / c1x.length * 100 : null, sh = Lx.length ? Lx.filter(r => r.c.nsh).length / Lx.length * 100 : null, xgx = Lx.length ? Lx.reduce((a, r) => a + (r.c.xg || 0), 0) / Lx.length : null;
+    return `<tr${cls ? ` class="${cls}"` : ''}><td class="txt">${l}</td><td>${Lx.length} <small class="muted">${tot ? Math.round(Lx.length / tot * 100) + ' %' : ''}</small></td>${cell(w, cls ? null : wAll, '', c1x.length)}${cell(sh, cls ? null : shAll, '', Lx.length)}<td>${xgx == null ? '—' : fmt(xgx, 3)}</td><td>${Lx.filter(r => r.c.g).length || '<span class="z">0</span>'}</td></tr>`; };
+  const tbl = `<table class="gkz cke"><tr><th class="txt"></th><th>Nombre</th><th>1er contact gagné</th><th>Avec tir</th><th>xG / ${L.one}</th><th>Buts</th></tr>${line(`<b>Ensemble</b>`, R, 0, 'ref')}${groups.map(gp => gp.base.length ? `<tr class="grp"><td class="txt" colspan="6">${gp.t} <small class="muted">· ${gp.s}</small></td></tr>` + gp.rows.filter(x => x.L.length).map(x => line(x.l, x.L, gp.base.length)).join('') : '').join('')}</table>`;
+  const srcN = k => R.filter(r => r.swSrc === k).length;
+  $('#ckMode').innerHTML = `<div class="${FK ? 'ck-ex fk' : 'ck-ex'}"><div><h3>Le profil</h3><p class="sub">Comment ${L.pl === 'CFI' ? 'les CFI sont joués' : 'les corners sont joués'}, avec quel effet et à quelle hauteur.</p>${bars}</div>${origin}</div>
+    <h3 style="margin-top:18px">Ce que ça donne</h3><p class="sub">Pour chaque façon de jouer : part du 1er contact gagné par ${us}, part de ${L.pl} suivis d’un tir dans les 15 s, xG moyen et buts. <span style="color:#2e9e5b">Vert</span> / <span style="color:#d0453f">rouge</span> : au moins 5 points au-dessus / en dessous de l’ensemble (sur 5 cas ou plus).</p>${tbl}
+    <details class="ph-more"><summary>Comment sont calculés ces chiffres</summary><p class="note">${FK ? '« Direct » : le ballon ou le premier contact arrive dans la surface. Sinon, « joué à 2 » : une passe avant que le ballon n’entre dans la surface ; « jamais joué dans la surface » : le ballon n’y entre pas dans les 20 s.' : '« Joué à 2 » : une passe courte avant le centre ; « à 3 » : deux passes. Le premier contact est compté après le ballon qui entre dans la surface.'}
+      Effet et hauteur ne concernent que ${FK ? 'les CFI joués direct' : 'les corners centrés'}. Rentrant : le ballon tourne vers le but ; sortant : il s’en éloigne. Source de l’effet : Opta ${srcN('o')}, trajectoire du ballon dans le tracking ${srcN('t')}${FK ? `, pied utilisé noté sur le coup franc ${srcN('f')}, pied fort du tireur ${srcN('p')}` : ''} (tracking : côté vers lequel la trajectoire s’écarte de la ligne droite départ → arrivée ; moins de 1 m = droit). Hauteur : maximum atteint par le ballon (au sol &lt; 1,2 m, tendu 1,2-3 m, aérien &gt; 3 m).</p></details>`;
   // 3. Zones : arrivée / 1er / 2e contact
   const sideLbl = `<text x="1" y="25.5" font-size="1.7" fill="var(--text-3)">◀ côté ${L.du}${FK ? ' (CFI axiaux non retournés)' : ''}</text>`;
   const zm = K.zm, P0 = R.map(r => { const c = r.c, q = zm === 'arr' ? (c.ax != null ? {x: c.ax, y: c.ay, a: null} : null) : c[zm]; return q ? {x: q.x, yy: ckMir(c, q.y), a: q.a, r} : null; }).filter(Boolean);
@@ -3459,7 +3478,7 @@ function renderCorners(ms, TN, PI, f) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-09 13:26 UTC';
+const BUILD = '2026-11-09 13:33 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
