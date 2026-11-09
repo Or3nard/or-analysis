@@ -386,7 +386,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-09 13:47 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-09 13:54 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -1432,13 +1432,15 @@ async function importFiles(list) {
 }
 
 /* ---------- Tracking : positions et trajectoire du ballon autour des corners ---------- */
-const TRK_VER = 2;
+const TRK_VER = 3;
 const cornerKey = c => c.per + '|' + Math.round(c.gc * 10);
 async function procTracking(m, file) {
   const C = [...((m.ev && m.ev.corners) || []).map(c => ({...c, _k: 'c', _o: c})), ...((m.ev && m.ev.fks) || []).map(c => ({...c, _k: 'f', _o: c}))];
   m.trk = {v: TRK_VER, n: C.length, c: {}, f: {}};
   if (!C.length) return 0;
-  const W = C.map((c, i) => ({i, per: c.per, a: c.gc - .3, b: c.gc + 7, fr: []}));
+  // heure de référence : pour un corner, l'heure Opta de la frappe (l'horodatage Second Spectrum peut être celui de la sortie du ballon)
+  C.forEach(c => c._t = c._k === 'c' && c.t0 != null ? c.t0 : c.gc);
+  const W = C.map((c, i) => ({i, per: c.per, a: c._t - 3, b: c._t + 7.5, fr: []}));
   const rx = /"period": (\d+), "frameIdx": \d+, "gameClock": ([\d.]+)/;
   const reader = file.stream().pipeThrough(new TextDecoderStream()).getReader();
   let buf = '', done = false;
@@ -1450,12 +1452,24 @@ async function procTracking(m, file) {
   const L = m.L, Wd = m.W, nx = x => r1((x + L / 2) / L * 105), ny = y => r1((Wd / 2 - y) / Wd * 68);
   let n = 0;
   for (const w of W) {
-    const c = C[w.i], F = w.fr.filter(f => f.b && f.b[0] != null).sort((a, b) => a.gc - b.gc); if (F.length < 10) continue;
+    const c = C[w.i], F0 = w.fr.filter(f => f.b && f.b[0] != null && !(f.b[0] === 0 && Math.abs(f.b[1]) > 30 && !f.b[2])).sort((a, b) => a.gc - b.gc);
+    // ballon hors jeu codé (0, ±34,6, 0) et positions aberrantes (saut de plus de 5 m d'une image à l'autre, des deux côtés) : écartées
+    const jd = (p, q) => Math.hypot(p.b[0] - q.b[0], p.b[1] - q.b[1]);
+    const F = F0.filter((f, i) => !((i === 0 || jd(f, F0[i - 1]) > 5) && (i === F0.length - 1 || jd(f, F0[i + 1]) > 5))); if (F.length < 10) continue;
     const per = m.periods.find(p => p.n === c.per) || {hap: true}, attHome = c.tm === m.home.id, sgn = (attHome === (per.hap !== false)) ? 1 : -1;
     const P = (q, side) => q.map(x => ({p: x.playerId, n: x.number, x: nx(sgn * x.xyz[0]), y: ny(sgn * x.xyz[1]), a: side}));
     const at = f => [...P(attHome ? f.h : f.w, 1), ...P(attHome ? f.w : f.h, 0)];
     const B = f => ({x: nx(sgn * f.b[0]), y: ny(sgn * f.b[1]), z: f.b[2] || 0});
-    let i0 = 0, bd = 9; F.forEach((f, i) => { const d = Math.abs(f.gc - c.gc); if (d < bd) { bd = d; i0 = i; } });
+    let i0 = 0, bd = 9; F.forEach((f, i) => { const d = Math.abs(f.gc - c._t); if (d < bd) { bd = d; i0 = i; } });
+    // instant de la frappe : passage « ballon arrêté → ballon lancé » le plus proche de l'horodatage (de -2,2 s à +2,5 s),
+    // depuis l'endroit où repose le ballon (point de corner, ou à moins de 3 m du ballon à l'horodatage pour un coup franc)
+    { const sp = (i, j) => Math.hypot(F[j].b[0] - F[i].b[0], F[j].b[1] - F[i].b[1]) / Math.max(.02, F[j].gc - F[i].gc);
+      const ref = F[i0].b; let best = null;
+      for (let i = 6; i < F.length - 4; i++) { const d = F[i].gc - c._t; if (d < -2.5) continue; if (d > (c._k === 'c' ? 4.5 : 2.5)) break;
+        if (!(sp(i - 6, i) < 2.5 && sp(i, i + 4) > 4)) continue;
+        const okSpot = c._k === 'c' ? Math.abs(nx(sgn * F[i].b[0]) - 52.5) > 50 : Math.hypot(F[i].b[0] - ref[0], F[i].b[1] - ref[1]) < 3;
+        if (okSpot && (!best || Math.abs(d) < Math.abs(best.d))) best = {i, d}; }
+      if (best) i0 = best.i; }
     // arrivée du ballon : près du premier contact Opta, sinon premier changement brusque de trajectoire près d'un joueur
     let i1 = -1;
     if (c.c1) for (let i = i0 + 6; i < F.length; i++) { const b = B(F[i]); if (Math.hypot(b.x - c.c1.x, b.y - c.c1.y) < 3 && b.z < 3.6) { i1 = i; break; } if (F[i].gc - F[i0].gc > (c.c1.dt || 3) + 2.5) break; }
@@ -1472,7 +1486,8 @@ async function procTracking(m, file) {
     const arrB = B(F[i1]);
     // joueur le plus proche du ballon à l'arrivée (si pas de premier contact Opta)
     const near = at(F[i1]).map(q => ({...q, d: Math.hypot(q.x - arrB.x, q.y - arrB.y)})).sort((a, b) => a.d - b.d)[0];
-    m.trk[c._k][cornerKey(c)] = {k: keep(at(F[i0])), r: keep(at(F[i1])), b: path, z: r1(zmax), dt: r1(F[i1].gc - F[i0].gc), nr: near ? [near.a, near.p] : null};
+    const b0 = B(F[i0]);
+    m.trk[c._k][cornerKey(c)] = {s: [r1(b0.x), r1(b0.y)], k: keep(at(F[i0])), r: keep(at(F[i1])), b: path, z: r1(zmax), dt: r1(F[i1].gc - F[i0].gc), nr: near ? [near.a, near.p] : null};
     n++;
   }
   return n;
@@ -1504,7 +1519,7 @@ function baseFromMeta(meta, md) {
 }
 
 /* ---------- Insight : événements Opta + marquages tracking ---------- */
-const EV_VER = 11; // version du traitement des événements (à incrémenter si procInsight change)
+const EV_VER = 12; // version du traitement des événements (à incrémenter si procInsight change)
 const OPTA_KEEP = new Set([1, 3, 4, 7, 8, 10, 11, 12, 17, 41, 44, 45, 49, 50, 52, 53, 59, 61, 74]);
 function procInsight(m, rows) {
   const L = m.L, W = m.W;
@@ -1540,8 +1555,8 @@ function procInsight(m, rows) {
           const po = {tm: k.teamId, q, dur: Math.max(0, (k.endClock ?? 0) - (k.startClock ?? 0)), xg: k.teamXg || 0,
             st: k.startType || 'autre', vp: k.verticalPassing || 0, vc: k.verticalCarrying || 0, ct: k.isContested ? 1 : 0};
           ev.poss.push(po); if (Array.isArray(k.events) && k.events.length) possRaw.push([po, k.events]); break; }
-        case 'corner':
-          ev.corners.push({tm: k.attTeamId, q, p: k.takerId, att: new Set([...(k.attInBox || []), ...(k.attInGkBox || [])]).size, def: new Set([...(k.defInBox || []), ...(k.defInGkBox || [])]).size, // la zone des 6 m est incluse dans la surface : pas de double compte sh: k.shortOption ? 1 : 0, sw: k.crossSwing === 'inswing' ? 'in' : k.crossSwing === 'outswing' ? 'out' : '',
+        case 'corner': // att / def : la zone des 6 m est incluse dans la surface, pas de double compte
+          ev.corners.push({tm: k.attTeamId, q, p: k.takerId, att: new Set([...(k.attInBox || []), ...(k.attInGkBox || [])]).size, def: new Set([...(k.defInBox || []), ...(k.defInGkBox || [])]).size, sh: k.shortOption ? 1 : 0, sw: k.crossSwing === 'inswing' ? 'in' : k.crossSwing === 'outswing' ? 'out' : '',
             per: k.period, gc: Math.round((k.gameClock || 0) * 100) / 100, f: k.frameIdx, A: [...new Set([...(k.attInBox || []), ...(k.attInGkBox || [])])], D: [...new Set([...(k.defInBox || []), ...(k.defInGkBox || [])])], np: k.nearPostDefender ? 1 : 0, fp: k.farPostDefender ? 1 : 0}); break;
         case 'shot':
           shotMkList.push({k, q});
@@ -1669,7 +1684,8 @@ function procInsight(m, rows) {
       if (touches[0]) c.c1 = ct(touches[0]);
       if (touches[1]) c.c2 = ct(touches[1]);
       const sh = ev.shots.filter(x => x.tm === A && x.per === c.per && x.mi * 60 - t0 >= -1 && x.mi * 60 - t0 <= 15);
-      c.nsh = sh.length; c.xg = Math.round(sh.reduce((a2, x) => a2 + x.xg, 0) * 100) / 100; c.g = sh.some(x => x.g) ? 1 : 0; c.shp = sh.map(x => [x.p, x.g ? 1 : 0]);
+      const og = ev.goals.some(x => x.og && x.tm === A && x.per === c.per && x.mi * 60 - t0 >= -1 && x.mi * 60 - t0 <= 15);
+      c.nsh = sh.length; c.xg = Math.round(sh.reduce((a2, x) => a2 + x.xg, 0) * 100) / 100; c.g = sh.some(x => x.g) || og ? 1 : 0; if (og) c.og = 1; c.shp = sh.map(x => [x.p, x.g ? 1 : 0]);
       c.t0 = t0;
     };
     const used = new Set();
@@ -2055,7 +2071,7 @@ function aggTacticalRaw(ms, qsOverride) {
       if (e.z0 === 0) { o.possD++; if (e.z1 >= 1) o.possD2++; if (e.z1 === 2) o.possD3++; }
       if (!e.ct) { o.possT += e.dur; t(H).possTot += e.dur; t(A).possTot += e.dur; }
     }
-    for (const e of E.corners) { if (ok(e) && qs.has(e.q)) { const o = t(e.tm); o.corners++; if (e.att != null) { o.cornD++; o.cornAtt += e.A ? e.A.length : e.att; o.cornShort += e.sh; if (e.sw === 'in') o.cornIn++; if (e.sw === 'out') o.cornOut++; } } }
+    for (const e of E.corners) { if (ok(e) && qs.has(e.q)) { const o = t(e.tm); o.corners++; if (e.att != null) { o.cornD++; o.cornAtt += e.A ? e.A.length : e.att; o.cornShort += e.mode !== undefined ? (e.mode !== 1 ? 1 : 0) : (e.sh || 0); if (e.sw === 'in') o.cornIn++; if (e.sw === 'out') o.cornOut++; } } }
     // --- CPA & contre-attaques ---
     const CPA_ST = {corner_kick: 'cor', free_kick: 'cf', throw_in: 'tou', penalty: 'pen'};
     if (E.v >= 2) { t(H).mV2++; t(A).mV2++; }
@@ -3380,7 +3396,7 @@ function renderCorners(ms, TN, PI, f) {
   const MODE = FK ? FK_MODE : CK_MODE, MK = FK ? [1, 2, 3, 4, 0].filter(k => K.fd === 'all' || (K.fd === 'dir') === (k === 1)) : [1, 2, 3, 4, 0];
   let origin = '';
   if (FK) { // d'où sont tirés les CFI : moitié de terrain, ronds pleins = joués direct
-    const pts = R.map(r => { const [x, y] = ckP(r.c.x0, r.c.y0); return `<circle cx="${x}" cy="${y}" r=".95" fill="${r.c.dir ? atkCol : 'var(--surface)'}" stroke="${atkCol}" stroke-width=".3" data-tip="${esc(`J${r.m.j} · ${Math.floor(r.c.t0 / 60) + (r.c.per === 2 ? 45 : 0) + 1}' · ${PI[r.c.p] ? PI[r.c.p].name : '?'} · ${fmt(r.c.dg, 0)} m du but · ${MODE[r.c.mode]}${r.c.g ? ' · ⚽' : r.c.nsh ? ' · tir' : ''}`)}"/>`; }).join('');
+    const pts = R.map(r => { const [x, y] = ckP(...(r.t && r.t.s ? r.t.s : [r.c.x0, r.c.y0])); return `<circle cx="${x}" cy="${y}" r=".95" fill="${r.c.dir ? atkCol : 'var(--surface)'}" stroke="${atkCol}" stroke-width=".3" data-tip="${esc(`J${r.m.j} · ${Math.floor(r.c.t0 / 60) + (r.c.per === 2 ? 45 : 0) + 1}' · ${PI[r.c.p] ? PI[r.c.p].name : '?'} · ${fmt(r.c.dg, 0)} m du but · ${MODE[r.c.mode]}${r.c.g ? ' · ⚽' : r.c.nsh ? ' · tir' : ''}`)}"/>`; }).join('');
     origin = `<div><h3>D’où sont tirés les CFI</h3><div class="ck-box" style="max-width:340px">${ckBox(pts, 56)}</div><div class="legend"><span><i style="background:${atkCol}"></i>Joué direct</span><span><i style="border:1.5px solid ${atkCol};background:transparent"></i>Non direct</span></div></div>`;
   }
   // centres = corners centrés / CFI joués direct : seuls concernés par l'effet et la hauteur
@@ -3495,7 +3511,7 @@ function renderCorners(ms, TN, PI, f) {
       if (bp) g += `<polyline points="${bp}" fill="none" stroke="#e08a00" stroke-width=".35" stroke-dasharray=".9 .5"/>`;
       (t.r || []).forEach(([a, num, x, y, pid]) => { const [px, py] = ckP(x, y), hl = c.c1 && c.c1.p === pid; g += `<g data-tip="${esc((PI[pid] ? PI[pid].name : '#' + num) + (hl ? ' · 1er contact' : ''))}"><circle cx="${px}" cy="${py}" r="${hl ? 1.5 : 1.15}" fill="${a ? atkCol : defCol}" stroke="${hl ? '#e08a00' : 'var(--surface)'}" stroke-width="${hl ? .45 : .2}"/><text x="${px}" y="${py + .45}" text-anchor="middle" font-size="1.2" font-weight="700" fill="#fff">${num ?? ''}</text></g>`; });
     } else if (c.ax != null) { const [px, py] = ckP(c.ax, c.ay); g += `<circle cx="${px}" cy="${py}" r="1" fill="#e08a00"/>`; }
-    if (FK) { const [px, py] = ckP(c.x0, c.y0); g += `<path d="M${px} ${py - 1.3}L${px + 1.2} ${py + .9}L${px - 1.2} ${py + .9}Z" fill="#e08a00" stroke="var(--surface)" stroke-width=".2"><title>Lieu du coup franc</title></path>`; }
+    if (FK) { const [px, py] = ckP(...(t && t.s ? t.s : [c.x0, c.y0])); g += `<path d="M${px} ${py - 1.3}L${px + 1.2} ${py + .9}L${px - 1.2} ${py + .9}Z" fill="#e08a00" stroke="var(--surface)" stroke-width=".2"><title>Lieu du coup franc</title></path>`; }
     $('#ckOneMap').innerHTML = ckBox(g, FK ? 56 : 29) + (t ? '' : `<p class="note">Pas de tracking pour ${L.ce} : seul le point d’arrivée du ballon est affiché.</p>`);
     const nm = id => id && PI[id] ? esc(PI[id].name) : '—', ctc = q => q ? `${nm(q.p)} <small class="muted">(${q.a ? (K.side === 'for' ? 'nous' : 'adversaire') : (K.side === 'for' ? 'adversaire' : 'nous')} · ${CK_T[q.t] || ''}${q.vs ? ' · duel avec ' + nm(q.vs) : ''} · ${CK_Z.find(z => z[0] === ckZone(q.x, ckMir(c, q.y)))?.[1] || 'hors zones'})</small>` : '—';
     $('#ckOneInfo').innerHTML = `<div class="ck-info"><dl><dt>Match</dt><dd>J${one.m.j} · ${esc(TN[one.m.home.id])} – ${esc(TN[one.m.away.id])} · ${minOf(c)}'</dd><dt>Tireur</dt><dd>${nm(c.p)}${footOf(c.p) ? ` (pied ${footOf(c.p) === 'D' ? 'droit' : 'gauche'})` : ''} · ${FK ? `${FK_SIDE[c.side]} · à ${fmt(c.dg, 0)} m du but` : `côté ${c.side === 'G' ? 'gauche' : 'droit'}`}</dd>
@@ -3507,7 +3523,7 @@ function renderCorners(ms, TN, PI, f) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-09 13:47 UTC';
+const BUILD = '2026-11-09 13:54 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4532,7 +4548,7 @@ function cpaProfile(ms, tid) {
   let cn = 0, cd = 0, att = 0, short = 0, ins = 0, outs = 0; const takers = {};
   for (const m of ms) for (const c of m.ev.corners || []) if (c.tm === tid) {
     cn++; if (c.p) takers[c.p] = (takers[c.p] || 0) + 1;
-    if (c.att != null) { cd++; att += c.A ? c.A.length : c.att; short += c.sh; if (c.sw === 'in') ins++; if (c.sw === 'out') outs++; }
+    if (c.att != null) { cd++; att += c.A ? c.A.length : c.att; short += c.mode !== undefined ? (c.mode !== 1 ? 1 : 0) : (c.sh || 0); if (c.sw === 'in') ins++; if (c.sw === 'out') outs++; }
   }
   return {rows, corners: {n: cn, att: cd ? att / cd : null, short: pct(short, cd), ins: pct(ins, ins + outs), outs: pct(outs, ins + outs), takers}};
 }
