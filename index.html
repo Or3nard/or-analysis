@@ -380,7 +380,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-09 13:15 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-09 13:18 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -1497,7 +1497,7 @@ function baseFromMeta(meta, md) {
 }
 
 /* ---------- Insight : événements Opta + marquages tracking ---------- */
-const EV_VER = 10; // version du traitement des événements (à incrémenter si procInsight change)
+const EV_VER = 11; // version du traitement des événements (à incrémenter si procInsight change)
 const OPTA_KEEP = new Set([1, 3, 4, 7, 8, 10, 11, 12, 17, 41, 44, 45, 49, 50, 52, 53, 59, 61, 74]);
 function procInsight(m, rows) {
   const L = m.L, W = m.W;
@@ -1695,6 +1695,7 @@ function procInsight(m, rows) {
       c.side = c.y0 < 27 ? 'G' : c.y0 > 41 ? 'D' : 'C';
       c.dg = r1(Math.hypot(105 - c.x0, 34 - c.y0));
       if ('223' in q) c.sw = 'in'; else if ('224' in q) c.sw = 'out'; else if ('225' in q) c.sw = 'dr'; else c.sw = '';
+      if ('20' in q) c.ft = 'D'; else if ('72' in q) c.ft = 'G'; // pied utilisé sur ce coup franc (rarement renseigné)
       // direct : le ballon (fin de la passe) ou le premier contact a lieu dans la surface
       let dir = isFinite(ex) && inBox(ex, ey);
       if (!dir) for (let j = ci + 1; j < seq.length; j++) { const n = seq[j]; if (n.periodId !== o.periodId || T(n) - t0 > 8) break; if (!TOUCH.has(n.typeId)) continue;
@@ -3295,8 +3296,8 @@ function footOf(pid) {
 function fkSwing(c) {
   if (!c.dir) return {sw: 'court', src: ''};
   if (c.sw) return {sw: c.sw, src: 'o'};
-  const ft = footOf(c.p); if (!ft || c.side === 'C') return {sw: '', src: ''};
-  return {sw: (c.side === 'G') === (ft === 'D') ? 'in' : 'out', src: 'p'};
+  const ft = c.ft || footOf(c.p); if (!ft || c.side === 'C') return {sw: '', src: ''};
+  return {sw: (c.side === 'G') === (ft === 'D') ? 'in' : 'out', src: c.ft ? 'f' : 'p', ft};
 }
 function renderCorners(ms, TN, PI, f) {
   S.ck = S.ck || {};
@@ -3325,7 +3326,7 @@ function renderCorners(ms, TN, PI, f) {
       const r = {m, c, t: TT ? TT[cornerKey(c)] || null : null};
       if (FK) { // joueurs dans la surface au moment du coup franc (tracking)
         if (r.t && r.t.k) { const ib = r.t.k.filter(q => inBoxP(q[2], q[3])); r.A = ib.filter(q => q[0]).map(q => q[4]).filter(Boolean); r.att = ib.filter(q => q[0]).length; r.def = ib.filter(q => !q[0]).length; }
-        const s2 = fkSwing(c); r.sw = s2.sw; r.swSrc = s2.src;
+        const s2 = fkSwing(c); r.sw = s2.sw; r.swSrc = s2.src; r.ft = s2.ft;
       } else { r.A = c.A; r.att = c.att; r.def = c.def; r.sw = c.sw || ''; }
       R0.push(r);
     }
@@ -3371,7 +3372,7 @@ function renderCorners(ms, TN, PI, f) {
   $('#ckTrajSub').textContent = nT ? `Hauteur maximale du ballon mesurée sur ${nT} ${L.one}(s) (tracking)` : 'Hauteur : importez le tracking pour la mesurer';
   $('#ckTraj').innerHTML = `<table class="gkz"><tr><th class="txt">Effet</th>${HH.map(h => `<th>${CK_HL[h]}</th>`).join('')}<th>Total</th><th>1er contact gagné</th><th>Avec tir</th></tr>${SW.map(sw => { const Ls = R.filter(r => (r.sw || '') === sw); if (!Ls.length) return '';
     return `<tr><td class="txt"><b>${CK_SW[sw]}</b></td>${HH.map(h => `<td>${Ls.filter(r => r.t && ckH(r.t.z) === h).length || '<span class="z">0</span>'}</td>`).join('')}<td><b>${Ls.length}</b> <small class="muted">(${pc(Ls.length, n)})</small></td><td>${pc(Ls.filter(r => r.c.c1 && r.c.c1.a).length, Ls.filter(r => r.c.c1).length)}</td><td>${Ls.filter(r => r.c.nsh).length}</td></tr>`; }).join('')}</table>
-    <p class="note">Rentrant : le ballon tourne vers le but ; sortant : il s’en éloigne. ${FK ? `Pour les CFI joués direct, l’effet est déduit du pied fort du tireur et du côté de la frappe (pied droit côté gauche = rentrant, pied gauche côté gauche = sortant, et inversement à droite), sauf si Opta le renseigne (${R.filter(r => r.swSrc === 'o').length} cas). Non renseigné : CFI tiré dans l’axe ou pied du tireur inconnu. Le pied fort vient des tirs et passes du joueur sur la saison et de ses corners.` : '(données Opta / Second Spectrum)'}</p>`;
+    <p class="note">Rentrant : le ballon tourne vers le but ; sortant : il s’en éloigne. ${FK ? `Pour les CFI joués direct, l’effet vient d’Opta quand il est renseigné (${R.filter(r => r.swSrc === 'o').length} cas) ; sinon il est déduit du pied qui frappe et du côté de la frappe (pied droit côté gauche = rentrant, pied gauche côté gauche = sortant, et inversement à droite). Le pied utilisé est celui noté par Opta sur le coup franc (${R.filter(r => r.swSrc === 'f').length} cas) ; quand il ne l’est pas, on prend le pied fort du tireur (${R.filter(r => r.swSrc === 'p').length} cas). Non renseigné : CFI tiré dans l’axe ou pied inconnu.` : '(données Opta / Second Spectrum)'}</p>`;
   // 3. Zones : arrivée / 1er / 2e contact
   const sideLbl = `<text x="1" y="25.5" font-size="1.7" fill="var(--text-3)">◀ côté ${L.du}${FK ? ' (CFI axiaux non retournés)' : ''}</text>`;
   const zm = K.zm, P0 = R.map(r => { const c = r.c, q = zm === 'arr' ? (c.ax != null ? {x: c.ax, y: c.ay, a: null} : null) : c[zm]; return q ? {x: q.x, yy: ckMir(c, q.y), a: q.a, r} : null; }).filter(Boolean);
@@ -3437,7 +3438,7 @@ function renderCorners(ms, TN, PI, f) {
     $('#ckOneMap').innerHTML = ckBox(g, FK ? 56 : 29) + (t ? '' : `<p class="note">Pas de tracking pour ${L.ce} : seul le point d’arrivée du ballon est affiché.</p>`);
     const nm = id => id && PI[id] ? esc(PI[id].name) : '—', ctc = q => q ? `${nm(q.p)} <small class="muted">(${q.a ? (K.side === 'for' ? 'nous' : 'adversaire') : (K.side === 'for' ? 'adversaire' : 'nous')} · ${CK_T[q.t] || ''}${q.vs ? ' · duel avec ' + nm(q.vs) : ''} · ${CK_Z.find(z => z[0] === ckZone(q.x, ckMir(c, q.y)))?.[1] || 'hors zones'})</small>` : '—';
     $('#ckOneInfo').innerHTML = `<div class="ck-info"><dl><dt>Match</dt><dd>J${one.m.j} · ${esc(TN[one.m.home.id])} – ${esc(TN[one.m.away.id])} · ${minOf(c)}'</dd><dt>Tireur</dt><dd>${nm(c.p)}${footOf(c.p) ? ` (pied ${footOf(c.p) === 'D' ? 'droit' : 'gauche'})` : ''} · ${FK ? `${FK_SIDE[c.side]} · à ${fmt(c.dg, 0)} m du but` : `côté ${c.side === 'G' ? 'gauche' : 'droit'}`}</dd>
-      <dt>Exécution</dt><dd>${MODE[c.mode]}</dd><dt>Trajectoire</dt><dd>${CK_SW[one.sw || '']}${one.swSrc === 'p' ? ` <small class="muted">(déduit : pied ${footOf(c.p) === 'D' ? 'droit' : 'gauche'}, ${FK_SIDE[c.side]})</small>` : ''}${t ? ' · ' + CK_HL[ckH(t.z)] + ` (max ${fmt(t.z, 1)} m, ${fmt(t.dt, 1)} s ${FK && c.mode !== 1 ? 'jusqu’au ballon dans la surface' : 'de vol'})` : ''}</dd>
+      <dt>Exécution</dt><dd>${MODE[c.mode]}</dd><dt>Trajectoire</dt><dd>${CK_SW[one.sw || '']}${one.swSrc === 'p' || one.swSrc === 'f' ? ` <small class="muted">(déduit : frappé du pied ${one.ft === 'D' ? 'droit' : 'gauche'}${one.swSrc === 'p' ? ' — pied fort, le pied utilisé n’étant pas noté' : ''}, ${FK_SIDE[c.side]})</small>` : ''}${t ? ' · ' + CK_HL[ckH(t.z)] + ` (max ${fmt(t.z, 1)} m, ${fmt(t.dt, 1)} s ${FK && c.mode !== 1 ? 'jusqu’au ballon dans la surface' : 'de vol'})` : ''}</dd>
       <dt>Dans la surface</dt><dd>${one.att ?? '—'} attaquant(s) · ${one.def ?? '—'} défenseur(s)${c.np ? ' · défenseur au 1er poteau' : ''}${c.fp ? ' · au 2e poteau' : ''}</dd>
       <dt>1er contact</dt><dd>${ctc(c.c1)}</dd><dt>2e contact</dt><dd>${ctc(c.c2)}</dd>
       <dt>Issue</dt><dd>${c.g ? '⚽ But' : c.nsh ? `${c.nsh} tir(s) · ${fmt(c.xg, 2)} xG` : 'Pas de tir dans les 15 s'}</dd></dl></div>`;
@@ -3445,7 +3446,7 @@ function renderCorners(ms, TN, PI, f) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-09 13:15 UTC';
+const BUILD = '2026-11-09 13:18 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
