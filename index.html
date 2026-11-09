@@ -386,7 +386,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-09 13:45 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-09 13:47 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -1541,7 +1541,7 @@ function procInsight(m, rows) {
             st: k.startType || 'autre', vp: k.verticalPassing || 0, vc: k.verticalCarrying || 0, ct: k.isContested ? 1 : 0};
           ev.poss.push(po); if (Array.isArray(k.events) && k.events.length) possRaw.push([po, k.events]); break; }
         case 'corner':
-          ev.corners.push({tm: k.attTeamId, q, p: k.takerId, att: (k.attInBox || []).length + (k.attInGkBox || []).length, def: (k.defInBox || []).length + (k.defInGkBox || []).length, sh: k.shortOption ? 1 : 0, sw: k.crossSwing === 'inswing' ? 'in' : k.crossSwing === 'outswing' ? 'out' : '',
+          ev.corners.push({tm: k.attTeamId, q, p: k.takerId, att: new Set([...(k.attInBox || []), ...(k.attInGkBox || [])]).size, def: new Set([...(k.defInBox || []), ...(k.defInGkBox || [])]).size, // la zone des 6 m est incluse dans la surface : pas de double compte sh: k.shortOption ? 1 : 0, sw: k.crossSwing === 'inswing' ? 'in' : k.crossSwing === 'outswing' ? 'out' : '',
             per: k.period, gc: Math.round((k.gameClock || 0) * 100) / 100, f: k.frameIdx, A: [...new Set([...(k.attInBox || []), ...(k.attInGkBox || [])])], D: [...new Set([...(k.defInBox || []), ...(k.defInGkBox || [])])], np: k.nearPostDefender ? 1 : 0, fp: k.farPostDefender ? 1 : 0}); break;
         case 'shot':
           shotMkList.push({k, q});
@@ -2055,7 +2055,7 @@ function aggTacticalRaw(ms, qsOverride) {
       if (e.z0 === 0) { o.possD++; if (e.z1 >= 1) o.possD2++; if (e.z1 === 2) o.possD3++; }
       if (!e.ct) { o.possT += e.dur; t(H).possTot += e.dur; t(A).possTot += e.dur; }
     }
-    for (const e of E.corners) { if (ok(e) && qs.has(e.q)) { const o = t(e.tm); o.corners++; if (e.att != null) { o.cornD++; o.cornAtt += e.att; o.cornShort += e.sh; if (e.sw === 'in') o.cornIn++; if (e.sw === 'out') o.cornOut++; } } }
+    for (const e of E.corners) { if (ok(e) && qs.has(e.q)) { const o = t(e.tm); o.corners++; if (e.att != null) { o.cornD++; o.cornAtt += e.A ? e.A.length : e.att; o.cornShort += e.sh; if (e.sw === 'in') o.cornIn++; if (e.sw === 'out') o.cornOut++; } } }
     // --- CPA & contre-attaques ---
     const CPA_ST = {corner_kick: 'cor', free_kick: 'cf', throw_in: 'tou', penalty: 'pen'};
     if (E.v >= 2) { t(H).mV2++; t(A).mV2++; }
@@ -3346,7 +3346,7 @@ function renderCorners(ms, TN, PI, f) {
       if (FK) { // joueurs dans la surface au moment du coup franc (tracking)
         if (r.t && r.t.k) { const ib = r.t.k.filter(q => inBoxP(q[2], q[3])); r.A = ib.filter(q => q[0]).map(q => q[4]).filter(Boolean); r.att = ib.filter(q => q[0]).length; r.def = ib.filter(q => !q[0]).length; }
         const s2 = fkSwing(c, r.t); r.sw = s2.sw; r.swSrc = s2.src; r.ft = s2.ft; r.swD = s2.d;
-      } else { r.A = c.A; r.att = c.att; r.def = c.def; r.sw = c.sw || ''; r.swSrc = c.sw ? 'o' : '';
+      } else { r.A = c.A; r.att = c.A ? c.A.length : c.att; r.def = c.D ? c.D.length : c.def; r.sw = c.sw || ''; r.swSrc = c.sw ? 'o' : '';
         if (!c.sw && c.mode === 1) { const tk = trkSwing(r.t); if (tk) { r.sw = tk.sw; r.swSrc = 't'; r.swD = tk.d; } } }
       R0.push(r);
     }
@@ -3507,7 +3507,7 @@ function renderCorners(ms, TN, PI, f) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-09 13:45 UTC';
+const BUILD = '2026-11-09 13:47 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4532,7 +4532,7 @@ function cpaProfile(ms, tid) {
   let cn = 0, cd = 0, att = 0, short = 0, ins = 0, outs = 0; const takers = {};
   for (const m of ms) for (const c of m.ev.corners || []) if (c.tm === tid) {
     cn++; if (c.p) takers[c.p] = (takers[c.p] || 0) + 1;
-    if (c.att != null) { cd++; att += c.att; short += c.sh; if (c.sw === 'in') ins++; if (c.sw === 'out') outs++; }
+    if (c.att != null) { cd++; att += c.A ? c.A.length : c.att; short += c.sh; if (c.sw === 'in') ins++; if (c.sw === 'out') outs++; }
   }
   return {rows, corners: {n: cn, att: cd ? att / cd : null, short: pct(short, cd), ins: pct(ins, ins + outs), outs: pct(outs, ins + outs), takers}};
 }
