@@ -380,7 +380,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-09 12:58 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-09 13:15 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -1497,7 +1497,7 @@ function baseFromMeta(meta, md) {
 }
 
 /* ---------- Insight : événements Opta + marquages tracking ---------- */
-const EV_VER = 9; // version du traitement des événements (à incrémenter si procInsight change)
+const EV_VER = 10; // version du traitement des événements (à incrémenter si procInsight change)
 const OPTA_KEEP = new Set([1, 3, 4, 7, 8, 10, 11, 12, 17, 41, 44, 45, 49, 50, 52, 53, 59, 61, 74]);
 function procInsight(m, rows) {
   const L = m.L, W = m.W;
@@ -1680,6 +1680,9 @@ function procInsight(m, rows) {
       c.mode = del ? Math.min(4, nP) : 0; // 1 = direct, 2 = à 2, 3 = à 3, 4 = à 4 et plus, 0 = jamais centré
       finish(c, del, k, A, t0);
     }
+    // Pied utilisé (qualificatifs Opta 20 = pied droit, 72 = pied gauche), pour deviner le pied fort des tireurs
+    ev.ft = {};
+    for (const o of seq) { const pid = optaToSsi[o.playerId]; if (!pid || !o.qualifier) continue; let k = -1; for (const x of o.qualifier) { if (x.qualifierId === 20) k = 0; else if (x.qualifierId === 72) k = 1; } if (k < 0) continue; (ev.ft[pid] = ev.ft[pid] || [0, 0])[k]++; }
     // Coups francs indirects dans le camp adverse (passe Opta avec qualificatif 5, hors corners et touches)
     ev.fks = [];
     const gcOf = {}; for (const k of Object.values(mkById)) if (k.markingType === 'pass' && k.optaId && k.gameClock != null) gcOf[k.optaId] = k.gameClock;
@@ -3265,7 +3268,7 @@ const CK_Z = [['6g1', '6 m · 1er poteau', 99.5, 105, 24.84, 30.34], ['6gc', '6 
 const ckZone = (x, yy) => { for (const z of CK_Z) if (x >= z[2] && x <= z[3] && yy >= z[4] && yy <= z[5]) return z[0]; return 'out'; };
 const ckMir = (c, y) => c.side === 'D' ? 68 - y : y;           // corner toujours représenté depuis la gauche
 const ckH = z => z == null ? null : z < 1.2 ? 'sol' : z < 3 ? 'tendu' : 'air';
-const CK_HL = {sol: 'Au sol', tendu: 'Tendu (1-3 m)', air: 'Aérien (> 3 m)'}, CK_SW = {in: 'Rentrant', out: 'Sortant', dr: 'Droit', '': 'Non renseigné'};
+const CK_HL = {sol: 'Au sol', tendu: 'Tendu (1-3 m)', air: 'Aérien (> 3 m)'}, CK_SW = {in: 'Rentrant', out: 'Sortant', dr: 'Droit', '': 'Non renseigné', court: 'Non direct (joué court)'};
 const CK_MODE = {1: 'Direct', 2: 'Joué à 2', 3: 'Joué à 3', 4: 'Joué à 4 ou plus', 0: 'Joué court, jamais centré'};
 const CK_T = {1: 'passe', 2: 'passe', 3: 'dribble', 7: 'tacle', 8: 'interception', 10: 'arrêt', 11: 'sortie (captée)', 12: 'dégagement', 13: 'tir', 14: 'tir (poteau)', 15: 'tir', 16: 'but', 41: 'sortie (boxée)', 44: 'duel aérien', 49: 'récupération', 50: 'perte', 52: 'ballon ramassé', 61: 'contrôle', 74: 'contre'};
 // Demi-terrain vertical (but en haut), zoom sur les 35 derniers mètres
@@ -3274,6 +3277,27 @@ const ckP = (x, y) => [r1(y), r1(105 - x)];
 const FK_MODE = {1: 'Direct dans la surface', 2: 'Joué à 2', 3: 'Joué à 3', 4: 'Joué à 4 ou plus', 0: 'Jamais joué dans la surface'};
 const FK_SIDE = {G: 'côté gauche', C: 'axe', D: 'côté droit'};
 const inBoxP = (x, y) => x >= 88.5 && Math.abs(y - 34) <= 20.16;
+// Pied fort estimé : pied utilisé sur les tirs et passes (Opta) + effet des corners (côté gauche + rentrant = pied droit, etc.)
+let FOOT_C = {k: null, v: {}};
+function footOf(pid) {
+  const key = DATA_VER + '|' + Object.keys(S.matches).length;
+  if (FOOT_C.k !== key) {
+    const V = {};
+    for (const m of Object.values(S.matches)) { if (!m.ev) continue;
+      for (const [p, [r, l]] of Object.entries(m.ev.ft || {})) { const o = V[p] || (V[p] = [0, 0]); o[0] += r; o[1] += l; }
+      for (const c of m.ev.corners || []) if (c.p && (c.sw === 'in' || c.sw === 'out') && c.side) { const o = V[c.p] || (V[c.p] = [0, 0]); o[(c.side === 'G') === (c.sw === 'in') ? 0 : 1] += 2; } }
+    FOOT_C = {k: key, v: V};
+  }
+  const o = FOOT_C.v[pid]; if (!o) return null; const t = o[0] + o[1];
+  return t >= 2 && Math.max(o[0], o[1]) / t >= .65 ? (o[0] > o[1] ? 'D' : 'G') : null;
+}
+// Effet d'un CFI : celui d'Opta s'il est renseigné, sinon déduit du pied du tireur et du côté de la frappe
+function fkSwing(c) {
+  if (!c.dir) return {sw: 'court', src: ''};
+  if (c.sw) return {sw: c.sw, src: 'o'};
+  const ft = footOf(c.p); if (!ft || c.side === 'C') return {sw: '', src: ''};
+  return {sw: (c.side === 'G') === (ft === 'D') ? 'in' : 'out', src: 'p'};
+}
 function renderCorners(ms, TN, PI, f) {
   S.ck = S.ck || {};
   const K = S.ck; K.side = K.side || 'for'; K.zm = K.zm || 'c1'; K.pl = K.pl || 'r'; K.ty = K.ty || 'ck'; K.fd = K.fd || 'all';
@@ -3301,7 +3325,8 @@ function renderCorners(ms, TN, PI, f) {
       const r = {m, c, t: TT ? TT[cornerKey(c)] || null : null};
       if (FK) { // joueurs dans la surface au moment du coup franc (tracking)
         if (r.t && r.t.k) { const ib = r.t.k.filter(q => inBoxP(q[2], q[3])); r.A = ib.filter(q => q[0]).map(q => q[4]).filter(Boolean); r.att = ib.filter(q => q[0]).length; r.def = ib.filter(q => !q[0]).length; }
-      } else { r.A = c.A; r.att = c.att; r.def = c.def; }
+        const s2 = fkSwing(c); r.sw = s2.sw; r.swSrc = s2.src;
+      } else { r.A = c.A; r.att = c.att; r.def = c.def; r.sw = c.sw || ''; }
       R0.push(r);
     }
   }
@@ -3322,12 +3347,12 @@ function renderCorners(ms, TN, PI, f) {
     + kpi(`${L.Pl} avec tir`, pc(shN, n), `dans les 15 s · ${R.reduce((a, r) => a + (r.c.nsh || 0), 0)} tirs`) + kpi(`xG par ${L.one}`, fmt(n ? xg / n : null, 3), `${fmt(xg, 2)} xG au total`) + kpi('Buts', fmt(g), g ? `1 but tous les ${fmt(n / g, 0)} ${L.pl}` : 'aucun but');
   // 1. Tireurs
   const TK = {};
-  for (const r of R) { const k = r.c.p || '?', o = TK[k] || (TK[k] = {id: k, n: 0, G: 0, C: 0, D: 0, in: 0, out: 0, dr: 0, dir: 0, c1: 0, c1W: 0, sh: 0, xg: 0, g: 0, air: 0, nt: 0, dg: 0});
-    o.n++; o[r.c.side] = (o[r.c.side] || 0) + 1; if (r.c.sw) o[r.c.sw]++; if (r.c.mode === 1) o.dir++; if (r.c.c1) { o.c1++; if (r.c.c1.a) o.c1W++; } if (r.c.nsh) o.sh++; o.xg += r.c.xg || 0; if (r.c.g) o.g++; o.dg += r.c.dg || 0; if (r.t) { o.nt++; if (ckH(r.t.z) === 'air') o.air++; } }
-  const tkRows = Object.values(TK).map(o => ({...o, name: PI[o.id] ? PI[o.id].name : 'Inconnu'}));
-  renderTable('ckTakers', [{k: 'name', l: 'Tireur', txt: 1, v: r => r.name}, {k: 'n', l: L.Pl, v: r => r.n}, {k: 'G', l: 'Côté gauche', v: r => r.G || 0}, ...(FK ? [{k: 'C', l: 'Axe', v: r => r.C || 0}] : []), {k: 'D', l: 'Côté droit', v: r => r.D || 0},
+  for (const r of R) { const k = r.c.p || '?', o = TK[k] || (TK[k] = {id: k, n: 0, G: 0, C: 0, D: 0, in: 0, out: 0, dr: 0, dir: 0, c1: 0, c1W: 0, sh: 0, xg: 0, g: 0, air: 0, nt: 0, dg: 0, swN: 0});
+    o.n++; o[r.c.side] = (o[r.c.side] || 0) + 1; if (r.sw && r.sw in o) o[r.sw]++; if (r.sw === 'in' || r.sw === 'out' || r.sw === 'dr') o.swN++; if (r.c.mode === 1) o.dir++; if (r.c.c1) { o.c1++; if (r.c.c1.a) o.c1W++; } if (r.c.nsh) o.sh++; o.xg += r.c.xg || 0; if (r.c.g) o.g++; o.dg += r.c.dg || 0; if (r.t) { o.nt++; if (ckH(r.t.z) === 'air') o.air++; } }
+  const tkRows = Object.values(TK).map(o => ({...o, name: PI[o.id] ? PI[o.id].name : 'Inconnu', ft: footOf(o.id)}));
+  renderTable('ckTakers', [{k: 'name', l: 'Tireur', txt: 1, v: r => r.name}, {k: 'ft', l: 'Pied fort', txt: 1, v: r => r.ft === 'D' ? 'Droit' : r.ft === 'G' ? 'Gauche' : '—'}, {k: 'n', l: L.Pl, v: r => r.n}, {k: 'G', l: 'Côté gauche', v: r => r.G || 0}, ...(FK ? [{k: 'C', l: 'Axe', v: r => r.C || 0}] : []), {k: 'D', l: 'Côté droit', v: r => r.D || 0},
     ...(FK ? [{k: 'dg', l: 'Distance moy. au but (m)', d: 0, v: r => r.n ? r.dg / r.n : null}] : []),
-    {k: 'in', l: '% rentrants', d: 0, v: r => r.n ? r.in / r.n * 100 : null}, {k: 'out', l: '% sortants', d: 0, v: r => r.n ? r.out / r.n * 100 : null}, {k: 'air', l: '% aériens', d: 0, v: r => r.nt ? r.air / r.nt * 100 : null},
+    {k: 'in', l: '% rentrants', d: 0, v: r => (FK ? r.swN : r.n) ? r.in / (FK ? r.swN : r.n) * 100 : null}, {k: 'out', l: '% sortants', d: 0, v: r => (FK ? r.swN : r.n) ? r.out / (FK ? r.swN : r.n) * 100 : null}, {k: 'air', l: '% aériens', d: 0, v: r => r.nt ? r.air / r.nt * 100 : null},
     {k: 'dir', l: '% directs', d: 0, v: r => r.n ? r.dir / r.n * 100 : null}, {k: 'c1W', l: '% 1er contact gagné', d: 0, v: r => r.c1 ? r.c1W / r.c1 * 100 : null},
     {k: 'sh', l: `${L.Pl} avec tir`, v: r => r.sh}, {k: 'xg', l: 'xG générés', d: 2, v: r => r.xg}, {k: 'g', l: 'Buts', v: r => r.g}], tkRows, {defaultSort: 'n'});
   // 2. Exécution et trajectoire
@@ -3342,11 +3367,11 @@ function renderCorners(ms, TN, PI, f) {
   $('#ckMode').innerHTML = `<div class="gkd">${MK.map(k => { const Lm = R.filter(r => r.c.mode === k), w = Lm.filter(r => r.c.c1 && r.c.c1.a).length, sh = Lm.filter(r => r.c.nsh).length;
     return `<div class="gkdr"><span>${MODE[k]}</span><i><b style="width:${Lm.length / mx * 100}%;background:${atkCol}"></b></i><em>${Lm.length} (${pc(Lm.length, n)}) · ${sh} avec tir · 1er contact ${pc(w, Lm.filter(r => r.c.c1).length)}</em></div>`; }).join('')}</div>
     <p class="note">${FK ? '« Direct » : le ballon ou le premier contact arrive dans la surface. Sinon, « joué à 2 » : une passe avant que le ballon n’entre dans la surface ; « jamais joué dans la surface » : le ballon n’y entre pas dans les 20 s.' : '« Joué à 2 » : une passe courte avant le centre ; « à 3 » : deux passes. Le premier contact est compté après le ballon qui entre dans la surface.'}</p>${origin}`;
-  const SW = ['in', 'out', 'dr', ''], HH = ['sol', 'tendu', 'air'];
+  const SW = FK ? ['in', 'out', 'dr', '', 'court'] : ['in', 'out', 'dr', ''], HH = ['sol', 'tendu', 'air'];
   $('#ckTrajSub').textContent = nT ? `Hauteur maximale du ballon mesurée sur ${nT} ${L.one}(s) (tracking)` : 'Hauteur : importez le tracking pour la mesurer';
-  $('#ckTraj').innerHTML = `<table class="gkz"><tr><th class="txt">Effet</th>${HH.map(h => `<th>${CK_HL[h]}</th>`).join('')}<th>Total</th><th>1er contact gagné</th><th>Avec tir</th></tr>${SW.map(sw => { const Ls = R.filter(r => (r.c.sw || '') === sw); if (!Ls.length) return '';
+  $('#ckTraj').innerHTML = `<table class="gkz"><tr><th class="txt">Effet</th>${HH.map(h => `<th>${CK_HL[h]}</th>`).join('')}<th>Total</th><th>1er contact gagné</th><th>Avec tir</th></tr>${SW.map(sw => { const Ls = R.filter(r => (r.sw || '') === sw); if (!Ls.length) return '';
     return `<tr><td class="txt"><b>${CK_SW[sw]}</b></td>${HH.map(h => `<td>${Ls.filter(r => r.t && ckH(r.t.z) === h).length || '<span class="z">0</span>'}</td>`).join('')}<td><b>${Ls.length}</b> <small class="muted">(${pc(Ls.length, n)})</small></td><td>${pc(Ls.filter(r => r.c.c1 && r.c.c1.a).length, Ls.filter(r => r.c.c1).length)}</td><td>${Ls.filter(r => r.c.nsh).length}</td></tr>`; }).join('')}</table>
-    <p class="note">Rentrant : le ballon tourne vers le but ; sortant : il s’en éloigne (données Opta / Second Spectrum).${FK ? ' La hauteur est mesurée jusqu’au premier contact, y compris pour une passe courte.' : ''}</p>`;
+    <p class="note">Rentrant : le ballon tourne vers le but ; sortant : il s’en éloigne. ${FK ? `Pour les CFI joués direct, l’effet est déduit du pied fort du tireur et du côté de la frappe (pied droit côté gauche = rentrant, pied gauche côté gauche = sortant, et inversement à droite), sauf si Opta le renseigne (${R.filter(r => r.swSrc === 'o').length} cas). Non renseigné : CFI tiré dans l’axe ou pied du tireur inconnu. Le pied fort vient des tirs et passes du joueur sur la saison et de ses corners.` : '(données Opta / Second Spectrum)'}</p>`;
   // 3. Zones : arrivée / 1er / 2e contact
   const sideLbl = `<text x="1" y="25.5" font-size="1.7" fill="var(--text-3)">◀ côté ${L.du}${FK ? ' (CFI axiaux non retournés)' : ''}</text>`;
   const zm = K.zm, P0 = R.map(r => { const c = r.c, q = zm === 'arr' ? (c.ax != null ? {x: c.ax, y: c.ay, a: null} : null) : c[zm]; return q ? {x: q.x, yy: ckMir(c, q.y), a: q.a, r} : null; }).filter(Boolean);
@@ -3411,8 +3436,8 @@ function renderCorners(ms, TN, PI, f) {
     if (FK) { const [px, py] = ckP(c.x0, c.y0); g += `<path d="M${px} ${py - 1.3}L${px + 1.2} ${py + .9}L${px - 1.2} ${py + .9}Z" fill="#e08a00" stroke="var(--surface)" stroke-width=".2"><title>Lieu du coup franc</title></path>`; }
     $('#ckOneMap').innerHTML = ckBox(g, FK ? 56 : 29) + (t ? '' : `<p class="note">Pas de tracking pour ${L.ce} : seul le point d’arrivée du ballon est affiché.</p>`);
     const nm = id => id && PI[id] ? esc(PI[id].name) : '—', ctc = q => q ? `${nm(q.p)} <small class="muted">(${q.a ? (K.side === 'for' ? 'nous' : 'adversaire') : (K.side === 'for' ? 'adversaire' : 'nous')} · ${CK_T[q.t] || ''}${q.vs ? ' · duel avec ' + nm(q.vs) : ''} · ${CK_Z.find(z => z[0] === ckZone(q.x, ckMir(c, q.y)))?.[1] || 'hors zones'})</small>` : '—';
-    $('#ckOneInfo').innerHTML = `<div class="ck-info"><dl><dt>Match</dt><dd>J${one.m.j} · ${esc(TN[one.m.home.id])} – ${esc(TN[one.m.away.id])} · ${minOf(c)}'</dd><dt>Tireur</dt><dd>${nm(c.p)} · ${FK ? `${FK_SIDE[c.side]} · à ${fmt(c.dg, 0)} m du but` : `côté ${c.side === 'G' ? 'gauche' : 'droit'}`}</dd>
-      <dt>Exécution</dt><dd>${MODE[c.mode]}</dd><dt>Trajectoire</dt><dd>${CK_SW[c.sw || '']}${t ? ' · ' + CK_HL[ckH(t.z)] + ` (max ${fmt(t.z, 1)} m, ${fmt(t.dt, 1)} s ${FK && c.mode !== 1 ? 'jusqu’au ballon dans la surface' : 'de vol'})` : ''}</dd>
+    $('#ckOneInfo').innerHTML = `<div class="ck-info"><dl><dt>Match</dt><dd>J${one.m.j} · ${esc(TN[one.m.home.id])} – ${esc(TN[one.m.away.id])} · ${minOf(c)}'</dd><dt>Tireur</dt><dd>${nm(c.p)}${footOf(c.p) ? ` (pied ${footOf(c.p) === 'D' ? 'droit' : 'gauche'})` : ''} · ${FK ? `${FK_SIDE[c.side]} · à ${fmt(c.dg, 0)} m du but` : `côté ${c.side === 'G' ? 'gauche' : 'droit'}`}</dd>
+      <dt>Exécution</dt><dd>${MODE[c.mode]}</dd><dt>Trajectoire</dt><dd>${CK_SW[one.sw || '']}${one.swSrc === 'p' ? ` <small class="muted">(déduit : pied ${footOf(c.p) === 'D' ? 'droit' : 'gauche'}, ${FK_SIDE[c.side]})</small>` : ''}${t ? ' · ' + CK_HL[ckH(t.z)] + ` (max ${fmt(t.z, 1)} m, ${fmt(t.dt, 1)} s ${FK && c.mode !== 1 ? 'jusqu’au ballon dans la surface' : 'de vol'})` : ''}</dd>
       <dt>Dans la surface</dt><dd>${one.att ?? '—'} attaquant(s) · ${one.def ?? '—'} défenseur(s)${c.np ? ' · défenseur au 1er poteau' : ''}${c.fp ? ' · au 2e poteau' : ''}</dd>
       <dt>1er contact</dt><dd>${ctc(c.c1)}</dd><dt>2e contact</dt><dd>${ctc(c.c2)}</dd>
       <dt>Issue</dt><dd>${c.g ? '⚽ But' : c.nsh ? `${c.nsh} tir(s) · ${fmt(c.xg, 2)} xG` : 'Pas de tir dans les 15 s'}</dd></dl></div>`;
@@ -3420,7 +3445,7 @@ function renderCorners(ms, TN, PI, f) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-09 12:58 UTC';
+const BUILD = '2026-11-09 13:15 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
