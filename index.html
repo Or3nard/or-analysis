@@ -386,7 +386,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-09 13:39 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-09 13:45 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3408,19 +3408,20 @@ function renderCorners(ms, TN, PI, f) {
     <details class="ph-more"><summary>Comment sont calculés ces chiffres</summary><p class="note">${FK ? '« Direct » : le ballon ou le premier contact arrive dans la surface. Sinon, « joué à 2 » : une passe avant que le ballon n’entre dans la surface ; « jamais joué dans la surface » : le ballon n’y entre pas dans les 20 s.' : '« Joué à 2 » : une passe courte avant le centre ; « à 3 » : deux passes. Le premier contact est compté après le ballon qui entre dans la surface.'}
       Effet et hauteur ne concernent que ${FK ? 'les CFI joués direct' : 'les corners centrés'}. Rentrant : le ballon tourne vers le but ; sortant : il s’en éloigne. Source de l’effet : Opta ${srcN('o')}, trajectoire du ballon dans le tracking ${srcN('t')}${FK ? `, pied utilisé noté sur le coup franc ${srcN('f')}, pied fort du tireur ${srcN('p')}` : ''} (tracking : côté vers lequel la trajectoire s’écarte de la ligne droite départ → arrivée ; moins de 1 m = droit). Hauteur : maximum atteint par le ballon (au sol &lt; 1,2 m, tendu 1,2-3 m, aérien &gt; 3 m).</p></details>`;
   // 3. Zones : arrivée / 1er / 2e contact — filtres propres à cette partie
-  const F3 = K.f3 = Object.assign({sd: 'all', ex: 'all', sw: 'all', h: 'all', tk: ''}, K.f3 || {});
+  const F3 = K.f3 = Object.assign({sd: 'all', ex: 'all', sw: 'all', h: 'all', tk: '', is: 'all'}, K.f3 || {});
   if (FK ? !['all', 'G', 'C', 'D'].includes(F3.sd) : !['all', 'G', 'D'].includes(F3.sd)) F3.sd = 'all';
   const tkL = Object.values(TK).filter(o => PI[o.id]).sort((a, b) => b.n - a.n);
   if (F3.tk && !tkL.some(o => o.id === F3.tk)) F3.tk = '';
   const R3 = R.filter(r => (F3.sd === 'all' || r.c.side === F3.sd) && (F3.ex === 'all' || (F3.ex === 'dir' ? r.c.mode === 1 : r.c.mode !== 1))
-    && (F3.sw === 'all' || (r.sw || '') === F3.sw) && (F3.h === 'all' || (r.t && ckH(r.t.z) === F3.h)) && (!F3.tk || r.c.p === F3.tk));
+    && (F3.sw === 'all' || (r.sw || '') === F3.sw) && (F3.h === 'all' || (r.t && ckH(r.t.z) === F3.h)) && (!F3.tk || r.c.p === F3.tk) && (F3.is === 'all' || (F3.is === 'g' ? r.c.g : F3.is === 'sh' ? r.c.nsh : !r.c.nsh)));
   const chipG = (g, opts) => `<div class="chips" data-g="${g}">${opts.map(([v, l]) => `<button class="chip" data-v="${v}" aria-pressed="${F3[g] === v}">${l}</button>`).join('')}</div>`;
   $('#ckF3').innerHTML = `<div class="ckf-g"><span>Côté</span>${chipG('sd', FK ? [['all', 'Tous'], ['G', 'Gauche'], ['C', 'Axe'], ['D', 'Droite']] : [['all', 'Les deux'], ['G', 'Gauche'], ['D', 'Droite']])}</div>`
     + (FK ? '' : `<div class="ckf-g"><span>Exécution</span>${chipG('ex', [['all', 'Tous'], ['dir', 'Direct'], ['crt', 'Joué court']])}</div>`)
     + `<div class="ckf-g"><span>Effet</span>${chipG('sw', [['all', 'Tous'], ['in', 'Rentrant'], ['out', 'Sortant']])}</div>`
     + `<div class="ckf-g"><span>Hauteur</span>${chipG('h', [['all', 'Toutes'], ['sol', 'Au sol'], ['tendu', 'Tendu'], ['air', 'Aérien']])}</div>`
+    + `<div class="ckf-g"><span>Issue</span>${chipG('is', [['all', 'Toutes'], ['sh', 'Avec tir'], ['g', 'But'], ['no', 'Sans tir']])}</div>`
     + `<div class="ckf-g"><span>Tireur</span><select data-g="tk"><option value="">Tous</option>${tkL.map(o => `<option value="${esc(o.id)}"${o.id === F3.tk ? ' selected' : ''}>${esc(PI[o.id].name)} (${o.n})</option>`).join('')}</select></div>`
-    + (F3.sd !== 'all' || F3.ex !== 'all' || F3.sw !== 'all' || F3.h !== 'all' || F3.tk ? `<button class="btn ckf-r" data-g="reset">Effacer les filtres</button>` : '');
+    + (F3.sd !== 'all' || F3.ex !== 'all' || F3.sw !== 'all' || F3.h !== 'all' || F3.tk || F3.is !== 'all' ? `<button class="btn ckf-r" data-g="reset">Effacer les filtres</button>` : '');
   // un seul côté choisi : affichage réel (côté droit à droite) ; sinon tout est ramené à gauche
   const flip = F3.sd === 'D', dY = y => flip ? r1(68 - y) : y, view = (x, yy) => ckP(x, dY(yy));
   const sideLbl = F3.sd === 'all' ? `<text x="1" y="25.5" font-size="1.7" fill="var(--text-3)">◀ côté ${L.du}${FK ? ' (CFI axiaux non retournés)' : ''}</text>`
@@ -3430,19 +3431,26 @@ function renderCorners(ms, TN, PI, f) {
   const mz = Math.max(1, ...CK_Z.map(z => (ZC[z[0]] || {n: 0}).n));
   let zs = CK_Z.map(([id, l, x0, x1, y0, y1]) => { const o = ZC[id] || {n: 0, w: 0}, [sx, sy] = ckP(x1, flip ? 68 - y1 : y0), w = y1 - y0, h = x1 - x0, a = o.n / mz;
     return `<rect x="${sx}" y="${sy}" width="${w}" height="${h}" fill="${atkCol}" fill-opacity="${(.04 + .55 * a).toFixed(2)}" stroke="var(--surface)" stroke-width=".3"><title>${l}</title></rect>`; }).join('');
-  const dense = P0.length > 120, rr = dense ? .5 : .75;
-  zs += P0.map(q => { const [x, y] = view(q.x, q.yy); return `<circle cx="${x}" cy="${y}" r="${rr}" fill="${q.a === 0 ? defCol : atkCol}" fill-opacity="${dense ? .55 : 1}" stroke="var(--surface)" stroke-width="${dense ? .1 : .2}" data-tip="${esc(`J${q.r.m.j} · ${Math.floor(q.r.c.t0 / 60) + (q.r.c.per === 2 ? 45 : 0) + 1}' · ${PI[q.r.c.p] ? PI[q.r.c.p].name : '?'} → ${zm === 'arr' ? 'arrivée du ballon' : (PI[q.r.c[zm].p] ? PI[q.r.c[zm].p].name : '?') + ' (' + (CK_T[q.r.c[zm].t] || '') + ')'}`)}"/>`; }).join('');
+  const dense = P0.length > 120, rr = dense ? .5 : .75, SHC = '#e08a00';
+  const tipOf = q => esc(`J${q.r.m.j} · ${Math.floor(q.r.c.t0 / 60) + (q.r.c.per === 2 ? 45 : 0) + 1}' · ${PI[q.r.c.p] ? PI[q.r.c.p].name : '?'} → ${zm === 'arr' ? 'arrivée du ballon' : (PI[q.r.c[zm].p] ? PI[q.r.c[zm].p].name : '?') + ' (' + (CK_T[q.r.c[zm].t] || '') + ')'}${q.r.c.nsh ? ` · ${q.r.c.g ? '⚽ BUT · ' : ''}${q.r.c.nsh} tir(s) · ${fmt(q.r.c.xg, 2)} xG` : ' · pas de tir'}`);
+  const ballG = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" stroke="#222" stroke-width=".22"/><path d="${[0, 1, 2, 3, 4].map(i => { const a = -Math.PI / 2 + i * 2 * Math.PI / 5; return (i ? 'L' : 'M') + r1(x + Math.cos(a) * r * .45) + ' ' + r1(y + Math.sin(a) * r * .45); }).join('')}Z" fill="#222"/>`;
+  const byOut = [P0.filter(q => !q.r.c.nsh), P0.filter(q => q.r.c.nsh && !q.r.c.g), P0.filter(q => q.r.c.g)];
+  zs += byOut[0].map(q => { const [x, y] = view(q.x, q.yy); return `<circle cx="${x}" cy="${y}" r="${rr}" fill="${q.a === 0 ? defCol : atkCol}" fill-opacity="${dense ? .45 : .8}" stroke="var(--surface)" stroke-width="${dense ? .1 : .2}" data-tip="${tipOf(q)}"/>`; }).join('');
+  zs += byOut[1].map(q => { const [x, y] = view(q.x, q.yy), R_ = r1(.55 + 1.6 * Math.sqrt(q.r.c.xg || 0)); return `<circle cx="${x}" cy="${y}" r="${R_}" fill="${q.a === 0 ? defCol : atkCol}" fill-opacity=".85" stroke="${SHC}" stroke-width=".32" data-tip="${tipOf(q)}"/>`; }).join('');
+  zs += byOut[2].map(q => { const [x, y] = view(q.x, q.yy); return `<g data-tip="${tipOf(q)}">${ballG(x, y, Math.max(1.1, r1(.55 + 1.6 * Math.sqrt(q.r.c.xg || 0))))}</g>`; }).join('');
   // pourcentages par-dessus les points, sur une pastille
   zs += CK_Z.map(([id, l, x0, x1, y0, y1]) => { const o = ZC[id]; if (!o) return ''; const [sx, sy] = ckP(x1, flip ? 68 - y1 : y0), w = y1 - y0, sm = id.startsWith('6'), ty = sy + (sm ? 1.75 : 2.6), t = pc(o.n, P0.length), tw = t.length * (sm ? .8 : 1.1) + .8;
     return `<rect x="${sx + w / 2 - tw / 2}" y="${ty - (sm ? 1.3 : 1.8)}" width="${tw}" height="${sm ? 1.75 : 2.4}" rx=".5" fill="var(--surface)" fill-opacity=".85"/><text x="${sx + w / 2}" y="${ty}" text-anchor="middle" font-size="${sm ? 1.4 : 2}" font-weight="800" fill="var(--text)">${t}</text>`; }).join('');
   zs += sideLbl;
   $('#ckZoneT').textContent = zm === 'arr' ? 'Où arrive le ballon' : zm === 'c1' ? 'Où a lieu le premier contact' : 'Où a lieu le second contact';
   const out = (ZC.out || {n: 0}).n;
-  $('#ckZoneSub').textContent = `${P0.length} ${L.one}(s)${R3.length < R.length ? ` (filtrés sur ${R.length})` : ''} · % par zone${zm !== 'arr' ? ` et part gagnée par ${us}` : ''}${F3.sd === 'all' ? ` · ${L.one} représenté depuis la gauche` : ''}${out ? ` · ${out} hors de ces zones` : ''}${FK && zm === 'arr' ? ' · arrivée = premier ballon joué dans la surface' : ''}`;
-  const ztab = `<table class="gkz ckzt"><tr><th class="txt">Zone</th><th>Part</th>${zm !== 'arr' ? `<th>Gagné par ${us}</th>` : '<th>1er contact gagné</th>'}</tr>${[...CK_Z.map(z => [z[0], z[1]]), ['out', 'Hors de ces zones']].map(([id, l]) => { const o = ZC[id]; if (!o) return '';
+  const shP = P0.filter(q => q.r.c.nsh), xgP = P0.reduce((a, q) => a + (q.r.c.xg || 0), 0), gP = P0.filter(q => q.r.c.g).length;
+  $('#ckZoneSub').textContent = `${P0.length} ${L.one}(s)${R3.length < R.length ? ` (filtrés sur ${R.length})` : ''} · ${shP.length} suivi(s) d’un tir (${pc(shP.length, P0.length)}) · ${fmt(xgP, 2)} xG · ${gP} but(s) · % par zone${zm !== 'arr' ? ` et part gagnée par ${us}` : ''}${F3.sd === 'all' ? ` · ${L.one} représenté depuis la gauche` : ''}${out ? ` · ${out} hors de ces zones` : ''}${FK && zm === 'arr' ? ' · arrivée = premier ballon joué dans la surface' : ''}`;
+  const ztab = `<table class="gkz ckzt"><tr><th class="txt">Zone</th><th>Part</th>${zm !== 'arr' ? `<th>Gagné par ${us}</th>` : '<th>1er contact gagné</th>'}<th>Avec tir</th><th>xG / ${L.one}</th><th>Buts</th></tr>${[...CK_Z.map(z => [z[0], z[1]]), ['out', 'Hors de ces zones']].map(([id, l]) => { const o = ZC[id]; if (!o) return '';
     const w1 = zm === 'arr' ? (() => { const Lz = P0.filter(q => ckZone(q.x, q.yy) === id && q.r.c.c1); return pc(Lz.filter(q => q.r.c.c1.a).length, Lz.length); })() : pc(o.w, o.n);
-    return `<tr><td class="txt">${l}</td><td><b>${pc(o.n, P0.length)}</b> <small class="muted">(${o.n})</small></td><td>${w1}</td></tr>`; }).join('')}</table>`;
-  $('#ckZones').innerHTML = (P0.length ? ckBox(zs) + ztab : '<div class="empty">Aucun ' + L.one + ' avec ces filtres.</div>') + `<div class="legend"><span><i style="background:${atkCol}"></i>${K.side === 'for' ? 'Nous' : 'Adversaire'}</span>${zm !== 'arr' ? `<span><i style="background:${defCol}"></i>${K.side === 'for' ? 'Adversaire' : 'Nous'}</span>` : ''}</div>`;
+    const Lq = P0.filter(q => ckZone(q.x, q.yy) === id), xq = Lq.reduce((a, q) => a + (q.r.c.xg || 0), 0) / (Lq.length || 1), gq = Lq.filter(q => q.r.c.g).length;
+    return `<tr><td class="txt">${l}</td><td><b>${pc(o.n, P0.length)}</b> <small class="muted">(${o.n})</small></td><td>${w1}</td><td>${pc(Lq.filter(q => q.r.c.nsh).length, Lq.length)}</td><td${xq >= .05 && Lq.length >= 5 ? ' style="font-weight:700;color:#e08a00"' : ''}>${fmt(xq, 3)}</td><td>${gq ? '⚽ ' + gq : '<span class="z">0</span>'}</td></tr>`; }).join('')}</table>`;
+  $('#ckZones').innerHTML = (P0.length ? ckBox(zs) + ztab : '<div class="empty">Aucun ' + L.one + ' avec ces filtres.</div>') + `<div class="legend"><span><i style="background:${atkCol}"></i>${K.side === 'for' ? 'Nous' : 'Adversaire'}</span>${zm !== 'arr' ? `<span><i style="background:${defCol}"></i>${K.side === 'for' ? 'Adversaire' : 'Nous'}</span>` : ''}<span><i style="border:2px solid #e08a00;background:transparent"></i>Suivi d’un tir (taille = xG)</span><span><b class="lgball" style="border-color:#222">⚽</b>But</span><span class="muted">petit point = pas de tir · xG / ${L.one} en orange quand ≥ 0,05 (sur 5 cas ou plus)</span></div>`;
   const who = key => { const A = {}, D = {}; R3.forEach(r => { const q = r.c[key]; if (!q || !q.p) return; const M = q.a ? A : D; M[q.p] = (M[q.p] || 0) + 1; });
     const tot = R3.filter(r => r.c[key]).length, top = (M, col) => { const Lw = Object.entries(M).sort((a, b) => b[1] - a[1]).slice(0, 5), mxv = Math.max(1, ...Lw.map(x => x[1]));
       return Lw.length ? `<div class="top5">${Lw.map(([id, v]) => `<div class="t5"><span class="t5n">${esc(PI[id] ? PI[id].name : '?')}</span><i><b style="width:${v / mxv * 100}%;background:${col}"></b></i><em>${v} (${pc(v, tot)})</em></div>`).join('')}</div>` : '<div class="empty">—</div>'; };
@@ -3499,7 +3507,7 @@ function renderCorners(ms, TN, PI, f) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-09 13:39 UTC';
+const BUILD = '2026-11-09 13:45 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
