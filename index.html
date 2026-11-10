@@ -206,6 +206,9 @@ details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}
 .cke td{vertical-align:middle}.cke tr.grp td{padding-top:12px;font-weight:700;font-size:12px;color:var(--text-2);border-bottom:1px solid var(--border)}.cke tr.ref td{background:var(--surface-2)}
 .mbar{display:inline-block;width:60px;height:6px;border-radius:3px;background:var(--surface-2);margin-right:6px;vertical-align:middle;overflow:hidden}.mbar i{display:block;height:100%}
 .ckf{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:10px 12px;margin:8px 0 4px;background:var(--surface-2);border-radius:10px;font-size:12px}.ckf-g{display:flex;align-items:center;gap:6px}.ckf-g>span{color:var(--text-2);font-weight:600}.ckf select{font:inherit;padding:4px 6px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text)}.ckf-r{margin-left:auto;font-size:12px}
+.dng{display:grid;grid-template-columns:3fr 2fr;gap:16px;margin:4px 0 14px}.dng:empty{display:none}.dng-g h4{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-3)}.dng-row{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:10px}
+.dng-t{background:var(--surface-2);border-radius:12px;padding:11px 13px;display:flex;flex-direction:column;gap:3px}.dng-t>span{font-size:12px;color:var(--text-2);font-weight:600}.dng-t>b{font-size:26px;font-weight:800;line-height:1.1}.dng-t>small{font-size:11.5px;color:var(--text-3)}
+@media (max-width:900px){.dng{grid-template-columns:1fr}.dng-row{grid-auto-flow:row}}
 .fn-head{font-size:15px;line-height:1.5;margin:6px 0 14px;color:var(--text-2)}.fn-head b{color:var(--text)}
 .fn{display:grid;grid-template-columns:1fr 34px 1fr 34px 1fr 34px 1fr;align-items:stretch}.fn-s{background:var(--surface-2);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:3px}.fn-s>span{font-size:12px;color:var(--text-2);font-weight:600}.fn-s>b{font-size:30px;line-height:1.1;font-weight:800}.fn-s>small{font-size:11.5px;color:var(--text-3)}
 .fn-a{display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text-3)}.fn-a svg{width:22px}
@@ -397,7 +400,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-10 09:13 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-10 09:23 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -573,7 +576,7 @@ input.j{width:64px}
           </div>
         </div>
         <details class="card c12 det" id="offDet">
-          <summary><b>Détails</b> <span class="muted">— début des possessions, menace (xT), classement des joueurs, momentum, tableau des équipes</span></summary>
+          <summary><b>Détails</b> <span class="muted">— début des possessions, menace (xT), classement des joueurs, momentum, </span></summary>
           <div class="grid" style="margin-top:12px">
             <div class="card c5">
               <div class="card-head"><div><h2>Début des possessions</h2><p class="sub">Comment l'équipe démarre ses possessions</p></div></div>
@@ -700,6 +703,13 @@ input.j{width:64px}
     <div class="subpanel" data-sub="cpa">
       <p class="note" id="cpaNote" hidden></p>
       <div class="grid">
+        <div class="card c12" id="cpaDng">
+          <div class="card-head"><div><h2>Dangerosité sur CPA</h2><p class="sub" id="dngSub"></p></div>
+            <div class="ctrl"><div class="chips" id="dngType"><button class="chip" data-v="all">Tous les CPA</button><button class="chip" data-v="ck">Corners</button><button class="chip" data-v="fk" title="Coups francs indirects dans le camp adverse">CFI</button></div>
+            <select id="dngMode"><option value="pm">Moyenne par match</option><option value="tot">Total</option></select><button class="btn" data-csv="tblDng">CSV</button></div></div>
+          <div class="dng" id="dngKpis"></div>
+          <div class="tbl-wrap" id="tblDng"></div>
+        </div>
         <div class="card c12 synth">
           <div class="card-head"><div><h2 class="spl" data-fk="Coups francs indirects (camp adverse) — en résumé">Corners — en résumé</h2><p class="sub" id="ckSub"></p></div>
           <div class="ctrl"><div class="chips" id="spType"><button class="chip" data-v="ck">Corners</button><button class="chip" data-v="fk" title="Coups francs indirects tirés dans le camp adverse">CFI</button></div>
@@ -747,13 +757,6 @@ input.j{width:64px}
           <div class="card-head"><div><h2>Tirs sur CPA</h2><p class="sub" id="shotCpaSub"></p></div></div>
           <div id="shotMapCpa"></div>
           <div class="legend shleg shf"><span data-sh="g" title="Cliquer pour masquer / afficher"><b class="lgball">⚽</b>But</span><span data-sh="ot" title="Cliquer pour masquer / afficher"><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span data-sh="off" title="Cliquer pour masquer / afficher"><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG · cliquez sur la légende pour filtrer</span></div>
-        </div>
-        <div class="card c12">
-          <div class="card-head">
-            <div><h2>CPA par équipe</h2><p class="sub">Corners, coups francs, touches et penaltys</p></div>
-            <div class="ctrl"><select id="cpaTeamMode"><option value="pm">Moyenne par match</option><option value="tot">Total</option></select><button class="btn" data-csv="tblCpaTeams">CSV</button></div>
-          </div>
-          <div class="tbl-wrap" id="tblCpaTeams"></div>
         </div>
       </div>
           </div>
@@ -3256,7 +3259,9 @@ function renderTactical() {
   }
 
   if (sub === 'cpa') {
-    renderCorners(ms, TN, PI, f);
+    const LMS = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1));
+    renderDanger(LMS, TN, f);
+    renderCorners(ms, TN, PI, f, LMS);
     const mpF = F ? (isPl ? null : F.mp) : null;
     $('#cpaKpis').innerHTML = kpiHTML(F ? [
       {l: 'Corners obtenus', v: fmt(F.corners), s: mpF ? `${fmt(F.corners / mpF, 1)} /match` : ''},
@@ -3276,8 +3281,6 @@ function renderTactical() {
     for (const m of ms) if (m.ev) for (const x of m.ev.shots) if (f.qs.has(x.q) && focusShot(x) && CPA.includes(x.pat)) sc.push(x);
     $('#shotCpaSub').textContent = `${sc.length} tirs · ${sc.filter(x => x.g).length} buts · ${fmt(sc.reduce((a, x) => a + x.xg, 0), 2)} xG`;
     $('#shotMapCpa').innerHTML = shotMapSVG(sc, PI, TN);
-    teamTable('tblCpaTeams', ['mp', 'corners', 'cpaPoss', 'cpaXgP', 'cpaXgPoss', 'cpaShare', 'shCpa', 'gfCpa', 'pen', 'penG', 'cpaXgaP', 'shaCpa', 'gaCpa', 'cornAttAvg', 'cornShortPct', 'cornInPct'],
-      teamRows, $('#cpaTeamMode').value, 'cpaXgP', f);
   }
 
   if (sub === 'gk') renderGK(TN, PI, f);
@@ -3345,10 +3348,47 @@ function fkSwing(c, t) {
   const ft = c.ft || footOf(c.p); if (!ft || c.side === 'C') return {sw: '', src: ''};
   return {sw: (c.side === 'G') === (ft === 'D') ? 'in' : 'out', src: c.ft ? 'f' : 'p', ft};
 }
+// Bandeau « Dangerosité sur CPA » : toute la Ligue 1 sur la période (pas seulement les matchs de l'équipe choisie)
+function renderDanger(LMS, TN, f) {
+  const K = S.ck = S.ck || {}; K.dt = K.dt || 'all'; const dt = K.dt, mode = $('#dngMode').value, tid = f.team || (f.player && playerInfo()[f.player] ? playerInfo()[f.player].team : '');
+  document.querySelectorAll('#dngType .chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === dt));
+  const lbl = dt === 'all' ? 'CPA' : dt === 'ck' ? 'corner' : 'CFI', lblP = dt === 'all' ? 'CPA' : dt === 'ck' ? 'corners' : 'CFI';
+  let rows = [];
+  if (dt === 'all') {
+    const {T} = aggTactical(LMS, f.qs);
+    rows = Object.entries(T).map(([id, o]) => ({id, name: TN[id], mp: o.mp, n: o.cpaPoss, sh: o.shCpa, xg: o.cpaXgP, g: o.gfCpa, na: null, sha: o.shaCpa, xga: o.cpaXgaP, ga: o.gaCpa, pen: o.pen, penG: o.penG, share: o.possXg ? o.cpaXgP / o.possXg * 100 : null}));
+  } else {
+    const R = {}; const get = id => R[id] || (R[id] = {id, name: TN[id], mp: 0, n: 0, nsh: 0, sh: 0, xg: 0, g: 0, na: 0, sha: 0, xga: 0, ga: 0});
+    for (const m of LMS) { if (!m.ev) continue; get(m.home.id).mp++; get(m.away.id).mp++;
+      for (const c of (dt === 'ck' ? m.ev.corners : m.ev.fks) || []) { if (c.mode === undefined || !f.qs.has(c.q)) continue; const A = get(c.tm), D = get(otherSide(m, c.tm));
+        A.n++; if (c.nsh) A.nsh++; A.sh += c.nsh || 0; A.xg += c.xg || 0; A.g += c.g || 0; D.na++; D.sha += c.nsh || 0; D.xga += c.xg || 0; D.ga += c.g || 0; } }
+    rows = Object.values(R).map(o => ({...o, shp: o.n ? o.nsh / o.n * 100 : null, xpc: o.n ? o.xg / o.n : null}));
+  }
+  const pm = (r, v) => mode === 'pm' ? (r.mp ? v / r.mp : null) : v;
+  // bandeau de l'équipe : rang sur 4 indicateurs clés
+  const rank = (key, v, better) => { if (v == null) return null; const vs = rows.map(r => key(r)).filter(x => x != null); return {r: 1 + vs.filter(x => better * (x - v) > 1e-9).length, tie: vs.filter(x => Math.abs(x - v) <= 1e-9).length, of: vs.length, avg: mean(vs)}; };
+  const tile = (l, v, d, sub, rk, col, suf = '') => { const sure = rk && rk.tie < 3, top = sure && rk.r <= Math.ceil(rk.of / 3), bot = sure && rk.r > rk.of - Math.ceil(rk.of / 3);
+    return `<div class="dng-t"><span>${l}</span><b style="color:${col}">${v == null ? '—' : fmt(v, d) + suf}</b><small>${sub}</small>${rk ? `<div class="fn-rk ${top ? 'up' : bot ? 'dn' : ''}"><b>${rk.r}<sup>${rk.r === 1 ? 'er' : 'e'}</sup></b> / ${rk.of}${rk.tie > 1 ? ` <span class="muted">ex æquo (${rk.tie})</span>` : ''}<small>moy. ${fmt(rk.avg, d)}</small></div>` : ''}</div>`; };
+  const me = tid && rows.find(r => r.id === tid), col = tid ? clubColor(tid) : css('--s1');
+  const kXg = r => r.mp ? r.xg / r.mp : null, kG = r => r.mp ? r.g / r.mp : null, kXga = r => r.mp ? r.xga / r.mp : null, kGa = r => r.mp ? r.ga / r.mp : null;
+  if (me) {
+    $('#dngKpis').innerHTML = `<div class="dng-g"><h4>En attaque</h4><div class="dng-row">${tile(`xG sur ${lblP} / match`, kXg(me), 2, `${fmt(me.xg, 2)} xG au total`, rank(kXg, kXg(me), 1), col)}${tile(`Buts sur ${lblP}`, me.g, 0, `${fmt(kG(me), 2)} par match`, rank(kG, kG(me), 1), col)}${dt === 'all' ? tile('Part des xG sur CPA', me.share, 0, 'des xG de l’équipe', rank(r => r.share, me.share, 1), col, ' %') : tile(`${lblP[0].toUpperCase() + lblP.slice(1)} suivis d’un tir`, me.shp, 0, `${fmt(me.n / Math.max(1, me.mp), 1)} ${lblP} par match`, rank(r => r.shp, me.shp, 1), col, ' %')}</div></div>
+      <div class="dng-g"><h4>En défense</h4><div class="dng-row">${tile(`xG concédés sur ${lblP} / match`, kXga(me), 2, `${fmt(me.xga, 2)} xG au total`, rank(kXga, kXga(me), -1), '#d0453f')}${tile(`Buts encaissés sur ${lblP}`, me.ga, 0, `${fmt(kGa(me), 2)} par match`, rank(kGa, kGa(me), -1), '#d0453f')}</div></div>`;
+    $('#dngSub').innerHTML = `<b style="color:${col}">${esc(TN[tid])}</b> comparé à toute la Ligue 1 sur la période · rang 1<sup>er</sup> = le plus dangereux en attaque, le moins exposé en défense`;
+  } else { $('#dngKpis').innerHTML = ''; $('#dngSub').textContent = 'Toute la Ligue 1 sur la période · choisissez une équipe pour voir son rang'; }
+  const cols = dt === 'all' ? [
+      {k: 'mp', l: 'MJ', v: r => r.mp}, {k: 'n', l: 'Possessions CPA', d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.n)}, {k: 'sh', l: 'Tirs', d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.sh)}, {k: 'xg', l: 'xG', d: 2, v: r => pm(r, r.xg)},
+      {k: 'share', l: 'Part xG CPA %', d: 0, v: r => r.share}, {k: 'g', l: 'Buts', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.g)}, {k: 'pen', l: 'Penaltys', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.pen)},
+      {k: 'sha', l: 'Tirs concédés', d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.sha)}, {k: 'xga', l: 'xG concédés', d: 2, v: r => pm(r, r.xga)}, {k: 'ga', l: 'Buts encaissés', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.ga)}]
+    : [{k: 'mp', l: 'MJ', v: r => r.mp}, {k: 'n', l: lblP[0].toUpperCase() + lblP.slice(1), d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.n)}, {k: 'shp', l: '% suivis d’un tir', d: 0, v: r => r.shp}, {k: 'sh', l: 'Tirs', d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.sh)},
+      {k: 'xg', l: 'xG', d: 2, v: r => pm(r, r.xg)}, {k: 'xpc', l: `xG / ${lbl}`, d: 3, v: r => r.xpc}, {k: 'g', l: 'Buts', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.g)},
+      {k: 'na', l: `${lblP[0].toUpperCase() + lblP.slice(1)} concédés`, d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.na)}, {k: 'xga', l: 'xG concédés', d: 2, v: r => pm(r, r.xga)}, {k: 'ga', l: 'Buts encaissés', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.ga)}];
+  renderTable('tblDng', [{k: 'name', l: 'Équipe', txt: 1, v: r => r.name, html: r => logoHTML(r.id) + esc(r.name)}, ...cols], rows, {defaultSort: 'xg', hl: r => r.id === tid, onRow: id => setFilter('team', id)});
+}
 // pourcentages arrondis dont la somme fait 100 (méthode du plus fort reste)
 function roundTo100(v) { const fl = v.map(Math.floor), rest = 100 - fl.reduce((a, b) => a + b, 0), ord = v.map((x, i) => [x - fl[i], i]).sort((a, b) => b[0] - a[0]);
   for (let k = 0; k < rest && k < ord.length; k++) fl[ord[k][1]]++; return fl; }
-function renderCorners(ms, TN, PI, f) {
+function renderCorners(ms, TN, PI, f, LMS) {
   S.ck = S.ck || {};
   const K = S.ck; K.side = K.side || 'for'; K.zm = K.zm || 'c1'; K.pl = K.pl || 'r'; K.ty = K.ty || 'ck'; K.fd = K.fd || 'all';
   const FK = K.ty === 'fk', tid = f.team || (f.player && PI[f.player] ? PI[f.player].team : '');
@@ -3400,7 +3440,7 @@ function renderCorners(ms, TN, PI, f) {
   let LG = null;
   if (tid) { // même calcul pour chaque équipe du championnat
     const per = {};
-    for (const m of ms) { if (!m.ev) continue; const L0 = (FK ? m.ev.fks : m.ev.corners) || [];
+    for (const m of LMS || ms) { if (!m.ev) continue; const L0 = (FK ? m.ev.fks : m.ev.corners) || [];
       for (const T of [m.home.id, m.away.id]) { const o = per[T] || (per[T] = {nM: 0, L: []}); o.nM++;
         for (const c of L0) { if (c.mode === undefined || !f.qs.has(c.q)) continue; if (K.side === 'for' ? c.tm !== T : c.tm === T) continue; if (FK && K.fd !== 'all' && (K.fd === 'dir') !== !!c.dir) continue; o.L.push({c}); } } }
     const rows = Object.entries(per).map(([T, o]) => ({T, pm: o.L.length / Math.max(1, o.nM), ...stat(o.L)}));
@@ -3576,7 +3616,7 @@ function renderCorners(ms, TN, PI, f) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-10 09:13 UTC';
+const BUILD = '2026-11-10 09:23 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -5251,7 +5291,8 @@ function bindUI() {
   bindReportUI();
   document.addEventListener('click', e => { const t = e.target.closest('.shf [data-sh]'); if (!t) return; const sc = t.closest('.subpanel, .rpage, .card') || document.body; sc.classList.toggle('shh-' + t.dataset.sh); });
   document.addEventListener('click', e => { const b = e.target.closest('[data-more]'); if (!b) return; const w = document.getElementById(b.dataset.more + 'Wrap'); if (!w) return; w.hidden = !w.hidden; b.textContent = b.textContent.replace(/^(Voir|Masquer)/, w.hidden ? 'Voir' : 'Masquer'); });
-  [['#ckSide', 'side'], ['#ckZoneMode', 'zm'], ['#ckPlMode', 'pl'], ['#spType', 'ty'], ['#fkDir', 'fd']].forEach(([id, k]) => $(id).onclick = e => { const b = e.target.closest('[data-v]'); if (!b || b.disabled) return; S.ck = S.ck || {}; S.ck[k] = b.dataset.v; scheduleRender(); });
+  [['#ckSide', 'side'], ['#ckZoneMode', 'zm'], ['#ckPlMode', 'pl'], ['#spType', 'ty'], ['#fkDir', 'fd']].forEach(([id, k]) => $(id).onclick = e => { const b = e.target.closest('[data-v]'); if (!b || b.disabled) return; S.ck = S.ck || {}; S.ck[k] = b.dataset.v; if (k === 'ty') S.ck.dt = b.dataset.v; scheduleRender(); });
+  $('#dngType').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; S.ck = S.ck || {}; S.ck.dt = b.dataset.v; if (b.dataset.v !== 'all') S.ck.ty = b.dataset.v; scheduleRender(); };
   $('#ckF3').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.ck = S.ck || {}; const K3 = S.ck.f3 = S.ck.f3 || {};
     if (b.dataset.g === 'reset') S.ck.f3 = {}; else { const grp = b.parentElement.dataset.g; if (!grp || !b.dataset.v) return; K3[grp] = b.dataset.v; } scheduleRender(); };
   $('#ckF3').onchange = e => { if (e.target.dataset.g !== 'tk') return; const K3 = (S.ck = S.ck || {}).f3 = S.ck.f3 || {}; K3.tk = e.target.value; scheduleRender(); };
@@ -5287,7 +5328,7 @@ function bindUI() {
   };
   $('#fReset').onclick = () => { S.f = {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0, 1, 2, 3, 4, 5])}; refreshAll(); };
   ['#plyPeer', '#plyPassType', '#offMode', '#bmGk', '#defMode', '#duelMin', '#gkCrType', '#gkDepType', '#gkShotType', '#gkPassType', '#gkTblMode', '#gkMinMin', '#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyEvoMetric', '#phyTeamMode', '#phyTX', '#phyTY', '#phyPX', '#phyPY', '#phyPEvoMetric', '#h2hEvoMetric', '#momOffMode', '#xtPlMode',
-   '#offMetric', '#offTeamMode', '#defMetric', '#defTeamMode', '#cpaTeamMode']
+   '#offMetric', '#offTeamMode', '#defMetric', '#defTeamMode', '#dngMode']
     .forEach(s => $(s).onchange = () => scheduleRender());
   document.querySelectorAll('[data-csv]').forEach(b => b.onclick = () => exportCSV(b.dataset.csv));
 
