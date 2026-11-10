@@ -397,7 +397,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-10 08:54 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-10 08:58 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3509,9 +3509,10 @@ function renderCorners(ms, TN, PI, f) {
     return `<tr><td class="txt">${l}</td><td><b>${pc(o.n, P0.length)}</b> <small class="muted">(${o.n})</small></td><td>${w1}</td><td>${pc(Lq.filter(q => q.r.c.nsh).length, Lq.length)}</td><td${xq >= .05 && Lq.length >= 5 ? ' style="font-weight:700;color:#e08a00"' : ''}>${fmt(xq, 3)}</td><td>${gq ? '⚽ ' + gq : '<span class="z">0</span>'}</td></tr>`; }).join('')}</table>`;
   $('#ckZones').innerHTML = (P0.length ? ckBox(zs) + ztab : '<div class="empty">Aucun ' + L.one + ' avec ces filtres.</div>') + `<div class="legend"><span><i style="background:${atkCol}"></i>${K.side === 'for' ? 'Nous' : 'Adversaire'}</span>${zm !== 'arr' ? `<span><i style="background:${defCol}"></i>${K.side === 'for' ? 'Adversaire' : 'Nous'}</span>` : ''}<span><i style="border:2px solid #e08a00;background:transparent"></i>Suivi d’un tir (taille = xG)</span><span><b class="lgball" style="border-color:#222">⚽</b>But</span><span class="muted">petit point = pas de tir · xG / ${L.one} en orange quand ≥ 0,05 (sur 5 cas ou plus)</span></div>`;
   const who = key => { const A = {}, D = {}; R3.forEach(r => { const q = r.c[key]; if (!q || !q.p) return; const M = q.a ? A : D; M[q.p] = (M[q.p] || 0) + 1; });
-    const tot = R3.filter(r => r.c[key]).length, top = (M, col) => { const Lw = Object.entries(M).sort((a, b) => b[1] - a[1]).slice(0, 5), mxv = Math.max(1, ...Lw.map(x => x[1]));
+    const tot = R3.filter(r => r.c[key]).length, top = (M, col) => { const Lw = Object.entries(M).sort((a, b) => b[1] - a[1]).slice(0, 8), mxv = Math.max(1, ...Lw.map(x => x[1]));
       return Lw.length ? `<div class="top5">${Lw.map(([id, v]) => `<div class="t5"><span class="t5n">${esc(PI[id] ? PI[id].name : '?')}</span><i><b style="width:${v / mxv * 100}%;background:${col}"></b></i><em>${v} (${pc(v, tot)})</em></div>`).join('')}</div>` : '<div class="empty">—</div>'; };
-    return `<div class="ck2"><div><h4>${K.side === 'for' ? 'Nos joueurs' : 'Joueurs adverses'}</h4>${top(A, atkCol)}</div><div><h4>${K.side === 'for' ? 'Joueurs adverses' : 'Nos joueurs'}</h4>${top(D, defCol)}</div></div>`; };
+    // uniquement les joueurs de l'équipe choisie (attaquants en offensif, défenseurs en défensif)
+    return `<div><h4>${tid ? 'Nos joueurs' : 'Équipe qui tire'}</h4>${K.side === 'for' || !tid ? top(A, atkCol) : top(D, clubColor(tid))}</div>`; };
   $('#ckC1').innerHTML = who('c1'); $('#ckC2').innerHTML = who('c2');
   // 4. Qui monte
   const UP = {};
@@ -3564,7 +3565,7 @@ function renderCorners(ms, TN, PI, f) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-10 08:54 UTC';
+const BUILD = '2026-11-10 08:58 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
