@@ -397,7 +397,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-10 08:44 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-10 08:47 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3345,6 +3345,9 @@ function fkSwing(c, t) {
   const ft = c.ft || footOf(c.p); if (!ft || c.side === 'C') return {sw: '', src: ''};
   return {sw: (c.side === 'G') === (ft === 'D') ? 'in' : 'out', src: c.ft ? 'f' : 'p', ft};
 }
+// pourcentages arrondis dont la somme fait 100 (méthode du plus fort reste)
+function roundTo100(v) { const fl = v.map(Math.floor), rest = 100 - fl.reduce((a, b) => a + b, 0), ord = v.map((x, i) => [x - fl[i], i]).sort((a, b) => b[0] - a[0]);
+  for (let k = 0; k < rest && k < ord.length; k++) fl[ord[k][1]]++; return fl; }
 function renderCorners(ms, TN, PI, f) {
   S.ck = S.ck || {};
   const K = S.ck; K.side = K.side || 'for'; K.zm = K.zm || 'c1'; K.pl = K.pl || 'r'; K.ty = K.ty || 'ck'; K.fd = K.fd || 'all';
@@ -3452,13 +3455,13 @@ function renderCorners(ms, TN, PI, f) {
   // une valeur + son écart avec l'ensemble ; couleur seulement sur 5 cas ou plus
   const cell = (v, ref, nn) => { if (v == null) return '<td class="muted">—</td>'; const d = ref == null ? null : v - ref, sig = d != null && nn >= 5 && Math.abs(d) >= 5;
     return `<td><b${sig ? ` style="color:${d > 0 ? '#2e9e5b' : '#d0453f'}"` : ''}>${Math.round(v)} %</b></td>`; };
-  const line = (l, Lx, tot, ref) => { const c1x = Lx.filter(r => r.c.c1), w = c1x.length ? c1x.filter(r => r.c.c1.a).length / c1x.length * 100 : null, sh = Lx.length ? Lx.filter(r => r.c.nsh).length / Lx.length * 100 : null, xgx = Lx.length ? Lx.reduce((a, r) => a + (r.c.xg || 0), 0) / Lx.length : null, gl = Lx.filter(r => r.c.g).length, few = !ref && Lx.length < 5;
+  const line = (l, Lx, tot, ref, pr) => { const c1x = Lx.filter(r => r.c.c1), w = c1x.length ? c1x.filter(r => r.c.c1.a).length / c1x.length * 100 : null, sh = Lx.length ? Lx.filter(r => r.c.nsh).length / Lx.length * 100 : null, xgx = Lx.length ? Lx.reduce((a, r) => a + (r.c.xg || 0), 0) / Lx.length : null, gl = Lx.filter(r => r.c.g).length, few = !ref && Lx.length < 5;
     const sharePct = tot ? Lx.length / tot * 100 : 100;
-    return `<tr class="${ref ? 'ref' : ''}${few ? ' few' : ''}"${few ? ' title="Moins de 5 cas : à interpréter avec prudence"' : ''}><td class="txt">${l}</td><td class="shr"><span class="sbr"><i style="width:${sharePct}%;background:${atkCol}"></i></span><b>${Lx.length}</b><small>${tot ? Math.round(sharePct) + ' %' : ''}</small></td>${cell(w, ref ? null : wAll, c1x.length)}${cell(sh, ref ? null : shAll, Lx.length)}<td>${xgx == null ? '—' : `<b${!ref && Lx.length >= 5 && xgAll && xgx >= xgAll * 1.3 ? ' style="color:#2e9e5b"' : !ref && Lx.length >= 5 && xgAll && xgx <= xgAll * .7 ? ' style="color:#d0453f"' : ''}>${fmt(xgx, 3)}</b>`}</td><td>${gl ? `<b>${gl}</b>` : '<span class="z">0</span>'}</td></tr>`; };
+    return `<tr class="${ref ? 'ref' : ''}${few ? ' few' : ''}"${few ? ' title="Moins de 5 cas : à interpréter avec prudence"' : ''}><td class="txt">${l}</td><td class="shr"><span class="sbr"><i style="width:${sharePct}%;background:${atkCol}"></i></span><b>${Lx.length}</b><small>${tot ? (pr ?? Math.round(sharePct)) + ' %' : ''}</small></td>${cell(w, ref ? null : wAll, c1x.length)}${cell(sh, ref ? null : shAll, Lx.length)}<td>${xgx == null ? '—' : `<b${!ref && Lx.length >= 5 && xgAll && xgx >= xgAll * 1.3 ? ' style="color:#2e9e5b"' : !ref && Lx.length >= 5 && xgAll && xgx <= xgAll * .7 ? ' style="color:#d0453f"' : ''}>${fmt(xgx, 3)}</b>`}</td><td>${gl ? `<b>${gl}</b>` : '<span class="z">0</span>'}</td></tr>`; };
   const head = `<tr><th class="txt"></th><th class="shr">Nombre</th><th>1er contact gagné</th><th>Suivis d’un tir</th><th>xG / ${L.one}</th><th>Buts</th></tr>`;
-  const tbl = `<table class="gkz cke">${head}${line(`<b>Ensemble</b>`, R, 0, true)}${groups.map(gp => gp.base.length ? `<tbody class="gb"><tr class="grp"><td class="txt" colspan="6">${gp.t} <small>${gp.s}</small></td></tr>` + gp.rows.filter(x => x.L.length).map(x => line(x.l, x.L, gp.base.length)).join('') + '</tbody>' : '').join('')}</table>`;
+  const tbl = `<table class="gkz cke">${head}${line(`<b>Ensemble</b>`, R, 0, true)}${groups.map(gp => gp.base.length ? `<tbody class="gb"><tr class="grp"><td class="txt" colspan="6">${gp.t} <small>${gp.s}</small></td></tr>` + (rs => { const P = roundTo100(rs.map(x => x.L.length / gp.base.length * 100)); return rs.map((x, i) => line(x.l, x.L, gp.base.length, false, P[i])).join(''); })(gp.rows.filter(x => x.L.length)) + '</tbody>' : '').join('')}</table>`;
   const srcN = k => R.filter(r => r.swSrc === k).length;
-  $('#ckMode').innerHTML = `<div class="${FK ? 'ck-ex fk' : 'ck-ex'}"><div><p class="sub" style="margin-top:0">Chaque façon de jouer ${FK ? 'les CFI' : 'les corners'} : combien de fois (barre = part du groupe) et ce que ça rapporte. <b style="color:#2e9e5b">Vert</b> / <b style="color:#d0453f">rouge</b> : au moins 5 points au-dessus / en dessous de l’ensemble. Lignes grisées : moins de 5 cas.</p>${tbl}</div>${origin}</div>
+  $('#ckMode').innerHTML = `<div class="${FK ? 'ck-ex fk' : 'ck-ex'}"><div>${tbl}</div>${origin}</div>
     <details class="ph-more"><summary>Comment sont calculés ces chiffres</summary><p class="note">${FK ? '« Direct » : le ballon ou le premier contact arrive dans la surface. Sinon, « joué à 2 » : une passe avant que le ballon n’entre dans la surface ; « jamais joué dans la surface » : le ballon n’y entre pas dans les 20 s.' : '« Joué à 2 » : une passe courte avant le centre ; « à 3 » : deux passes. Le premier contact est compté après le ballon qui entre dans la surface.'}
       Effet et hauteur ne concernent que ${FK ? 'les CFI joués direct' : 'les corners centrés'}. Rentrant : le ballon tourne vers le but ; sortant : il s’en éloigne. Source de l’effet : Opta ${srcN('o')}, trajectoire du ballon dans le tracking ${srcN('t')}${FK ? `, pied utilisé noté sur le coup franc ${srcN('f')}, pied fort du tireur ${srcN('p')}` : ''} (tracking : côté vers lequel la trajectoire s’écarte de la ligne droite départ → arrivée ; moins de 1 m = droit). Hauteur : maximum atteint par le ballon (au sol &lt; 1,2 m, tendu 1,2-3 m, aérien &gt; 3 m).</p></details>`;
   // 3. Zones : arrivée / 1er / 2e contact — filtres propres à cette partie
@@ -3561,7 +3564,7 @@ function renderCorners(ms, TN, PI, f) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-10 08:44 UTC';
+const BUILD = '2026-11-10 08:47 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
