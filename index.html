@@ -400,7 +400,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-10 09:29 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-10 12:18 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -706,7 +706,7 @@ input.j{width:64px}
         <div class="card c12" id="cpaDng">
           <div class="card-head"><div><h2>Dangerosité sur CPA</h2><p class="sub" id="dngSub"></p></div>
             <div class="ctrl"><div class="chips" id="dngType"><button class="chip" data-v="all">Tous les CPA</button><button class="chip" data-v="ck">Corners</button><button class="chip" data-v="fk" title="Coups francs indirects dans le camp adverse">CFI</button></div>
-            <select id="dngMode"><option value="pm">Moyenne par match</option><option value="tot">Total</option></select><button class="btn" data-csv="tblDng">CSV</button></div></div>
+            <select id="dngMode"><option value="tot">Total</option><option value="pm">Moyenne par match</option></select><button class="btn" data-csv="tblDng">CSV</button></div></div>
           <div class="dng" id="dngKpis"></div>
           <div class="tbl-wrap" id="tblDng"></div>
         </div>
@@ -3318,15 +3318,18 @@ function renderDanger(LMS, TN, f) {
   document.querySelectorAll('#dngType .chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === dt));
   const lbl = dt === 'all' ? 'CPA' : dt === 'ck' ? 'corner' : 'CFI', lblP = dt === 'all' ? 'CPA' : dt === 'ck' ? 'corners' : 'CFI';
   let rows = [];
-  if (dt === 'all') {
-    const {T} = aggTactical(LMS, f.qs);
-    rows = Object.entries(T).map(([id, o]) => ({id, name: TN[id], mp: o.mp, n: o.cpaPoss, sh: o.shCpa, xg: o.cpaXgP, g: o.gfCpa, na: null, sha: o.shaCpa, xga: o.cpaXgaP, ga: o.gaCpa, pen: o.pen, penG: o.penG, share: o.possXg ? o.cpaXgP / o.possXg * 100 : null}));
-  } else {
-    const R = {}; const get = id => R[id] || (R[id] = {id, name: TN[id], mp: 0, n: 0, nsh: 0, sh: 0, xg: 0, g: 0, na: 0, sha: 0, xga: 0, ga: 0});
+  {
+    // Tous les CPA = corners + CFI (camp adverse) + coups francs directs + penaltys (les touches ne sont pas comptées)
+    const R = {}; const get = id => R[id] || (R[id] = {id, name: TN[id], mp: 0, n: 0, nck: 0, nfk: 0, ncfd: 0, npen: 0, nsh: 0, sh: 0, xg: 0, g: 0, xgT: 0, na: 0, sha: 0, xga: 0, ga: 0});
+    const add = (A, D, sh, xg_, g) => { A.sh += sh; A.xg += xg_; A.g += g; D.sha += sh; D.xga += xg_; D.ga += g; };
     for (const m of LMS) { if (!m.ev) continue; get(m.home.id).mp++; get(m.away.id).mp++;
-      for (const c of (dt === 'ck' ? m.ev.corners : m.ev.fks) || []) { if (c.mode === undefined || !f.qs.has(c.q)) continue; const A = get(c.tm), D = get(otherSide(m, c.tm));
-        A.n++; if (c.nsh) A.nsh++; A.sh += c.nsh || 0; A.xg += c.xg || 0; A.g += c.g || 0; D.na++; D.sha += c.nsh || 0; D.xga += c.xg || 0; D.ga += c.g || 0; } }
-    rows = Object.values(R).map(o => ({...o, shp: o.n ? o.nsh / o.n * 100 : null, xpc: o.n ? o.xg / o.n : null}));
+      for (const x of m.ev.shots) if (f.qs.has(x.q)) get(x.tm).xgT += x.xg;
+      for (const [k, L0] of [['ck', m.ev.corners], ['fk', m.ev.fks]]) { if (dt !== 'all' && dt !== k) continue;
+        for (const c of L0 || []) { if (c.mode === undefined || !f.qs.has(c.q)) continue; const A = get(c.tm), D = get(otherSide(m, c.tm));
+          A.n++; A['n' + k]++; D.na++; if (c.nsh) A.nsh++; add(A, D, c.nsh || 0, c.xg || 0, c.g || 0); } }
+      if (dt === 'all') for (const x of m.ev.shots) { if (!f.qs.has(x.q) || (x.pat !== 'cfd' && x.pat !== 'pen')) continue; const A = get(x.tm), D = get(otherSide(m, x.tm));
+        A.n++; A[x.pat === 'pen' ? 'npen' : 'ncfd']++; D.na++; A.nsh++; add(A, D, 1, x.xg, x.g ? 1 : 0); } }
+    rows = Object.values(R).map(o => ({...o, shp: o.n ? o.nsh / o.n * 100 : null, xpc: o.n ? o.xg / o.n : null, share: o.xgT ? o.xg / o.xgT * 100 : null}));
   }
   const pm = (r, v) => mode === 'pm' ? (r.mp ? v / r.mp : null) : v;
   // bandeau de l'équipe : rang sur 4 indicateurs clés
@@ -3340,9 +3343,10 @@ function renderDanger(LMS, TN, f) {
       <div class="dng-g"><h4>En défense</h4><div class="dng-row">${tile(`xG concédés sur ${lblP} / match`, kXga(me), 2, `${fmt(me.xga, 2)} xG au total`, rank(kXga, kXga(me), -1), '#d0453f')}${tile(`Buts encaissés sur ${lblP}`, me.ga, 0, `${fmt(kGa(me), 2)} par match`, rank(kGa, kGa(me), -1), '#d0453f')}</div></div>`;
     $('#dngSub').innerHTML = `<b style="color:${col}">${esc(TN[tid])}</b> comparé à toute la Ligue 1 sur la période · rang 1<sup>er</sup> = le plus dangereux en attaque, le moins exposé en défense`;
   } else { $('#dngKpis').innerHTML = ''; $('#dngSub').textContent = 'Toute la Ligue 1 sur la période · choisissez une équipe pour voir son rang'; }
+  if (dt === 'all') $('#dngSub').innerHTML += ' · <span class="muted">Tous les CPA = corners, CFI dans le camp adverse, coups francs directs et penaltys (touches non comptées) ; tirs et xG dans les 15 s après chaque corner ou CFI</span>';
   const cols = dt === 'all' ? [
-      {k: 'mp', l: 'MJ', v: r => r.mp}, {k: 'n', l: 'Possessions CPA', d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.n)}, {k: 'sh', l: 'Tirs', d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.sh)}, {k: 'xg', l: 'xG', d: 2, v: r => pm(r, r.xg)},
-      {k: 'share', l: 'Part xG CPA %', d: 0, v: r => r.share}, {k: 'g', l: 'Buts', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.g)}, {k: 'pen', l: 'Penaltys', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.pen)},
+      {k: 'mp', l: 'MJ', v: r => r.mp}, {k: 'nck', l: 'Corners', d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.nck)}, {k: 'nfk', l: 'CFI', h: 'Coups francs indirects dans le camp adverse', d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.nfk)}, {k: 'ncfd', l: 'CF directs', h: 'Coups francs tirés directement au but', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.ncfd)}, {k: 'npen', l: 'Penaltys', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.npen)},
+      {k: 'sh', l: 'Tirs', d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.sh)}, {k: 'xg', l: 'xG', d: 2, v: r => pm(r, r.xg)}, {k: 'share', l: 'Part xG CPA %', d: 0, h: 'Part des xG de l’équipe venant de ces CPA', v: r => r.share}, {k: 'g', l: 'Buts', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.g)},
       {k: 'sha', l: 'Tirs concédés', d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.sha)}, {k: 'xga', l: 'xG concédés', d: 2, v: r => pm(r, r.xga)}, {k: 'ga', l: 'Buts encaissés', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.ga)}]
     : [{k: 'mp', l: 'MJ', v: r => r.mp}, {k: 'n', l: lblP[0].toUpperCase() + lblP.slice(1), d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.n)}, {k: 'shp', l: '% suivis d’un tir', d: 0, v: r => r.shp}, {k: 'sh', l: 'Tirs', d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.sh)},
       {k: 'xg', l: 'xG', d: 2, v: r => pm(r, r.xg)}, {k: 'xpc', l: `xG / ${lbl}`, d: 3, v: r => r.xpc}, {k: 'g', l: 'Buts', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.g)},
@@ -3580,7 +3584,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-10 09:29 UTC';
+const BUILD = '2026-11-10 12:18 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
