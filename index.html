@@ -400,7 +400,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-10 09:23 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-10 09:29 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -744,23 +744,6 @@ input.j{width:64px}
             <div class="legend"><span><i id="ckLegA" style="background:var(--s1)"></i>Attaquants</span><span><i style="background:#8a8a8a"></i>Défenseurs</span><span>○ au départ · ● à l’arrivée</span><span style="color:#e08a00">— ballon</span></div></div>
             <div><h3 class="spl" data-fk="Le CFI">Le corner</h3><div id="ckOneInfo"></div></div></div>
         </div>
-        <details class="card c12 det" id="cpaDet">
-          <summary><b>Autres coups de pied arrêtés</b> <span class="muted">— xG par type de CPA, tirs sur CPA, tableau des équipes</span></summary>
-          <div style="margin-top:12px">
-      <div class="kpis" id="cpaKpis"></div>
-      <div class="grid" style="margin-top:14px">
-        <div class="card c7">
-          <div class="card-head"><div><h2>xG par type de CPA</h2><p class="sub" id="cpaTypeSub">Possessions démarrées sur coup de pied arrêté</p></div></div>
-          <div class="chart-box"><canvas id="chCpaType"></canvas></div>
-        </div>
-        <div class="card c5">
-          <div class="card-head"><div><h2>Tirs sur CPA</h2><p class="sub" id="shotCpaSub"></p></div></div>
-          <div id="shotMapCpa"></div>
-          <div class="legend shleg shf"><span data-sh="g" title="Cliquer pour masquer / afficher"><b class="lgball">⚽</b>But</span><span data-sh="ot" title="Cliquer pour masquer / afficher"><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span data-sh="off" title="Cliquer pour masquer / afficher"><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG · cliquez sur la légende pour filtrer</span></div>
-        </div>
-      </div>
-          </div>
-        </details>
       </div>
     </div>
 
@@ -3262,25 +3245,6 @@ function renderTactical() {
     const LMS = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1));
     renderDanger(LMS, TN, f);
     renderCorners(ms, TN, PI, f, LMS);
-    const mpF = F ? (isPl ? null : F.mp) : null;
-    $('#cpaKpis').innerHTML = kpiHTML(F ? [
-      {l: 'Corners obtenus', v: fmt(F.corners), s: mpF ? `${fmt(F.corners / mpF, 1)} /match` : ''},
-      {l: 'xG sur CPA', v: fmt(F.cpaXgP, 2), s: `${fmt(TAC.cpaShare.f(F), 1)} % des xG de l’équipe`},
-      {l: 'Buts sur CPA', v: fmt(F.gfCpa), s: `${fmt(F.shCpa)} tirs sur CPA`},
-      {l: 'Penaltys', v: fmt(F.pen), s: `${fmt(F.penG)} marqué(s)`},
-      isPl ? null : {l: 'xG CPA concédés', v: fmt(F.cpaXgaP, 2), s: `${fmt(F.gaCpa)} but(s) CPA encaissé(s)`},
-      isPl ? null : {l: 'Corners : surface', v: fmt(TAC.cornAttAvg.f(F), 1), s: `joueurs en moyenne · ${fmt(TAC.cornShortPct.f(F), 0)} % joués courts`}
-    ].filter(Boolean) : []);
-    const TY = [['cor', 'Corner'], ['cf', 'Coup franc'], ['tou', 'Touche'], ['pen', 'Penalty']];
-    let sets;
-    if (f.team) { const o = T[f.team] || newAgg(); sets = [{label: TN[f.team], c: clubColor(f.team, s1), d: TY.map(([k]) => (o.cpaT[k] || {}).xg || 0)}, {label: 'Adversaires', c: css('--text-3'), d: TY.map(([k]) => (o.cpaTa[k] || {}).xg || 0)}]; $('#cpaTypeSub').textContent = 'xG des possessions démarrées sur CPA · équipe vs adversaires'; }
-    else { const tot = TY.map(([k]) => Object.values(T).reduce((a, o) => a + ((o.cpaT[k] || {}).xg || 0), 0)); sets = [{label: 'Toutes équipes', c: s1, d: tot}]; $('#cpaTypeSub').textContent = 'xG des possessions démarrées sur CPA · toutes équipes (sélectionnez une équipe pour comparer)'; }
-    chart('chCpaType', {type: 'bar', data: {labels: TY.map(x => x[1]), datasets: sets.map(x => ({label: x.label, data: x.d, backgroundColor: x.c, borderRadius: 4, borderSkipped: 'start'}))},
-      options: {plugins: {legend: {display: sets.length > 1}, tooltip: {callbacks: {label: c => `${c.dataset.label} : ${fmt(c.raw, 2)} xG`}}}, scales: {y: {beginAtZero: true, title: {display: true, text: 'xG (total)'}, grid: {color: css('--grid')}}, x: {grid: {display: false}}}}});
-    const CPA = ['cor', 'cfd', 'cfi', 'tou', 'pen'], sc = [];
-    for (const m of ms) if (m.ev) for (const x of m.ev.shots) if (f.qs.has(x.q) && focusShot(x) && CPA.includes(x.pat)) sc.push(x);
-    $('#shotCpaSub').textContent = `${sc.length} tirs · ${sc.filter(x => x.g).length} buts · ${fmt(sc.reduce((a, x) => a + x.xg, 0), 2)} xG`;
-    $('#shotMapCpa').innerHTML = shotMapSVG(sc, PI, TN);
   }
 
   if (sub === 'gk') renderGK(TN, PI, f);
@@ -3616,7 +3580,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-10 09:23 UTC';
+const BUILD = '2026-11-10 09:29 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
