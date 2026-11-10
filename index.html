@@ -397,7 +397,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-10 08:58 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-10 09:08 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3496,8 +3496,12 @@ function renderCorners(ms, TN, PI, f) {
   zs += byOut[1].map(q => { const [x, y] = view(q.x, q.yy), R_ = r1(.55 + 1.6 * Math.sqrt(q.r.c.xg || 0)); return `<circle cx="${x}" cy="${y}" r="${R_}" fill="${q.a === 0 ? defCol : atkCol}" fill-opacity=".85" stroke="${SHC}" stroke-width=".32" data-tip="${tipOf(q)}"/>`; }).join('');
   zs += byOut[2].map(q => { const [x, y] = view(q.x, q.yy); return `<g data-tip="${tipOf(q)}">${ballG(x, y, Math.max(1.1, r1(.55 + 1.6 * Math.sqrt(q.r.c.xg || 0))))}</g>`; }).join('');
   // pourcentages par-dessus les points, sur une pastille
-  zs += CK_Z.map(([id, l, x0, x1, y0, y1]) => { const o = ZC[id]; if (!o) return ''; const [sx, sy] = ckP(x1, flip ? 68 - y1 : y0), w = y1 - y0, sm = id.startsWith('6'), ty = sy + (sm ? 1.75 : 2.6), t = pc(o.n, P0.length), tw = t.length * (sm ? .8 : 1.1) + .8;
-    return `<rect x="${sx + w / 2 - tw / 2}" y="${ty - (sm ? 1.3 : 1.8)}" width="${tw}" height="${sm ? 1.75 : 2.4}" rx=".5" fill="var(--surface)" fill-opacity=".85"/><text x="${sx + w / 2}" y="${ty}" text-anchor="middle" font-size="${sm ? 1.4 : 2}" font-weight="800" fill="var(--text)">${t}</text>`; }).join('');
+  // pourcentage + nom de la zone, au centre de chaque zone, sur une pastille
+  const ZS = {'6g1': '6 m · 1er', '6gc': '6 m · centre', '6g2': '6 m · 2e', p1: '1er poteau', pen: 'Penalty', p2: '2e poteau', ent: 'Entrée de surface'};
+  const zoneLbl = (id, x0, x1, y0, y1, val) => { const [sx, sy] = ckP(x1, flip ? 68 - y1 : y0), w = y1 - y0, h = x1 - x0, sm = id.startsWith('6'), cx = sx + w / 2, cy = sy + h / 2, nm = ZS[id] || '', fs = sm ? 1.25 : 1.9, fn = sm ? .78 : 1.05;
+    const tw = Math.max(val.length * fs * .58, nm.length * fn * .52) + .8, th = fs + fn + .7;
+    return `<g pointer-events="none"><rect x="${r1(cx - tw / 2)}" y="${r1(cy - th / 2)}" width="${r1(tw)}" height="${r1(th)}" rx=".5" fill="var(--surface)" fill-opacity=".88"/><text x="${cx}" y="${r1(cy - th / 2 + fs + .1)}" text-anchor="middle" font-size="${fs}" font-weight="800" fill="var(--text)">${val}</text><text x="${cx}" y="${r1(cy + th / 2 - .35)}" text-anchor="middle" font-size="${fn}" fill="var(--text-2)">${nm}</text></g>`; };
+  zs += CK_Z.map(([id, l, x0, x1, y0, y1]) => { const o = ZC[id]; return o ? zoneLbl(id, x0, x1, y0, y1, pc(o.n, P0.length)) : ''; }).join('');
   zs += sideLbl;
   $('#ckZoneT').textContent = zm === 'arr' ? 'Où arrive le ballon' : zm === 'c1' ? 'Où a lieu le premier contact' : 'Où a lieu le second contact';
   const out = (ZC.out || {n: 0}).n;
@@ -3565,7 +3569,7 @@ function renderCorners(ms, TN, PI, f) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-10 08:58 UTC';
+const BUILD = '2026-11-10 09:08 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
