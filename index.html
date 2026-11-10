@@ -209,7 +209,7 @@ details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}
 .dng{display:grid;grid-template-columns:3fr 2fr;gap:16px;margin:4px 0 14px}.dng:empty{display:none}.dng-g h4{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-3)}.dng-row{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:10px}
 .dng-t{background:var(--surface-2);border-radius:12px;padding:11px 13px;display:flex;flex-direction:column;gap:3px}.dng-t>span{font-size:12px;color:var(--text-2);font-weight:600}.dng-t>b{font-size:26px;font-weight:800;line-height:1.1}.dng-t>small{font-size:11.5px;color:var(--text-3)}
 @media (max-width:900px){.dng{grid-template-columns:1fr}.dng-row{grid-auto-flow:row}}
-.phase .ph-vis>div{min-width:0}.pt-groups{display:grid;grid-template-columns:2fr 4fr 2fr;gap:16px;margin-bottom:6px}.pt-g h4{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-3)}.pt-row{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:10px}
+.phase .ph-vis>div{min-width:0}.pt-groups{display:grid;grid-template-columns:2fr 3fr;gap:16px;margin-bottom:6px}.pt-g h4{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-3)}.pt-row{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:10px}
 .dng-t>b small.u{font-size:13px;font-weight:600;margin-left:4px;color:var(--text-3)}.pt-mini{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 .pt-split>div{display:grid;grid-template-columns:1fr auto;gap:2px 10px;margin:8px 0;font-size:13px}.pt-split i{grid-column:1/3;display:block;height:8px;border-radius:4px}
 .ptz{width:100%;max-width:1100px}.ptz td,.ptz th{padding:8px 10px}.ptz td.up{color:#2e9e5b;font-weight:700}.ptz td.dn{color:#d0453f;font-weight:700}.zdot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:-1px}
@@ -405,7 +405,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-10 12:34 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-10 12:37 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -995,12 +995,6 @@ input.j{width:64px}
           <div class="ph-head"><span class="chap-n">3</span><div><h2>Toutes les allures</h2><p>Distance, temps et nombre d’efforts dans chaque tranche de vitesse, comparés à la moyenne de la Ligue 1.</p></div></div>
           <div id="ptZones"></div>
         </div>
-        <div class="card c12 phase">
-          <div class="ph-head"><span class="chap-n">4</span><div><h2>Accélérations et décélérations</h2><p>Changements de rythme de plus de 2 et de 3 m/s², calculés sur le tracking.</p></div></div>
-          <div id="ptAccTiles"></div>
-          <div class="ph-vis" style="margin-top:12px"><div><h3>Au fil du match</h3><p class="sub">Accélérations et décélérations de plus de 3 m/s² par quart d’heure, moyenne par match</p><div class="chart-box"><canvas id="chPtAccQ"></canvas></div></div>
-            <div><h3>Les joueurs</h3><p class="sub" id="ptAccPlSub"></p><div class="tbl-wrap" id="tblPtAccPl"></div></div></div>
-        </div>
         <div class="card c12">
           <div class="card-head">
             <div><h2>Toutes les équipes</h2><p class="sub">Toute la Ligue 1 sur la période · cliquez sur une équipe pour la choisir</p></div>
@@ -1027,11 +1021,6 @@ input.j{width:64px}
         <div class="card c12 phase" id="ppC2">
           <div class="ph-head"><span class="chap-n">2</span><div><h2>Toutes les allures</h2><p id="ppZonesSub">Par 90 minutes, comparé aux joueurs du même poste.</p></div></div>
           <div id="ppZones"></div>
-        </div>
-        <div class="card c12 phase" id="ppC3">
-          <div class="ph-head"><span class="chap-n">3</span><div><h2>Accélérations et décélérations</h2><p>Par 90 minutes, comparé aux joueurs du même poste, puis match par match.</p></div></div>
-          <div id="ppAccTiles"></div>
-          <div class="chart-box" style="margin-top:12px"><canvas id="chPpAcc"></canvas></div>
         </div>
         <div class="card c12" id="ppTeamCard">
           <div class="card-head"><div><h2 id="ppTeamTitle">Les joueurs de l’équipe</h2><p class="sub" id="ppTeamSub"></p></div><div class="ctrl"><button class="btn" data-csv="tblPpTeam">CSV</button></div></div>
@@ -1420,8 +1409,8 @@ async function importFiles(list) {
     if (!m) { try { const head = await it.file.slice(0, 400).text(); const wc = +((head.match(/"wallClock": (\d+)/) || [])[1]); m = Object.values(S.matches).find(x => x.periods && x.periods[0] && x.periods[0].wc === wc); } catch (e) {} }
     if (!m || !m.ev) { log(`• ${it.name} : tracking sans match correspondant (importez le dossier complet du match)`); continue; }
     const nC = (m.ev.corners || []).length + (m.ev.fks || []).length;
-    if (m.trk && m.trk.size === it.size && m.trk.v === TRK_VER && m.trk.n === nC && m.acc && m.acc.v === ACC_VER) continue;
-    try { log(`… ${m.home.name} – ${m.away.name} : lecture du tracking (corners, coups francs, accélérations)`); const n = await procTracking(m, it.file); m.trk.size = it.size; touched.add(m.id); log(`✓ ${m.home.name} – ${m.away.name} : positions sur ${n} corner(s) / coup(s) franc(s)`); }
+    if (m.trk && m.trk.size === it.size && m.trk.v === TRK_VER && m.trk.n === nC) continue;
+    try { log(`… ${m.home.name} – ${m.away.name} : lecture du tracking pour les corners et coups francs`); const n = await procTracking(m, it.file); m.trk.size = it.size; touched.add(m.id); log(`✓ ${m.home.name} – ${m.away.name} : positions sur ${n} corner(s) / coup(s) franc(s)`); }
     catch (e) { console.warn(e); log(`✗ ${it.name} : lecture du tracking impossible`); }
   }
   if (fresh && impComp !== S.comp) setComp(impComp, true);
@@ -1444,26 +1433,10 @@ async function procTracking(m, file) {
   const rx = /"period": (\d+), "frameIdx": (\d+), "gameClock": ([\d.]+)/;
   const reader = file.stream().pipeThrough(new TextDecoderStream()).getReader();
   let buf = '', done = false;
-  // Accélérations / décélérations : vitesse de chaque joueur à 12,5 images/s, variation sur ~1 s,
-  // effort compté quand l'accélération reste au-delà du seuil (±2 et ±3 m/s²) pendant au moins 0,5 s
-  const ACC = {}, ST = {}, THR = [2, 3, -2, -3], LAG = 12, MIND = .5;
-  const accFrame = (per, gc, o) => {
-    for (const [side, tm] of [[o.homePlayers, m.home.id], [o.awayPlayers, m.away.id]]) for (const p of side || []) {
-      if (!p.playerId || p.speed == null) continue;
-      let st = ST[p.playerId]; if (!st || st.per !== per) st = ST[p.playerId] = {per, b: [], on: [null, null, null, null]};
-      const b = st.b; if (b.length && gc - b[b.length - 1][0] > .5) { b.length = 0; st.on = [null, null, null, null]; }
-      b.push([gc, p.speed]); if (b.length > LAG + 1) b.shift(); if (b.length < LAG + 1) continue;
-      const g0 = b[0][0], dt = gc - g0; if (dt > LAG * .08 * 1.6) continue;
-      const a = (p.speed - b[0][1]) / dt;
-      for (let i = 0; i < 4; i++) { const over = THR[i] > 0 ? a > THR[i] : a < THR[i];
-        if (over) { if (st.on[i] == null) st.on[i] = g0; }
-        else if (st.on[i] != null) { if (b[b.length - 2][0] - st.on[i] >= MIND) { const q = quarter(per, st.on[i] / 60); if (q >= 0) { const A = ACC[p.playerId] || (ACC[p.playerId] = [0, 1, 2, 3, 4, 5].map(() => [0, 0, 0, 0])); A[q][i]++; } } st.on[i] = null; } }
-    }
-  };
   const take = line => { const mm = rx.exec(line.slice(0, 100)); if (!mm) return; const per = +mm[1], fi = +mm[2], gc = +mm[3];
     let o = null;
     for (const w of W) if (w.per === per && gc >= w.a && gc <= w.b) { o = o || JSON.parse(line); w.fr.push({gc, b: o.ball && o.ball.xyz, h: o.homePlayers, w: o.awayPlayers}); }
-    if (fi % 2 === 0 && (per === 1 || per === 2)) accFrame(per, gc, o || JSON.parse(line)); };
+    };
   while (!done) { const r = await reader.read(); done = r.done; if (r.value) buf += r.value; let k;
     while ((k = buf.indexOf('\n')) >= 0) { take(buf.slice(0, k)); buf = buf.slice(k + 1); } }
   if (buf) take(buf);
@@ -1508,7 +1481,6 @@ async function procTracking(m, file) {
     m.trk[c._k][cornerKey(c)] = {s: [r1(b0.x), r1(b0.y)], k: keep(at(F[i0])), r: keep(at(F[i1])), b: path, z: r1(zmax), dt: r1(F[i1].gc - F[i0].gc), nr: near ? [near.a, near.p] : null};
     n++;
   }
-  m.acc = {v: ACC_VER, P: ACC};
   return n;
 }
 
@@ -3615,7 +3587,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-10 12:34 UTC';
+const BUILD = '2026-11-10 12:37 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4230,18 +4202,15 @@ function renderPhyTeam(ms, lg, TN, PI) {
   if (tid && !F) { $('#ptHead').textContent = 'Pas de données physiques pour cette équipe sur la période.'; $('#ptTiles').innerHTML = ''; }
   else {
     const dist = tid ? pmV('dist', F) : L('dist'), hi = tid ? pmV('hi', F) : L('hi'), a3 = tid ? pmV('acc3', F) : L('acc3'), lD = L('dist'), lH = L('hi');
-    $('#ptHead').innerHTML = tid ? `<b>${esc(TN[tid])}</b> court <b>${fmt(dist / 1000, 1)} km</b> par match (${dist >= lD ? '+' : '−'}${fmt(Math.abs(dist - lD) / 1000, 1)} km par rapport à la moyenne), dont <b>${fmt(hi, 0)} m</b> au-dessus de 20 km/h (${hi >= lH ? '+' : '−'}${fmt(Math.abs(hi - lH) / lH * 100, 0)} %).${a3 != null ? ` Ses joueurs font au total <b>${fmt(a3, 0)}</b> accélérations intenses (plus de 3 m/s²) par match.` : ''}`
+    $('#ptHead').innerHTML = tid ? `<b>${esc(TN[tid])}</b> court <b>${fmt(dist / 1000, 1)} km</b> par match (${dist >= lD ? '+' : '−'}${fmt(Math.abs(dist - lD) / 1000, 1)} km par rapport à la moyenne), dont <b>${fmt(hi, 0)} m</b> au-dessus de 20 km/h (${hi >= lH ? '+' : '−'}${fmt(Math.abs(hi - lH) / lH * 100, 0)} %).`
       : `Une équipe de Ligue 1 court en moyenne <b>${fmt(lD / 1000, 1)} km</b> par match, dont <b>${fmt(lH, 0)} m</b> au-dessus de 20 km/h.`;
     const v = k => tid ? pmV(k, F) : L(k);
     $('#ptTiles').innerHTML = phyGroups([
       ['Volume', phyTile('Distance totale', v('dist') / 1000, 'km', 1, 'par match', R('dist') && {...R('dist'), avg: R('dist').avg / 1000}, col) + phyTile('Distance par minute', tid ? val(PHY, 'mpm', F) : mean(rows.map(r => val(PHY, 'mpm', r.o))), 'm/min', 1, 'par joueur sur le terrain', RR('mpm'), col)],
-      ['Haute intensité', phyTile('Plus de 20 km/h', v('hi'), 'm', 0, `${fmt(tid ? val(PHY, 'hiPct', F) : mean(rows.map(r => val(PHY, 'hiPct', r.o))), 1)} % de la distance`, R('hi'), col) + phyTile('Sprint > 25 km/h', v('spr'), 'm', 0, 'par match', R('spr'), col) + phyTile('Nombre de sprints', v('nspr'), '', 0, 'par match', R('nspr'), col)],
-      ['Accélérations', hasAcc ? phyTile('Accél. > 3 m/s²', v('acc3'), '', 0, 'par match, tous les joueurs', R('acc3'), col) + phyTile('Décél. > 3 m/s²', v('dec3'), '', 0, 'par match, tous les joueurs', R('dec3'), col) : `<div class="dng-t"><span>Accélérations</span><small>Importez le tracking des matchs pour les calculer.</small></div>`],
+      ['Haute intensité', phyTile('Plus de 20 km/h', v('hi'), 'm', 0, `${fmt(tid ? val(PHY, 'hiPct', F) : mean(rows.map(r => val(PHY, 'hiPct', r.o))), 1)} % de la distance`, R('hi'), col) + phyTile('Sprint > 25 km/h', v('spr'), 'm', 0, 'par match', R('spr'), col) + phyTile('Nombre de sprints', v('nspr'), '', 0, 'par match', R('nspr'), col)]
     ]);
   }
-  $('#ptNote').innerHTML = `Allures (Second Spectrum) : marche 0-7 km/h, footing 7-15, course lente 15-20, haute vitesse 20-25, sprint plus de 25 km/h. « Haute intensité » = plus de 20 km/h.
-    Accélérations et décélérations : calculées sur le tracking (vitesse de chaque joueur 12,5 fois par seconde, variation mesurée sur environ 1 s) ; un effort est compté quand la variation dépasse le seuil pendant au moins 0,5 s.
-    ${hasAcc ? `Elles sont disponibles pour ${tid ? (F ? F.accM : 0) + ' match(s) sur ' + (F ? F.mp : 0) : 'les matchs importés avec leur tracking'}.` : 'Aucun match avec tracking sur la période.'}`;
+  $('#ptNote').innerHTML = `Allures (Second Spectrum) : marche 0-7 km/h, footing 7-15, course lente 15-20, haute vitesse 20-25, sprint plus de 25 km/h. « Haute intensité » = plus de 20 km/h.`;
   // 1. Distance par match
   const TM = tid ? ms.filter(m => m.phys && (m.home.id === tid || m.away.id === tid)) : [];
   const per = TM.map(m => ({m, o: aggPhys([m]).T[tid]})).filter(x => x.o);
@@ -4279,28 +4248,9 @@ function renderPhyTeam(ms, lg, TN, PI) {
       ${tid ? `<td class="${diff != null && Math.abs(diff) >= 5 ? (diff > 0 ? 'up' : 'dn') : ''}">${diff == null ? '—' : (diff >= 0 ? '+' : '−') + fmt(Math.abs(diff), 0) + ' %'}</td><td>${rk ? `${rk.r}<sup>${rk.r === 1 ? 'er' : 'e'}</sup> / ${rk.of}` : '—'}</td>` : ''}</tr>`; };
   $('#ptZones').innerHTML = `<table class="gkz ptz"><tr><th class="txt">Allure</th><th>Distance / match</th><th>Part de la distance</th><th>Temps / match</th><th>Efforts / match</th>${tid ? '<th>Écart avec la L1</th><th>Rang</th>' : ''}</tr>${PZ.map(zrow).join('')}</table>
     <p class="note">${tid ? 'Écart avec la moyenne de la Ligue 1 : en vert au moins 5 % au-dessus, en rouge au moins 5 % en dessous. ' : ''}Temps : addition du temps de tous les joueurs sur le terrain. Les efforts ne sont comptés qu’à partir de 15 km/h.</p>`;
-  // 4. Accélérations
-  const aT = k => tid ? (F ? pmV(k, F) : null) : L(k);
-  $('#ptAccTiles').innerHTML = hasAcc ? `<div class="pt-row">${phyTile('Accélérations > 2 m/s²', aT('acc2'), '', 0, 'par match', R('acc2'), col)}${phyTile('Accélérations > 3 m/s²', aT('acc3'), '', 0, 'par match · intenses', R('acc3'), col)}${phyTile('Décélérations > 2 m/s²', aT('dec2'), '', 0, 'par match', R('dec2'), col)}${phyTile('Décélérations > 3 m/s²', aT('dec3'), '', 0, 'par match · intenses', R('dec3'), col)}</div>`
-    : '<div class="empty">Aucun match avec tracking sur la période : importez les dossiers complets (fichier tracking-produced.jsonl) pour calculer les accélérations.</div>';
-  const accQ = pred => { const s = [0, 0, 0, 0, 0, 0].map(() => [0, 0]), n = [0, 0, 0, 0, 0, 0];
-    for (const m of lg) { if (!m.acc || !m.acc.P || !m.phys || !m.phys.sum) continue; const tmOf = {}; for (const r of m.phys.sum) tmOf[r.p] = r.tm;
-      for (const t of [m.home.id, m.away.id].filter(pred)) { for (let q = 0; q < 6; q++) n[q]++; for (const [pid, A] of Object.entries(m.acc.P)) if (tmOf[pid] === t) A.forEach((z, q) => { s[q][0] += z[1]; s[q][1] += z[3]; }); } }
-    return s.map((v, q) => n[q] ? [v[0] / n[q], v[1] / n[q]] : [null, null]); };
-  const aq = tid ? accQ(t => t === tid) : null, al = accQ(() => true);
-  chart('chPtAccQ', {type: 'bar', data: {labels: QL, datasets: [
-      ...(tid ? [{label: 'Accél. > 3', data: aq.map(x => x[0]), backgroundColor: col, borderRadius: 3}, {label: 'Décél. > 3', data: aq.map(x => x[1]), backgroundColor: color4(col, .5), borderRadius: 3}] : []),
-      {label: 'Accél. > 3 (moy. L1)', type: 'line', data: al.map(x => x[0]), borderColor: lc, pointRadius: 2, borderWidth: 1.5}, {label: 'Décél. > 3 (moy. L1)', type: 'line', data: al.map(x => x[1]), borderColor: lc, borderDash: [5, 4], pointRadius: 2, borderWidth: 1.5}]},
-    options: {plugins: {legend: {position: 'bottom'}, tooltip: {callbacks: {label: c => `${c.dataset.label} : ${fmt(c.raw, 1)}`}}}, scales: {y: {grid: {color: css('--grid')}}, x: {grid: {display: false}}}}});
-  // joueurs de l'équipe (par 90 min)
-  const PP = tid ? aggPhys(ms).P : {};
-  const pls = Object.entries(PP).filter(([id, o]) => o.tm === tid && PI[id] && o.accT >= 1800).map(([id, o]) => ({id, name: PI[id].name, o}));
-  $('#ptAccPlSub').textContent = tid ? (pls.length ? 'Par 90 minutes · joueurs ayant joué au moins 30 min sur des matchs avec tracking · cliquez pour ouvrir la fiche' : 'Pas encore de joueurs avec tracking.') : 'Choisissez une équipe.';
-  renderTable('tblPtAccPl', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'min', l: 'Min', v: r => r.o.accT / 60},
-    ...['acc3', 'dec3', 'acc2', 'dec2'].map(k => ({k, l: PHY[k].l + ' /90', h: PHY[k].h, d: 1, v: r => val(PHY, k, r.o, 'p90')}))], pls, {defaultSort: 'acc3', onRow: id => { setFilter('player', id); setLevel && setLevel('phy', 'ind'); }});
   // tableau de toutes les équipes
   const tm = $('#phyTeamMode').value;
-  const tcols = ['mp', 'dist', 'mpm', 'hi', 'hiPct', 'hsr', 'spr', 'nhsr', 'nspr', 'acc3', 'dec3', 'acc2', 'dec2', 'vmax', 'dIP', 'dOP', 'hIP', 'hOP'];
+  const tcols = ['mp', 'dist', 'mpm', 'hi', 'hiPct', 'hsr', 'spr', 'nhsr', 'nspr', 'vmax', 'dIP', 'dOP', 'hIP', 'hOP'];
   renderTable('tblPhyTeams', [{k: 'name', l: 'Équipe', txt: 1, v: r => r.name, html: r => logoHTML(r.id) + esc(r.name)}, ...tcols.map(k => ({k, l: PHY[k].l, h: PHY[k].h, d: PHY[k].acc ? (tm === 'tot' ? 0 : 1) : dec(PHY, k, tm), v: r => val(PHY, k, r.o, tm)}))],
     rows, {defaultSort: 'dist', hl: r => r.id === tid, onRow: id => setFilter('team', id)});
 }
@@ -4311,7 +4261,7 @@ function renderPhyPlayer(ms, lg, TN, PI) {
   const f = S.f, SR = seasonRoles(), pid = f.player, tid = f.team || (pid && PI[pid] ? PI[pid].team : '');
   const col = tid ? clubColor(tid) : css('--s1'), lc = css('--text-3');
   $('#phyPHint').hidden = !!pid;
-  ['#ppCard', '#ppC1', '#ppC2', '#ppC3'].forEach(s => $(s).hidden = !pid);
+  ['#ppCard', '#ppC1', '#ppC2'].forEach(s => $(s).hidden = !pid);
   // joueurs de l'équipe
   const TP = tid ? aggPhys(ms).P : {};
   const tpl = Object.entries(TP).filter(([id, o]) => o.tm === tid && PI[id] && o.time >= 600).map(([id, o]) => ({id, name: PI[id].name, role: SR[id] || '', o}));
@@ -4321,7 +4271,7 @@ function renderPhyPlayer(ms, lg, TN, PI) {
   renderTable('tblPpTeam', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'role', l: 'Poste', txt: 1, v: r => r.role}, {k: 'mp', l: 'MJ', v: r => r.o.mp}, {k: 'min', l: 'Min', v: r => r.o.time / 60},
     {k: 'dist', l: 'Distance /90 (km)', d: 2, v: r => val(PHY, 'dist', r.o, 'p90') / 1000}, {k: 'mpm', l: 'm/min', d: 1, v: r => val(PHY, 'mpm', r.o)}, {k: 'hi', l: '> 20 km/h /90 (m)', d: 0, v: r => val(PHY, 'hi', r.o, 'p90')},
     {k: 'spr', l: '> 25 km/h /90 (m)', d: 0, v: r => val(PHY, 'spr', r.o, 'p90')}, {k: 'nspr', l: 'Sprints /90', d: 1, v: r => val(PHY, 'nspr', r.o, 'p90')},
-    {k: 'acc3', l: 'Accél. > 3 /90', d: 1, v: r => val(PHY, 'acc3', r.o, 'p90')}, {k: 'dec3', l: 'Décél. > 3 /90', d: 1, v: r => val(PHY, 'dec3', r.o, 'p90')}, {k: 'vmax', l: 'V. max', d: 1, v: r => r.o.vmax}],
+    {k: 'vmax', l: 'V. max', d: 1, v: r => r.o.vmax}],
     tpl, {defaultSort: 'dist', hl: r => r.id === pid, onRow: id => setFilter('player', id)});
   if (!pid) return;
   const pRole = SR[pid], rl = pRole && ROLE_L[pRole] ? pRole : null;
@@ -4339,8 +4289,7 @@ function renderPhyPlayer(ms, lg, TN, PI) {
   const hasAcc = F.accM > 0;
   $('#ppTiles').innerHTML = phyGroups([
     ['Volume', phyTile('Distance', pd / 1000, 'km', 2, 'par 90 min', pr('dist') && {...pr('dist'), avg: pr('dist').avg / 1000}, col) + phyTile('Distance par minute', rate('mpm', F), 'm/min', 1, 'minutes jouées', pr('mpm', rate), col)],
-    ['Haute intensité', phyTile('Plus de 20 km/h', ph, 'm', 0, 'par 90 min', pr('hi'), col) + phyTile('Sprint > 25 km/h', p90('spr', F), 'm', 0, 'par 90 min', pr('spr'), col) + phyTile('Sprints', p90('nspr', F), '', 1, 'par 90 min', pr('nspr'), col) + phyTile('Vitesse max', F.vmax, 'km/h', 1, 'sur la période', pr('vmax', rate), col)],
-    ['Accélérations', hasAcc ? phyTile('Accél. > 3 m/s²', p90('acc3', F), '', 1, 'par 90 min', pr('acc3'), col) + phyTile('Décél. > 3 m/s²', p90('dec3', F), '', 1, 'par 90 min', pr('dec3'), col) : `<div class="dng-t"><span>Accélérations</span><small>Importez le tracking des matchs pour les calculer.</small></div>`]]);
+    ['Haute intensité', phyTile('Plus de 20 km/h', ph, 'm', 0, 'par 90 min', pr('hi'), col) + phyTile('Sprint > 25 km/h', p90('spr', F), 'm', 0, 'par 90 min', pr('spr'), col) + phyTile('Sprints', p90('nspr', F), '', 1, 'par 90 min', pr('nspr'), col) + phyTile('Vitesse max', F.vmax, 'km/h', 1, 'sur la période', pr('vmax', rate), col)]]);
   // 1. Par match
   const per = ms.filter(m => m.phys).map(m => ({m, o: aggPhys([m]).P[pid]})).filter(x => x.o && x.o.time > 0);
   const labs = per.map(x => `J${x.m.j} ${(TN[otherSide(x.m, x.o.tm)] || '').split(' ').slice(-1)[0]}`);
@@ -4355,13 +4304,6 @@ function renderPhyPlayer(ms, lg, TN, PI) {
     const v = p90(dk, F), a = mean(peers.map(o => p90(dk, o)).filter(x => x != null)), d = a ? (v - a) / a * 100 : null, rk = pr(dk);
     return `<tr><td class="txt"><i class="zdot" style="background:var(${zc})"></i><b>${nmz}</b> <small class="muted">${rng}</small></td><td><b>${fmt(v, 0)}</b> m</td><td>${fmt(a, 0)} m</td><td class="${d != null && Math.abs(d) >= 5 ? (d > 0 ? 'up' : 'dn') : ''}">${d == null ? '—' : (d >= 0 ? '+' : '−') + fmt(Math.abs(d), 0) + ' %'}</td><td>${fmt(p90(tk, F), 1)} min</td><td>${nk ? fmt(p90(nk, F), 1) : '<span class="muted">—</span>'}</td><td>${rk ? `${rk.r}<sup>${rk.r === 1 ? 'er' : 'e'}</sup> / ${rk.of}` : '—'}</td></tr>`; }).join('')}</table>
     <p class="note">Écart avec la moyenne du poste : en vert au moins 5 % au-dessus, en rouge au moins 5 % en dessous.</p>`;
-  // 3. Accélérations
-  $('#ppAccTiles').innerHTML = hasAcc ? `<div class="pt-row">${['acc2', 'acc3', 'dec2', 'dec3'].map(k => phyTile(PHY[k].l, p90(k, F), '', 1, `par 90 min · ${F.accM} match(s) avec tracking`, pr(k), col)).join('')}</div>` : '<div class="empty">Aucun match avec tracking pour ce joueur : importez les dossiers complets pour calculer ses accélérations.</div>';
-  const pa = per.filter(x => x.o.accM);
-  chart('chPpAcc', {type: 'bar', data: {labels: pa.map(x => `J${x.m.j} ${(TN[otherSide(x.m, x.o.tm)] || '').split(' ').slice(-1)[0]}`), datasets: [
-      {label: 'Accél. > 3 m/s²', data: pa.map(x => x.o.acc3), backgroundColor: col, borderRadius: 3}, {label: 'Décél. > 3 m/s²', data: pa.map(x => x.o.dec3), backgroundColor: color4(col, .5), borderRadius: 3},
-      {label: 'Accél. > 2 m/s²', data: pa.map(x => x.o.acc2), backgroundColor: color4(lc, .45), borderRadius: 3, hidden: true}, {label: 'Décél. > 2 m/s²', data: pa.map(x => x.o.dec2), backgroundColor: color4(lc, .25), borderRadius: 3, hidden: true}]},
-    options: {plugins: {legend: {position: 'bottom'}, tooltip: {callbacks: {afterTitle: it => `${fmt(pa[it[0].dataIndex].o.accT / 60, 0)} min jouées`}}}, scales: {y: {beginAtZero: true, grid: {color: css('--grid')}}, x: {grid: {display: false}}}}});
 }
 
 /* ---------- Sous-onglet Face à face ---------- */
