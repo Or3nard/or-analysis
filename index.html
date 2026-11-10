@@ -397,7 +397,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-10 09:08 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-10 09:13 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3529,15 +3529,22 @@ function renderCorners(ms, TN, PI, f) {
   const upRows = Object.values(UP).filter(o => PI[o.id]).map(o => ({...o, name: PI[o.id].name, tid: PI[o.id].team}));
   renderTable('ckUp', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'n', l: 'Dans la surface', v: r => r.n}, {k: 'pct', l: `% des ${L.pl}`, d: 0, v: r => nA ? r.n / nA * 100 : null},
     {k: 'c1', l: '1ers contacts gagnés', v: r => r.c1}, {k: 'sh', l: 'Tirs', v: r => r.sh}, {k: 'g', l: 'Buts', v: r => r.g}], upRows, {defaultSort: 'n'});
-  // placement moyen (tracking)
-  const RT = R.filter(r => r.t), side = K.pl;
-  const PZ = {}; RT.forEach(r => (r.t[side] || []).forEach(([a, num, x, y]) => { const z = ckZone(x, ckMir(r.c, y)); if (z === 'out') return; const o = PZ[z] || (PZ[z] = {a: 0, d: 0}); if (a) o.a++; else o.d++; }));
-  const mp = Math.max(1, ...CK_Z.map(z => (PZ[z[0]] || {a: 0}).a));
-  let pz = CK_Z.map(([id, l, x0, x1, y0, y1]) => { const o = PZ[id] || {a: 0, d: 0}, [sx, sy] = ckP(x1, y0), w = y1 - y0, h = x1 - x0;
-    return `<rect x="${sx}" y="${sy}" width="${w}" height="${h}" fill="${atkCol}" fill-opacity="${(.04 + .55 * o.a / mp).toFixed(2)}" stroke="var(--surface)" stroke-width=".3"><title>${l}</title></rect>`
-      + (RT.length && (o.a || o.d) ? `<text x="${sx + w / 2}" y="${sy + h / 2 + .5}" text-anchor="middle" font-size="${id.startsWith('6') ? 1.7 : 2.4}" font-weight="800" fill="var(--text)">${fmt(o.a / RT.length, 1)}<tspan font-size="${id.startsWith('6') ? 1.1 : 1.5}" font-weight="600" fill="var(--text-3)"> / ${fmt(o.d / RT.length, 1)}</tspan></text>` : ''); }).join('');
-  $('#ckPlSub').textContent = RT.length ? `Nombre moyen de joueurs par zone ${side === 'k' ? `au moment où ${L.le} est tiré` : 'quand le ballon arrive'} · ${RT.length} ${L.one}(s) avec tracking · chiffre = ${K.side === 'for' ? 'nos joueurs' : 'attaquants adverses'} / défenseurs` : 'Importez le tracking des matchs pour voir le placement.';
-  $('#ckPlace').innerHTML = ckBox(pz + sideLbl);
+  // placement moyen (tracking) : position moyenne de chacun de nos joueurs au départ puis à l'arrivée du ballon
+  const RT = R.filter(r => r.t), ourA = K.side === 'for' ? 1 : 0, ourCol = tid ? clubColor(tid) : atkCol;
+  const PP = {};
+  RT.forEach(r => { const byP = {}; (r.t.r || []).forEach(q => byP[q[4]] = q);
+    (r.t.k || []).forEach(([a, num, x, y, pid]) => { if (a !== ourA || !pid) return; const e = byP[pid]; const o = PP[pid] || (PP[pid] = {pid, num, n: 0, kx: 0, ky: 0, rx: 0, ry: 0, nr: 0});
+      o.n++; o.kx += x; o.ky += ckMir(r.c, y); if (e) { o.nr++; o.rx += e[2]; o.ry += ckMir(r.c, e[3]); } if (num != null) o.num = num; }); });
+  const minN = Math.max(2, Math.ceil(RT.length * .2));
+  const PL = Object.values(PP).filter(o => o.n >= minN).map(o => ({...o, kx: o.kx / o.n, ky: o.ky / o.n, rx: o.nr ? o.rx / o.nr : null, ry: o.nr ? o.ry / o.nr : null}));
+  let pg = '';
+  PL.forEach(o => { if (o.rx == null) return; const [x0, y0] = ckP(o.kx, o.ky), [x1, y1] = ckP(o.rx, o.ry); pg += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${ourCol}" stroke-width=".22" stroke-opacity=".7"/>`; });
+  PL.forEach(o => { const [x0, y0] = ckP(o.kx, o.ky); pg += `<circle cx="${x0}" cy="${y0}" r=".9" fill="none" stroke="${ourCol}" stroke-width=".28"/>`; });
+  PL.forEach(o => { if (o.rx == null) return; const [x1, y1] = ckP(o.rx, o.ry), nm = PI[o.pid] ? PI[o.pid].name : '#' + (o.num ?? '');
+    pg += `<g data-tip="${esc(`${nm} · présent sur ${o.n} ${L.pl === 'CFI' ? 'CFI' : 'corners'} sur ${RT.length} · départ : ${CK_Z.find(z => z[0] === ckZone(o.kx, o.ky))?.[1] || 'hors surface'} → arrivée : ${CK_Z.find(z => z[0] === ckZone(o.rx, o.ry))?.[1] || 'hors surface'}`)}"><circle cx="${x1}" cy="${y1}" r="1.15" fill="${ourCol}" stroke="var(--surface)" stroke-width=".2"/><text x="${x1}" y="${y1 + .45}" text-anchor="middle" font-size="1.2" font-weight="700" fill="#fff">${o.num ?? ''}</text></g>`; });
+  $('#ckPlMode').hidden = true;
+  $('#ckPlSub').textContent = !tid ? 'Choisissez une équipe pour voir le placement moyen de ses joueurs.' : RT.length ? `Position moyenne de nos joueurs ${K.side === 'for' ? 'qui attaquent' : 'qui défendent'} : au départ ${L.du} (cercle vide) puis à l’arrivée du ballon (plein) · ${RT.length} ${L.one}(s) avec tracking · joueurs présents sur au moins ${minN} d’entre eux · ${L.one} ramené à gauche` : 'Importez le tracking des matchs pour voir le placement.';
+  $('#ckPlace').innerHTML = tid && RT.length ? ckBox(pg + `<text x="1" y="25.5" font-size="1.7" fill="var(--text-3)">◀ côté ${L.du}</text>`, FK ? 40 : 29) + `<div class="legend"><span><i style="border:1.5px solid ${ourCol};background:transparent"></i>au départ</span><span><i style="background:${ourCol}"></i>à l’arrivée du ballon</span><span class="muted">survol : nom et nombre de ${L.pl}</span></div>` : '';
   // 5. Corner / CFI par CFI
   const list = R.slice().sort((a, b) => a.m.j - b.m.j || a.c.per - b.c.per || a.c.t0 - b.c.t0);
   const keyOf = r => K.ty + '|' + r.m.id + '|' + cornerKey(r.c), minOf = c => Math.floor((c.t0 || c.gc) / 60) + (c.per === 2 ? 45 : 0) + 1;
@@ -3569,7 +3576,7 @@ function renderCorners(ms, TN, PI, f) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-10 09:08 UTC';
+const BUILD = '2026-11-10 09:13 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
