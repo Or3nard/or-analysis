@@ -405,7 +405,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-10 12:37 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-10 12:42 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3587,7 +3587,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-10 12:37 UTC';
+const BUILD = '2026-11-10 12:42 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4178,6 +4178,9 @@ function color4(c, a) { c = String(c || '').trim(); let r, g, b;
   if (c[0] === '#') { let h = c.slice(1); if (h.length === 3) h = h.split('').map(x => x + x).join(''); r = parseInt(h.slice(0, 2), 16); g = parseInt(h.slice(2, 4), 16); b = parseInt(h.slice(4, 6), 16); }
   else { const m = c.match(/\d+(\.\d+)?/g); if (!m) return c; [r, g, b] = m.map(Number); }
   return `rgba(${r},${g},${b},${a})`; }
+// abréviations des clubs (« RCSA », « LOSC »…) tirées de la description des matchs (« RCSA - AJA : date »)
+function teamCodes() { const c = {}; for (const m of Object.values(S.matches)) { const mm = /^\s*(.+?)\s+-\s+(.+?)\s*:/.exec(m.desc || ''); if (mm) { c[m.home.id] = mm[1]; c[m.away.id] = mm[2]; } } return c; }
+const oppLabel = (m, tid, TN) => { const o = otherSide(m, tid), C = teamCodes(); return `J${m.j} ${C[o] || TN[o] || ''}`; };
 /* ---------- Physique : résumé collectif ---------- */
 // les 5 allures de Second Spectrum
 const PZ = [['walk', 'tWalk', null, 'Marche', '0-7 km/h', '--z1'], ['jog', 'tJog', null, 'Footing', '7-15 km/h', '--z2'], ['lsr', 'tLsr', 'nlsr', 'Course lente', '15-20 km/h', '--z3'],
@@ -4214,7 +4217,7 @@ function renderPhyTeam(ms, lg, TN, PI) {
   // 1. Distance par match
   const TM = tid ? ms.filter(m => m.phys && (m.home.id === tid || m.away.id === tid)) : [];
   const per = TM.map(m => ({m, o: aggPhys([m]).T[tid]})).filter(x => x.o);
-  const labs = per.map(x => `J${x.m.j} ${(TN[otherSide(x.m, tid)] || '').split(' ').slice(-1)[0]}`);
+  const labs = per.map(x => oppLabel(x.m, tid, TN));
   $('#ptDistSub').textContent = tid ? `Distance de l’équipe par match (km) · ligne = moyenne de la Ligue 1 (${fmt(L('dist') / 1000, 1)} km)` : 'Choisissez une équipe pour voir ses matchs.';
   chart('chPtDist', {type: 'bar', data: {labels: labs, datasets: [
       {label: 'Distance (km)', data: per.map(x => x.o.dist / 1000), backgroundColor: col, borderRadius: 4},
@@ -4292,7 +4295,7 @@ function renderPhyPlayer(ms, lg, TN, PI) {
     ['Haute intensité', phyTile('Plus de 20 km/h', ph, 'm', 0, 'par 90 min', pr('hi'), col) + phyTile('Sprint > 25 km/h', p90('spr', F), 'm', 0, 'par 90 min', pr('spr'), col) + phyTile('Sprints', p90('nspr', F), '', 1, 'par 90 min', pr('nspr'), col) + phyTile('Vitesse max', F.vmax, 'km/h', 1, 'sur la période', pr('vmax', rate), col)]]);
   // 1. Par match
   const per = ms.filter(m => m.phys).map(m => ({m, o: aggPhys([m]).P[pid]})).filter(x => x.o && x.o.time > 0);
-  const labs = per.map(x => `J${x.m.j} ${(TN[otherSide(x.m, x.o.tm)] || '').split(' ').slice(-1)[0]}`);
+  const labs = per.map(x => oppLabel(x.m, x.o.tm, TN));
   chart('chPpMatch', {type: 'bar', data: {labels: labs, datasets: [
       {label: 'Distance (km)', data: per.map(x => x.o.dist / 1000), backgroundColor: color4(col, .75), borderRadius: 4, yAxisID: 'y'},
       {label: '> 20 km/h (m)', type: 'line', data: per.map(x => x.o.hsr + x.o.spr), borderColor: css('--text'), backgroundColor: css('--text'), pointRadius: 3, borderWidth: 2, yAxisID: 'y2'}]},
