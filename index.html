@@ -202,6 +202,13 @@ details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}
 .cke td{vertical-align:middle}.cke tr.grp td{padding-top:12px;font-weight:700;font-size:12px;color:var(--text-2);border-bottom:1px solid var(--border)}.cke tr.ref td{background:var(--surface-2)}
 .mbar{display:inline-block;width:60px;height:6px;border-radius:3px;background:var(--surface-2);margin-right:6px;vertical-align:middle;overflow:hidden}.mbar i{display:block;height:100%}
 .ckf{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;padding:10px 12px;margin:8px 0 4px;background:var(--surface-2);border-radius:10px;font-size:12px}.ckf-g{display:flex;align-items:center;gap:6px}.ckf-g>span{color:var(--text-2);font-weight:600}.ckf select{font:inherit;padding:4px 6px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text)}.ckf-r{margin-left:auto;font-size:12px}
+.fn-head{font-size:15px;line-height:1.5;margin:6px 0 14px;color:var(--text-2)}.fn-head b{color:var(--text)}
+.fn{display:grid;grid-template-columns:1fr 34px 1fr 34px 1fr 34px 1fr;align-items:stretch}.fn-s{background:var(--surface-2);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:3px}.fn-s>span{font-size:12px;color:var(--text-2);font-weight:600}.fn-s>b{font-size:30px;line-height:1.1;font-weight:800}.fn-s>small{font-size:11.5px;color:var(--text-3)}
+.fn-a{display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text-3)}.fn-a svg{width:22px}
+.fn-rk{margin-top:6px;padding-top:6px;border-top:1px solid var(--border);font-size:12px;color:var(--text-2);display:flex;align-items:baseline;gap:6px}.fn-rk b{font-size:15px;color:var(--text)}.fn-rk small{margin-left:auto;color:var(--text-3)}.fn-rk.up b{color:#2e9e5b}.fn-rk.dn b{color:#d0453f}
+.fn-foot{display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:space-between;margin-top:10px;font-size:12px;color:var(--text-2)}
+.ck-notes{margin-top:10px;font-size:12px}.ck-notes summary{cursor:pointer;color:var(--text-3)}
+@media (max-width:900px){.fn{grid-template-columns:1fr 1fr;gap:10px}.fn-a{display:none}}
 .ck2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.ck2 h4{font-size:12px;margin:4px 0;color:var(--text-2)}
 .gk-ctl{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:10px 14px}.gk-ctl select{min-width:280px}.gk-ctl .tlogo{height:18px;vertical-align:-4px}
 .gkz{width:100%;font-size:12.5px;margin-top:10px;border-collapse:collapse}.gkz th{font-size:11px;color:var(--text-2);text-align:right;padding:4px 6px;border-bottom:1px solid var(--border)}.gkz td{text-align:right;padding:5px 6px;border-bottom:1px solid var(--grid)}.gkz .txt{text-align:left}
@@ -386,7 +393,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-09 13:54 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-10 08:34 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -694,8 +701,8 @@ input.j{width:64px}
           <div class="ctrl"><div class="chips" id="spType"><button class="chip" data-v="ck">Corners</button><button class="chip" data-v="fk" title="Coups francs indirects tirés dans le camp adverse">CFI</button></div>
           <div class="chips" id="ckSide"><button class="chip spl" data-v="for" data-fk="Nos CFI">Nos corners</button><button class="chip spl" data-v="ag" data-fk="CFI adverses">Corners adverses</button></div>
           <div class="chips" id="fkDir" title="Direct : le ballon ou le premier contact arrive dans la surface"><button class="chip" data-v="all">Tous</button><button class="chip" data-v="dir">Joués direct</button><button class="chip" data-v="ind">Non direct</button></div></div></div>
-          <div class="ph-kpis ck6" id="ckKpis"></div>
-          <p class="note" id="ckTrkNote"></p>
+          <div id="ckKpis"></div>
+          <details class="ck-notes"><summary>À propos des données</summary><p class="note" id="ckTrkNote"></p></details>
         </div>
         <div class="card c12 ph">
           <div class="ph-head"><span class="chap-n">1</span><div><h2>Les tireurs</h2><p>Qui tire, de quel côté, avec quelle trajectoire, et ce que ça donne.</p></div></div>
@@ -3378,10 +3385,34 @@ function renderCorners(ms, TN, PI, f) {
   const c1 = R.filter(r => r.c.c1), c1W = c1.filter(r => r.c.c1.a).length, shN = R.filter(r => r.c.nsh).length, xg = R.reduce((a, r) => a + (r.c.xg || 0), 0), g = R.filter(r => r.c.g).length, dir = R.filter(r => r.c.mode === 1).length;
   const kpi = (l, v, sub) => `<div class="phk"><span>${l}</span><div><b style="color:${atkCol}">${v}</b></div><small>${sub}</small></div>`;
   const dir0 = R0.filter(r => r.c.dir).length;
-  $('#ckKpis').innerHTML = kpi(L.Pl, fmt(n / Math.max(1, nM), 1), `par match · ${n} au total`)
-    + (FK ? kpi('Joués direct', pc(dir0, R0.length), `ballon ou 1er contact dans la surface · ${R0.length - dir0} non direct`) : kpi('Joués directement', pc(dir, n), `${n - dir} joués court`))
-    + kpi('1er contact gagné', pc(c1W, c1.length), `par ${us} · ${c1.length - c1W} par ${them}`)
-    + kpi(`${L.Pl} avec tir`, pc(shN, n), `dans les 15 s · ${R.reduce((a, r) => a + (r.c.nsh || 0), 0)} tirs`) + kpi(`xG par ${L.one}`, fmt(n ? xg / n : null, 3), `${fmt(xg, 2)} xG au total`) + kpi('Buts', fmt(g), g ? `1 but tous les ${fmt(n / g, 0)} ${L.pl}` : 'aucun but');
+  // Résumé : l'entonnoir corner → 1er contact → tir → but, avec le rang dans le championnat quand une équipe est choisie
+  const stat = L_ => { const c1x = L_.filter(r => r.c.c1), nn = L_.length;
+    return {n: nn, c1: c1x.length ? c1x.filter(r => r.c.c1.a).length / c1x.length * 100 : null, sh: nn ? L_.filter(r => r.c.nsh).length / nn * 100 : null, xg: nn ? L_.reduce((a, r) => a + (r.c.xg || 0), 0) / nn : null,
+      g: L_.filter(r => r.c.g).length, gp: nn ? L_.filter(r => r.c.g).length / nn * 100 : null}; };
+  const ST = stat(R);
+  let LG = null;
+  if (tid) { // même calcul pour chaque équipe du championnat
+    const per = {};
+    for (const m of ms) { if (!m.ev) continue; const L0 = (FK ? m.ev.fks : m.ev.corners) || [];
+      for (const T of [m.home.id, m.away.id]) { const o = per[T] || (per[T] = {nM: 0, L: []}); o.nM++;
+        for (const c of L0) { if (c.mode === undefined || !f.qs.has(c.q)) continue; if (K.side === 'for' ? c.tm !== T : c.tm === T) continue; if (FK && K.fd !== 'all' && (K.fd === 'dir') !== !!c.dir) continue; o.L.push({c}); } } }
+    const rows = Object.entries(per).map(([T, o]) => ({T, pm: o.L.length / Math.max(1, o.nM), ...stat(o.L)}));
+    const good = K.side === 'for' ? 1 : -1; // côté adverse : moins c'est mieux
+    const rk = (k, v) => { if (v == null) return null; const vs = rows.map(r => r[k]).filter(x => x != null); return {r: 1 + vs.filter(x => good * (x - v) > 1e-9).length, tie: vs.filter(x => Math.abs(x - v) <= 1e-9).length, of: vs.length, avg: mean(vs)}; };
+    LG = {pm: rk('pm', n / Math.max(1, nM)), c1: rk('c1', ST.c1), sh: rk('sh', ST.sh), xg: rk('xg', ST.xg), gp: rk('gp', ST.gp)};
+  }
+  const rkTag = (o, fmtAvg) => { if (!o) return ''; const sure = o.tie < 3, top = sure && o.r <= Math.ceil(o.of / 3), bot = sure && o.r > o.of - Math.ceil(o.of / 3);
+    return `<div class="fn-rk ${top ? 'up' : bot ? 'dn' : ''}"><b>${o.r}<sup>${o.r === 1 ? 'er' : 'e'}</sup></b> / ${o.of}${o.tie > 1 ? ` <span class="muted">ex æquo (${o.tie})</span>` : ''}<small>moy. ${fmtAvg(o.avg)}</small></div>`; };
+  const step = (lbl, big, sub, rkH, cls = '') => `<div class="fn-s ${cls}"><span>${lbl}</span><b style="color:${atkCol}">${big}</b><small>${sub}</small>${rkH}</div>`;
+  const arrow = (txt) => `<div class="fn-a"><svg viewBox="0 0 24 12"><path d="M0 6h20M15 1l6 5-6 5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>${txt ? `<small>${txt}</small>` : ''}</div>`;
+  const nShots = R.reduce((a, r) => a + (r.c.nsh || 0), 0);
+  const headline = !n ? `Aucun ${L.one} sur la période.` : `${tid ? `<b>${esc(TN[tid])}</b> ${K.side === 'for' ? 'obtient' : 'concède'}` : 'En moyenne'} <b>${fmt(n / Math.max(1, nM), 1)} ${L.pl}</b> par match. ${ST.sh != null ? `<b>${Math.round(ST.sh)} %</b> ${K.side === 'for' || !tid ? 'débouchent' : 'débouchent pour l’adversaire'} sur un tir` : ''}${ST.g ? `, et il faut <b>${fmt(n / ST.g, 0)} ${L.pl}</b> pour un but` : ', aucun but'}.`;
+  $('#ckKpis').innerHTML = `<p class="fn-head">${headline}</p><div class="fn">`
+    + step(L.Pl, fmt(n / Math.max(1, nM), 1), `par match · ${n} au total`, rkTag(LG && LG.pm, v => fmt(v, 1)))
+    + arrow('') + step('1er contact gagné', ST.c1 == null ? '—' : Math.round(ST.c1) + ' %', `par ${tid ? us : 'l’équipe qui tire'} · ${c1.length - c1W} perdus`, rkTag(LG && LG.c1, v => Math.round(v) + ' %'))
+    + arrow('') + step('Suivis d’un tir', ST.sh == null ? '—' : Math.round(ST.sh) + ' %', `${nShots} tirs dans les 15 s · ${fmt(ST.xg, 3)} xG / ${L.one}`, rkTag(LG && LG.sh, v => Math.round(v) + ' %'))
+    + arrow('') + step('Buts', fmt(ST.g), ST.g ? `1 tous les ${fmt(n / ST.g, 0)} ${L.pl} · ${fmt(xg, 1)} xG au total` : `${fmt(xg, 1)} xG au total`, rkTag(LG && LG.gp, v => fmt(v, 1) + ' % des ' + L.pl), 'last')
+    + `</div><div class="fn-foot">${FK ? `<span><b>${pc(dir0, R0.length)}</b> joués direct (ballon ou 1er contact dans la surface)</span>` : `<span><b>${pc(dir, n)}</b> joués directement · ${n - dir} joués court</span>`}${tid ? `<span class="muted">Rang : 1<sup>er</sup> = ${K.side === 'for' ? 'le plus efficace' : 'le moins exposé'} des ${LG && LG.pm ? LG.pm.of : ''} équipes · vert = tiers du haut, rouge = tiers du bas</span>` : '<span class="muted">Choisissez une équipe pour voir son rang dans le championnat.</span>'}</div>`;
   // 1. Tireurs
   const TK = {};
   for (const r of R) { const k = r.c.p || '?', o = TK[k] || (TK[k] = {id: k, n: 0, G: 0, C: 0, D: 0, in: 0, out: 0, dr: 0, dir: 0, c1: 0, c1W: 0, sh: 0, xg: 0, g: 0, air: 0, nt: 0, dg: 0, swN: 0});
@@ -3523,7 +3554,7 @@ function renderCorners(ms, TN, PI, f) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-09 13:54 UTC';
+const BUILD = '2026-11-10 08:34 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
