@@ -397,7 +397,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-10 08:47 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-10 08:54 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -703,7 +703,7 @@ input.j{width:64px}
         <div class="card c12 synth">
           <div class="card-head"><div><h2 class="spl" data-fk="Coups francs indirects (camp adverse) — en résumé">Corners — en résumé</h2><p class="sub" id="ckSub"></p></div>
           <div class="ctrl"><div class="chips" id="spType"><button class="chip" data-v="ck">Corners</button><button class="chip" data-v="fk" title="Coups francs indirects tirés dans le camp adverse">CFI</button></div>
-          <div class="chips" id="ckSide"><button class="chip spl" data-v="for" data-fk="Nos CFI">Nos corners</button><button class="chip spl" data-v="ag" data-fk="CFI adverses">Corners adverses</button></div>
+          <div class="chips" id="ckSide"><button class="chip" data-v="for" title="Les corners / CFI tirés par l’équipe">Offensifs</button><button class="chip" data-v="ag" title="Les corners / CFI tirés contre l’équipe">Défensifs</button></div>
           <div class="chips" id="fkDir" title="Direct : le ballon ou le premier contact arrive dans la surface"><button class="chip" data-v="all">Tous</button><button class="chip" data-v="dir">Joués direct</button><button class="chip" data-v="ind">Non direct</button></div></div></div>
           <div id="ckKpis"></div>
           <details class="ck-notes"><summary>À propos des données</summary><p class="note" id="ckTrkNote"></p></details>
@@ -3564,7 +3564,7 @@ function renderCorners(ms, TN, PI, f) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-10 08:47 UTC';
+const BUILD = '2026-11-10 08:54 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
