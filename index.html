@@ -405,7 +405,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-10 12:42 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-10 12:46 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3587,7 +3587,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-10 12:42 UTC';
+const BUILD = '2026-11-10 12:46 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4215,10 +4215,15 @@ function renderPhyTeam(ms, lg, TN, PI) {
   }
   $('#ptNote').innerHTML = `Allures (Second Spectrum) : marche 0-7 km/h, footing 7-15, course lente 15-20, haute vitesse 20-25, sprint plus de 25 km/h. « Haute intensité » = plus de 20 km/h.`;
   // 1. Distance par match
-  const TM = tid ? ms.filter(m => m.phys && (m.home.id === tid || m.away.id === tid)) : [];
-  const per = TM.map(m => ({m, o: aggPhys([m]).T[tid]})).filter(x => x.o);
-  const labs = per.map(x => oppLabel(x.m, tid, TN));
-  $('#ptDistSub').textContent = tid ? `Distance de l’équipe par match (km) · ligne = moyenne de la Ligue 1 (${fmt(L('dist') / 1000, 1)} km)` : 'Choisissez une équipe pour voir ses matchs.';
+  let per, labs;
+  if (tid) { const TM = ms.filter(m => m.phys && (m.home.id === tid || m.away.id === tid));
+    per = TM.map(m => ({m, o: aggPhys([m]).T[tid]})).filter(x => x.o); labs = per.map(x => oppLabel(x.m, tid, TN)); }
+  else { // sans équipe : moyenne des équipes de Ligue 1, journée par journée
+    const byJ = {}; for (const m of lg) if (m.phys) (byJ[m.j] = byJ[m.j] || []).push(m);
+    per = Object.keys(byJ).map(Number).sort((a, b) => a - b).map(j => { const T = Object.values(aggPhys(byJ[j]).T).filter(o => o.mp);
+      const av = k => T.length ? T.reduce((a, o) => a + o[k] / o.mp, 0) / T.length : 0; return {j, o: {dist: av('dist'), hsr: av('hsr'), spr: av('spr')}}; });
+    labs = per.map(x => 'J' + x.j); }
+  $('#ptDistSub').textContent = tid ? `Distance de l’équipe par match (km) · ligne = moyenne de la Ligue 1 (${fmt(L('dist') / 1000, 1)} km)` : `Moyenne des équipes de Ligue 1, journée par journée (km) · ligne = moyenne sur la période (${fmt(L('dist') / 1000, 1)} km)`;
   chart('chPtDist', {type: 'bar', data: {labels: labs, datasets: [
       {label: 'Distance (km)', data: per.map(x => x.o.dist / 1000), backgroundColor: col, borderRadius: 4},
       {label: 'Moyenne L1', type: 'line', data: per.map(() => L('dist') / 1000), borderColor: lc, borderDash: [5, 4], pointRadius: per.length < 2 ? 4 : 0, borderWidth: 1.5}]},
@@ -4227,7 +4232,8 @@ function renderPhyTeam(ms, lg, TN, PI) {
   if (F) {
     $('#ptDistSplit').innerHTML = split(pmV('dIP', F) / 1000, pmV('dOP', F) / 1000, 'Quand l’équipe a le ballon', 'Quand l’adversaire a le ballon', 'km', 1)
       + `<div class="pt-mini">${phyTile('Avec ballon', pmV('dIP', F) / 1000, 'km', 1, 'par match', R('dIP') && {...R('dIP'), avg: R('dIP').avg / 1000}, col)}${phyTile('Sans ballon', pmV('dOP', F) / 1000, 'km', 1, 'par match', R('dOP') && {...R('dOP'), avg: R('dOP').avg / 1000}, col)}</div>`;
-  } else $('#ptDistSplit').innerHTML = '<div class="empty">Choisissez une équipe.</div>';
+  } else $('#ptDistSplit').innerHTML = split(L('dIP') / 1000, L('dOP') / 1000, 'Quand l’équipe a le ballon', 'Quand l’adversaire a le ballon', 'km', 1)
+      + `<div class="pt-mini">${phyTile('Avec ballon', L('dIP') / 1000, 'km', 1, 'moyenne par équipe et par match', null, col)}${phyTile('Sans ballon', L('dOP') / 1000, 'km', 1, 'moyenne par équipe et par match', null, col)}</div>`;
   // 2. Haute intensité
   chart('chPtHi', {type: 'bar', data: {labels: labs, datasets: [
       {label: '20-25 km/h', data: per.map(x => x.o.hsr), backgroundColor: color4(col, .55), borderRadius: 3, stack: 's'},
@@ -4242,7 +4248,7 @@ function renderPhyTeam(ms, lg, TN, PI) {
   const qT = tid ? qAvg(lg, t => t === tid) : null, qL = qAvg(lg, () => true);
   chart('chPtHiQ', {type: 'bar', data: {labels: QL, datasets: [...(tid ? [{label: TN[tid], data: qT, backgroundColor: col, borderRadius: 4}] : []), {label: 'Moyenne L1', data: qL, backgroundColor: color4(lc, .5), borderRadius: 4}]},
     options: {plugins: {legend: {position: 'bottom'}, tooltip: {callbacks: {label: c => `${c.dataset.label} : ${fmt(c.raw, 0)} m`}}}, scales: {y: {grid: {color: css('--grid')}}, x: {grid: {display: false}}}}});
-  $('#ptHiSplit').innerHTML = F ? `<div class="pt-row">${phyTile('Haute intensité avec ballon', pmV('hIP', F), 'm', 0, 'par match', R('hIP'), col)}${phyTile('Haute intensité sans ballon', pmV('hOP', F), 'm', 0, 'par match', R('hOP'), col)}${phyTile('Efforts 20-25 km/h', pmV('nhsr', F), '', 0, 'par match', R('nhsr'), col)}${phyTile('Vitesse max', F.vmax, 'km/h', 1, 'meilleur joueur', RR('vmax'), col)}</div>` : '';
+  $('#ptHiSplit').innerHTML = F ? `<div class="pt-row">${phyTile('Haute intensité avec ballon', pmV('hIP', F), 'm', 0, 'par match', R('hIP'), col)}${phyTile('Haute intensité sans ballon', pmV('hOP', F), 'm', 0, 'par match', R('hOP'), col)}${phyTile('Efforts 20-25 km/h', pmV('nhsr', F), '', 0, 'par match', R('nhsr'), col)}${phyTile('Vitesse max', F.vmax, 'km/h', 1, 'meilleur joueur', RR('vmax'), col)}</div>` : `<div class="pt-row">${phyTile('Haute intensité avec ballon', L('hIP'), 'm', 0, 'moyenne par équipe et par match', null, col)}${phyTile('Haute intensité sans ballon', L('hOP'), 'm', 0, 'moyenne par équipe et par match', null, col)}${phyTile('Efforts 20-25 km/h', L('nhsr'), '', 0, 'moyenne par équipe et par match', null, col)}${phyTile('Vitesse max', Math.max(0, ...rows.map(r => r.o.vmax || 0)), 'km/h', 1, 'meilleur joueur de la période', null, col)}</div>`;
   // 3. Toutes les allures
   const src = F || null, avgK = k => L(k);
   const zrow = ([dk, tk, nk, nm, rng, zc]) => { const d = src ? pmV(dk, src) : avgK(dk), dl = avgK(dk), t = src ? pmV(tk, src) : avgK(tk), n = nk ? (src ? pmV(nk, src) : avgK(nk)) : null, sh = (src ? src.dist : O.dist) ? (src ? src[dk] / src.dist : O[dk] / O.dist) * 100 : null;
