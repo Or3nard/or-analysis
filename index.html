@@ -406,7 +406,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-11 12:27 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-11 12:30 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -497,8 +497,8 @@ input.j{width:64px}
       <div id="matchList"></div>
     </div>
     <div class="card c12" id="qcCard">
-      <div class="card-head"><div><h2>Contrôle des données</h2><p class="sub">Vérifie que chaque match est cohérent : score et buts, quarts d’heure, joueurs et équipe, données physiques, corners, journées. À lancer après chaque import (compétition et saison choisies en haut).</p></div>
-        <div class="ctrl"><button class="btn primary" id="qcRun">Lancer le contrôle</button></div></div>
+      <div class="card-head"><div><h2>Contrôle des données</h2><p class="sub">Vérifie que chaque match est cohérent : score et buts, quarts d’heure, joueurs et équipe, données physiques, corners, journées. À lancer après chaque import.</p></div>
+        <div class="ctrl"><select id="qcScope"><option value="all">Toutes les compétitions</option><option value="cur">Compétition et saison choisies</option></select><button class="btn primary" id="qcRun">Lancer le contrôle</button></div></div>
       <p class="sub" id="qcSum"></p>
       <div class="tbl-wrap" id="qcList"></div>
     </div>
@@ -3623,7 +3623,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-11 12:27 UTC';
+const BUILD = '2026-11-11 12:30 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4279,9 +4279,11 @@ function qualityChecks(list) {
   return out;
 }
 function renderQuality() {
-  const list = CM(), Q = qualityChecks(list), L = {err: 'Erreur', warn: 'À vérifier', info: 'Info'};
+  const all = $('#qcScope').value === 'all', list = all ? Object.values(S.matches) : CM(), Q = qualityChecks(list), L = {err: 'Erreur', warn: 'À vérifier', info: 'Info'};
+  if (all) { const CN = Object.fromEntries(COMPS), byId = Object.fromEntries(list.map(m => [m.id, m]));
+    for (const q of Q) { const m = byId[q.id]; if (m) q.match = `${CN[m.comp] || m.comp || '?'} · ${q.match}`; } }
   const n = k => Q.filter(x => x.lvl === k).length;
-  $('#qcSum').innerHTML = `<b>${list.length}</b> match(s) contrôlé(s) · <span class="qc-err">${n('err')} erreur(s)</span> · <span class="qc-warn">${n('warn')} point(s) à vérifier</span> · <span class="muted">${n('info')} info(s)</span>${!n('err') && !n('warn') ? ' · <b style="color:#2e9e5b">tout est cohérent ✓</b>' : ''}`;
+  $('#qcSum').innerHTML = `<b>${list.length}</b> match(s) contrôlé(s)${all ? ` (${COMPS.map(([k, l]) => `${l} : ${list.filter(m => m.comp === k).length}`).join(', ')})` : ''} · <span class="qc-err">${n('err')} erreur(s)</span> · <span class="qc-warn">${n('warn')} point(s) à vérifier</span> · <span class="muted">${n('info')} info(s)</span>${!n('err') && !n('warn') ? ' · <b style="color:#2e9e5b">tout est cohérent ✓</b>' : ''}`;
   // infos identiques regroupées en une ligne (liste des matchs au survol)
   const G = {}; const Q2 = [];
   for (const x of Q) { if (x.lvl !== 'info') { Q2.push(x); continue; } const k = x.cat + '|' + x.msg.replace(/^\d+ /, 'n '); (G[k] = G[k] || {...x, ms: []}).ms.push(x.match); }
