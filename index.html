@@ -410,7 +410,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-11 13:06 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-11 13:09 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -2686,7 +2686,7 @@ function cageSVG(shots, col) {
   const dots = ok.slice().sort((a, b) => (a.g - b.g) || ((a.ot || 0) - (b.ot || 0))).map(s => {
     const x = Math.max(.08, Math.min(W - .08, X(s.gy))), z = Math.max(.08, Math.min(H - .02, Z(s.gz)));
     const r = .07 + Math.sqrt(Math.max(s.xg || 0, .01)) * .16;
-    const tip = `${s.min != null ? s.min + "' · " : ''}xG ${fmt(s.xg, 2)}${s.ot || s.g ? ' · xGOT ' + fmt(PSC(s), 2) : ''}${s.g ? ' · BUT' : s.ot ? ' · arrêté' : s.post ? ' · poteau' : ' · non cadré'}`;
+    const tip = `${s.tipM ? s.tipM + ' · ' : s.min != null ? s.min + "' · " : ''}xG ${fmt(s.xg, 2)}${s.ot || s.g ? ' · xGOT ' + fmt(PSC(s), 2) : ''}${s.g ? ' · BUT' : s.ot ? ' · arrêté' : s.post ? ' · poteau' : ' · non cadré'}`;
     if (s.g) return `<g class="sh-g" data-tip="${esc(tip)}"><circle cx="${x}" cy="${z}" r="${r + .03}" fill="#fff" stroke="${col}" stroke-width=".035"/><text x="${x}" y="${z + .07}" text-anchor="middle" font-size="${(r + .03) * 1.55}">⚽</text></g>`;
     if (s.ot) return `<circle class="sh-ot" cx="${x}" cy="${z}" r="${r}" fill="${col}" stroke="var(--surface)" stroke-width=".02" data-tip="${esc(tip)}"/>`;
     return `<circle class="sh-off" cx="${x}" cy="${z}" r="${r}" fill="var(--surface)" stroke="${col}" stroke-width=".03" stroke-dasharray="${s.post ? '0' : '.05 .03'}" data-tip="${esc(tip)}"/>`;
@@ -3632,7 +3632,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-11 13:06 UTC';
+const BUILD = '2026-11-11 13:09 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -3769,21 +3769,23 @@ let GK_MEMO = null;
 function gkStats(ms, qs) {
   const key = DATA_VER + '|' + [...qs].join('') + '|' + ms.map(m => m.id).join(',');
   if (GK_MEMO && GK_MEMO.k === key) return GK_MEMO.r;
-  const G = {}, TN = teamNames(), PS = psModel();
+  const G = {}, TN = teamNames(), PS = psModel(), TC = teamCodes(), PIx = playerInfo();
   const get = (id, tid) => G[id] || (G[id] = newGk(id, tid));
+  const mnT = (per, mi) => per && mi != null ? `${Math.floor((per === 2 ? 45 : 0) + mi) + 1}'` : '';
+  const who = pid => pid && PIx[pid] ? PIx[pid].name : '';
   for (const m of ms) {
     if (!m.ev) continue;
     const end = matchMins(m);
     for (const tid of [m.home.id, m.away.id]) {
       const TL = gkTimeline(m, tid); if (!TL.length) continue;
       const opp = otherSide(m, tid), h = m.home.id === tid, conc = h ? m.score[1] : m.score[0];
-      const main = TL.slice().sort((a, b) => b.d - a.d)[0].p;
+      const main = TL.slice().sort((a, b) => b.d - a.d)[0].p, lab = `J${m.j} ${TC[opp] || TN[opp] || ''}`;
       const per = {};
       for (const x of TL) { const o = get(x.p, tid); if (!per[x.p]) { per[x.p] = {m, opp, ga: 0, xgot: 0, ps: 0, sot: 0, og: 0, min: 0}; o.mp++; } o.min += x.d; per[x.p].min += x.d; }
       for (const s of m.ev.shots || []) {
         if (s.tm !== opp || (qs && !qs.has(s.q))) continue;
         const g = gkAt(TL, shotT(s)), o = G[g]; if (!o) continue;
-        o.sh++; o.xg += s.xg; o.shots.push(s);
+        o.sh++; o.xg += s.xg; o.shots.push({...s, tipM: `${lab}${s.per ? ' · ' + mnT(s.per, s.mi) : ''}${who(s.p) ? ' · ' + who(s.p) : ''}`});
         if (s.pen) { o.pen++; if (s.g) o.penG++; }
         if (s.ot || s.g) {
           const ps = s.blk ? 0 : PS(s); s.ps = ps;
@@ -3799,11 +3801,11 @@ function gkStats(ms, qs) {
       (m.ev.opta || []).forEach((e, idx) => {
         if (qs && !qs.has(e.q)) return;
         // centre adverse : attribué au gardien sur le terrain à cet instant (remplacement, carton rouge, blessure)
-        if (e.tm === opp && e.t === 1 && e.cr) { const gk = e.per ? gkAt(TL, minAbs(m, e.per, e.mi)) : main; if (G[gk]) { G[gk].crF++; if (e.ex != null) { const c = {x0: ox(e), y0: oy(e), x1: e.ex * 1.05, y1: (100 - e.ey) * .68, o: e.o ? 1 : 0, by: null, co: e.co ? 1 : 0, idx}; G[gk].crosses.push(c); crM.push(c); lastCr = c; } } return; }
+        if (e.tm === opp && e.t === 1 && e.cr) { const gk = e.per ? gkAt(TL, minAbs(m, e.per, e.mi)) : main; if (G[gk]) { G[gk].crF++; if (e.ex != null) { const c = {x0: ox(e), y0: oy(e), x1: e.ex * 1.05, y1: (100 - e.ey) * .68, o: e.o ? 1 : 0, by: null, co: e.co ? 1 : 0, idx, tip: `${lab}${e.per ? ' · ' + mnT(e.per, e.mi) : ''}${who(e.p) ? ' · centre de ' + who(e.p) : ''}`}; G[gk].crosses.push(c); crM.push(c); lastCr = c; } } return; }
         const o = G[e.p]; if (!o || e.tm !== tid) return;
         if ([11, 41, 52, 53, 59, 12, 49, 8, 7].includes(e.t) && (e.x || e.y)) { const a = {t: e.t, X: 105 - ox(e), Y: 68 - oy(e), o: e.o ? 1 : 0, idx, cr: (e.t === 11 || e.t === 41 || e.t === 53) && lastCr && idx - lastCr.idx <= 4 ? lastCr : null}; o.acts.push(a); actM.push(a); }
         if (e.t === 11) o.cl++; else if (e.t === 41) o.pu++; else if (e.t === 52) o.pk++; else if (e.t === 53) o.nc++; else if (e.t === 59) o.sw++;
-        else if (e.t === 1 && e.gk) { o.gkk++; if (e.o) o.gkkOk++; if (e.lg) o.gkkLg++; if (e.ex != null) o.gkKicks.push({x0: ox(e), y0: oy(e), x1: e.ex * 1.05, y1: (100 - e.ey) * .68, c: e.o ? 1 : 0}); }
+        else if (e.t === 1 && e.gk) { o.gkk++; if (e.o) o.gkkOk++; if (e.lg) o.gkkLg++; if (e.ex != null) { const k = {x0: ox(e), y0: oy(e), x1: e.ex * 1.05, y1: (100 - e.ey) * .68, c: e.o ? 1 : 0}; k.L = Math.hypot(k.x1 - k.x0, k.y1 - k.y0); k.tip = `${lab}${e.per ? ' · ' + mnT(e.per, e.mi) : ''}`; o.gkKicks.push(k); } }
       });
       // sortie aérienne ↔ centre : le centre adverse qui la précède immédiatement (4 événements Opta au plus),
       // et dont le point d'arrivée est à moins de 15 m de l'intervention
@@ -3815,7 +3817,7 @@ function gkStats(ms, qs) {
         const o = G[p.p]; if (!o || p.tm !== tid || (qs && !qs.has(p.q))) continue;
         const L = Math.hypot(p.x1 - p.x0, p.y1 - p.y0);
         o.pas++; if (p.c) o.pasOk++; o.len += L; if (L >= 35) { o.lg++; if (p.c) o.lgOk++; }
-        o.passes.push({x0: p.x0, y0: p.y0, x1: p.x1, y1: p.y1, c: p.c, L});
+        o.passes.push({x0: p.x0, y0: p.y0, x1: p.x1, y1: p.y1, c: p.c, L, tip: `${lab} · ${mnT(p.per, p.mi)}`});
       }
       for (const [pid, r] of Object.entries(per)) {
         if (r.min >= end * .9 && conc === 0 && qs.size === 6) G[pid].cs++;
@@ -3884,7 +3886,7 @@ function renderGK(TN, PI, f) {
     const ln = CR.slice(0, 700).map(c => { const [a, b] = V(c.x0, c.y0), [x, y] = V(c.x1, c.y1);
       const k = c.by ? CC[c.by] : c.o ? RED : GREY, tip = c.by ? {claim: 'Capté par le gardien', punch: 'Boxé par le gardien', drop: 'Sortie : ballon relâché', miss: 'Sortie manquée'}[c.by] : c.o ? 'Centre réussi (reçu par un adversaire)' : 'Centre raté / dégagé par la défense';
       const dot = c.by === 'punch' ? `<circle cx="${x}" cy="${y}" r="1.1" fill="var(--surface)" stroke="${k}" stroke-width=".6"/>` : c.by === 'miss' ? `<path d="M${x - 1} ${y - 1}L${x + 1} ${y + 1}M${x + 1} ${y - 1}L${x - 1} ${y + 1}" stroke="${k}" stroke-width=".6"/>` : `<circle cx="${x}" cy="${y}" r="${c.by ? 1.1 : .8}" fill="${k}"/>`;
-      return `<g data-tip="${esc(tip)}"><line x1="${a}" y1="${b}" x2="${x}" y2="${y}" stroke="${k}" stroke-width="${c.by ? .35 : .2}" stroke-opacity="${c.by ? .8 : .35}"/>${dot}</g>`; }).join('');
+      return `<g data-tip="${esc((c.tip ? c.tip + (c.co ? ' (corner)' : '') + ' · ' : '') + tip)}"><line x1="${a}" y1="${b}" x2="${x}" y2="${y}" stroke="${k}" stroke-width="${c.by ? .35 : .2}" stroke-opacity="${c.by ? .8 : .35}"/>${dot}</g>`; }).join('');
     $('#gkCrMap').innerHTML = half(ln);
     $('#gkCrLeg').innerHTML = `<span><i style="background:${col}"></i>Capté</span><span><i style="border:2px solid ${col};background:transparent"></i>Boxé</span><span><i style="background:#e08a00"></i>Relâché</span><span><b style="color:#d0453f">✕</b> Sortie manquée</span><span><i style="background:${RED}"></i>Réussi par l’adversaire</span><span><i style="background:var(--text-3)"></i>Raté / dégagé par la défense</span>`;
     const all = o.crosses, nB = all.filter(c => inBox(c.x1, c.y1)).length, nOk = all.filter(c => c.o).length, byGk = all.filter(c => c.by).length;
@@ -3935,7 +3937,7 @@ function renderGK(TN, PI, f) {
   const pt = $('#gkPassType').value, PS = pt === 'gk' ? o.gkKicks : o.passes.filter(p => pt === 'all' || (pt === 'long' ? p.L >= 35 : p.L < 35));
   const ok = PS.filter(p => p.c).length;
   $('#gkPassSub').textContent = `${PS.length} ${pt === 'gk' ? 'six mètres' : 'passes'} · ${PS.length ? fmt(ok / PS.length * 100, 0) : 0} % réussies · sens d’attaque →`;
-  const ln = PS.slice(0, 500).map(p => `<line x1="${r1(p.x0)}" y1="${r1(p.y0)}" x2="${r1(p.x1)}" y2="${r1(p.y1)}" stroke="${p.c ? col : '#d0453f'}" stroke-width=".34" stroke-opacity="${p.c ? .65 : .8}"/><circle cx="${r1(p.x1)}" cy="${r1(p.y1)}" r=".7" fill="${p.c ? col : '#d0453f'}"/>`).join('');
+  const ln = PS.slice(0, 500).map(p => `<g data-tip="${esc(`${p.tip ? p.tip + ' · ' : ''}${pt === 'gk' ? 'six mètres · ' : ''}${fmt(p.L, 0)} m · ${p.c ? 'réussie' : 'ratée'}`)}"><line x1="${r1(p.x0)}" y1="${r1(p.y0)}" x2="${r1(p.x1)}" y2="${r1(p.y1)}" stroke="${p.c ? col : '#d0453f'}" stroke-width=".34" stroke-opacity="${p.c ? .65 : .8}"/><circle cx="${r1(p.x1)}" cy="${r1(p.y1)}" r=".7" fill="${p.c ? col : '#d0453f'}"/></g>`).join('');
   $('#gkPassMap').innerHTML = `<svg class="pitch" viewBox="-2 -2 109 72">${pitchLines(true)}${ln}</svg>`;
   const bins = [[0, 15, 'Courte (< 15 m)'], [15, 35, 'Moyenne (15-35 m)'], [35, 55, 'Longue (35-55 m)'], [55, 200, 'Très longue (≥ 55 m)']].map(([a, b, l]) => { const L = o.passes.filter(p => p.L >= a && p.L < b); return {l, n: L.length, ok: L.filter(p => p.c).length}; });
   const mxb = Math.max(1, ...bins.map(b => b.n));
