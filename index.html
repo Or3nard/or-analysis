@@ -410,7 +410,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-11 12:58 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-11 13:03 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -797,9 +797,6 @@ input.j{width:64px}
             <div><h3>Où il intervient, où l’adversaire reçoit dans le dos</h3><p class="sub">Distance au but, de la ligne de but vers le milieu de terrain</p><div id="gkDepProfile"></div></div>
             <div><h3>Ses interventions hors de la surface</h3><p class="sub" id="gkDepOutSub"></p><div id="gkDepOut"></div></div>
           </div>
-          <details class="ph-more det" id="gkDepDet"><summary>Voir la carte détaillée</summary>
-            <div class="ctrl" style="margin:8px 0"><select id="gkDepType"><option value="both">Actions du gardien + passes dans le dos</option><option value="acts">Actions du gardien</option><option value="beh">Passes adverses dans le dos</option></select></div>
-            <div id="gkDepMap" class="gk-half"></div><div class="legend" id="gkDepLeg"></div></details>
           <p class="note">« Ballon dans le dos » : passe adverse d’au moins 15 m qui franchit la dernière ligne défensive et arrive dans l’axe, aux abords ou dans la surface. « Interventions » : sorties aériennes, sorties hors surface, récupérations, interceptions, tacles et dégagements du gardien.</p>
         </div>
         <div class="card c12 gk-sec"><h2 class="gk-h">Performance et jeu au pied</h2></div>
@@ -3634,7 +3631,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-11 12:58 UTC';
+const BUILD = '2026-11-11 13:03 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -3901,12 +3898,6 @@ function renderGK(TN, PI, f) {
       + `<div class="gkd" style="margin-top:12px"><div class="pzbh">Où arrivent les centres</div>${zr.map(z => `<div class="gkdr"><span>${z.l}</span><i><b style="width:${z.n / mz * 100}%;background:${col}33"></b><b class="ok" style="width:${z.gk / mz * 100}%;background:${col}"></b></i><em>${z.n} · <span style="color:${col}">${z.gk} GB</span></em></div>`).join('')}</div>`
       + `<p class="note">Barre foncée = centres captés ou boxés par le gardien, barre claire = total. ${byGk} centre(s) reliés à une sortie du gardien.</p>`;
     // ---- Profondeur
-    const dt = $('#gkDepType').value, AC = {11: [col, 'Sortie aérienne (captée)'], 41: [col, 'Sortie aérienne (boxée)'], 59: ['#7b4fd0', 'Sortie hors surface (libéro)'], 12: ['#e08a00', 'Dégagement'], 49: ['#2e9e5b', 'Récupération'], 8: ['#2e9e5b', 'Interception'], 7: ['#2e9e5b', 'Tacle'], 52: ['var(--text-3)', 'Ballon ramassé'], 53: ['#d0453f', 'Sortie manquée']};
-    let inner = '';
-    if (dt !== 'acts') inner += o.behind.slice(0, 600).map(p => { const [x, y] = V(p.x1, p.y1); return `<path d="M${x - .8} ${y - .8}L${x + .8} ${y + .8}M${x + .8} ${y - .8}L${x - .8} ${y + .8}" stroke="${p.c ? RED : 'var(--text-3)'}" stroke-width=".35" stroke-opacity=".75" data-tip="${p.c ? 'Passe dans le dos réussie par l’adversaire' : 'Passe dans le dos ratée / coupée'}"/>`; }).join('');
-    if (dt !== 'beh') inner += o.acts.filter(a => a.t !== 52).map(a => { const [x, y] = V(a.X, a.Y), [c, l] = AC[a.t] || ['var(--text-3)', '']; return a.t === 53 ? `<circle cx="${x}" cy="${y}" r="1.05" fill="var(--surface)" stroke="${c}" stroke-width=".5" data-tip="${l}"/>` : `<circle cx="${x}" cy="${y}" r="1.05" fill="${c}" fill-opacity="${a.t === 41 ? .45 : .9}" stroke="var(--surface)" stroke-width=".25" data-tip="${l}"/>`; }).join('');
-    $('#gkDepMap').innerHTML = half(inner);
-    $('#gkDepLeg').innerHTML = (dt !== 'beh' ? `<span><i style="background:${col}"></i>Sortie aérienne</span><span><i style="background:#7b4fd0"></i>Sortie hors surface</span><span><i style="background:#2e9e5b"></i>Récup. / interception / tacle</span><span><i style="background:#e08a00"></i>Dégagement</span><span><i style="border:1.5px solid #d0453f;background:transparent"></i>Sortie manquée</span>` : '') + (dt !== 'acts' ? `<span><b style="color:${RED}">✕</b> Passe dans le dos réussie</span><span><b style="color:var(--text-3)">✕</b> ratée / coupée</span>` : '');
     const defOf = x => x.acts.filter(a => a.t !== 52), outOf = x => defOf(x).filter(a => !inBox(a.X, a.Y));
     const def = defOf(o), outB = outOf(o), dist = mean(def.map(a => 105 - a.X));
     const bh = o.behind, bhOk = bh.filter(p => p.c).length;
@@ -5485,7 +5476,7 @@ function bindUI() {
     refreshAll();
   };
   $('#fReset').onclick = () => { S.f = {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0, 1, 2, 3, 4, 5])}; refreshAll(); };
-  ['#plyPeer', '#plyPassType', '#offMode', '#bmGk', '#defMode', '#duelMin', '#gkCrType', '#gkDepType', '#gkShotType', '#gkPassType', '#gkTblMode', '#gkMinMin', '#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyTeamMode', '#h2hEvoMetric', '#momOffMode', '#xtPlMode',
+  ['#plyPeer', '#plyPassType', '#offMode', '#bmGk', '#defMode', '#duelMin', '#gkCrType', '#gkShotType', '#gkPassType', '#gkTblMode', '#gkMinMin', '#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyTeamMode', '#h2hEvoMetric', '#momOffMode', '#xtPlMode',
    '#offMetric', '#offTeamMode', '#defMetric', '#defTeamMode', '#dngMode']
     .forEach(s => $(s).onchange = () => scheduleRender());
   document.querySelectorAll('[data-csv]').forEach(b => b.onclick = () => exportCSV(b.dataset.csv));
