@@ -214,6 +214,7 @@ details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}
 .pt-split>div{display:grid;grid-template-columns:1fr auto;gap:2px 10px;margin:8px 0;font-size:13px}.pt-split i{grid-column:1/3;display:block;height:8px;border-radius:4px}
 .ptz{width:100%;max-width:1100px}.ptz td,.ptz th{padding:8px 10px}.ptz tr.few td{opacity:.45}.ptz td.up{color:#2e9e5b;font-weight:700}.ptz td.dn{color:#d0453f;font-weight:700}.zdot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:-1px}
 @media (max-width:1100px){.pt-groups{grid-template-columns:1fr}.pt-row{grid-auto-flow:row;grid-template-columns:1fr 1fr}}
+.qc-err{color:#d0453f;font-weight:700}.qc-warn{color:#c47f00;font-weight:700}.qct td{vertical-align:top}.qct tr.qc-err td:first-child{color:#d0453f}.qct tr.qc-warn td:first-child{color:#c47f00}.qct tr.qc-info td{color:var(--text-3)}
 .fn-head{font-size:15px;line-height:1.5;margin:6px 0 14px;color:var(--text-2)}.fn-head b{color:var(--text)}
 .fn{display:grid;grid-template-columns:1fr 34px 1fr 34px 1fr 34px 1fr;align-items:stretch}.fn-s{background:var(--surface-2);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:3px}.fn-s>span{font-size:12px;color:var(--text-2);font-weight:600}.fn-s>b{font-size:30px;line-height:1.1;font-weight:800}.fn-s>small{font-size:11.5px;color:var(--text-3)}
 .fn-a{display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text-3)}.fn-a svg{width:22px}
@@ -405,7 +406,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-11 11:53 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-11 12:19 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -494,6 +495,12 @@ input.j{width:64px}
       </div>
       <p class="sub" id="compNote" style="margin:6px 0"></p>
       <div id="matchList"></div>
+    </div>
+    <div class="card c12" id="qcCard">
+      <div class="card-head"><div><h2>Contrôle des données</h2><p class="sub">Vérifie que chaque match est cohérent : score et buts, quarts d’heure, joueurs et équipe, données physiques, corners, journées. À lancer après chaque import (compétition et saison choisies en haut).</p></div>
+        <div class="ctrl"><button class="btn primary" id="qcRun">Lancer le contrôle</button></div></div>
+      <p class="sub" id="qcSum"></p>
+      <div class="tbl-wrap" id="qcList"></div>
     </div>
     <div class="card c12" id="logoCard">
       <div class="card-head"><div><h2>Logos et couleurs des équipes</h2><p class="sub">Importez l'image de chaque club (PNG, JPG ou SVG). Les deux pastilles sont la couleur principale et la couleur secondaire du club (cliquez pour les modifier) : la secondaire est utilisée quand deux équipes d'un même graphique ont des couleurs trop proches. Logos et couleurs s'appliquent à tous les utilisateurs.</p></div></div>
@@ -3613,7 +3620,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-11 11:53 UTC';
+const BUILD = '2026-11-11 12:19 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4207,6 +4214,79 @@ function color4(c, a) { c = String(c || '').trim(); let r, g, b;
 // abréviations des clubs (« RCSA », « LOSC »…) tirées de la description des matchs (« RCSA - AJA : date »)
 function teamCodes() { const c = {}; for (const m of Object.values(S.matches)) { const mm = /^\s*(.+?)\s+-\s+(.+?)\s*:/.exec(m.desc || ''); if (mm) { c[m.home.id] = mm[1]; c[m.away.id] = mm[2]; } } return c; }
 const oppLabel = (m, tid, TN) => { const o = otherSide(m, tid), C = teamCodes(); return `J${m.j} ${C[o] || TN[o] || ''}`; };
+/* =====================================================================
+   Contrôle des données : règles de cohérence vérifiées sur chaque match
+   (même code pour l'écran « Contrôle des données » et pour le test automatique avant mise en ligne)
+   ===================================================================== */
+function qualityChecks(list) {
+  list = list || Object.values(S.matches);
+  const out = [], ALLQ = new Set([0, 1, 2, 3, 4, 5]);
+  const add = (lvl, m, cat, msg) => out.push({lvl, id: m ? m.id : '', match: m ? `${m.j ? 'J' + m.j + ' · ' : ''}${(m.desc || '').split(':')[0].trim()}` : 'Base', cat, msg});
+  const near = (a, b, tol) => Math.abs((a || 0) - (b || 0)) <= tol;
+  const seen = {};
+  for (const m of list) {
+    if (!m || !m.home || !m.away) continue;
+    const key = String(m.date || '').slice(0, 10) + '|' + m.home.id + '|' + m.away.id;
+    if (seen[key]) add('err', m, 'Doublon', `match présent deux fois (${seen[key]})`); seen[key] = m.id;
+    const ids = [m.home.id, m.away.id];
+    if (m.ev) {
+      const T = aggTactical([m], ALLQ).T, P = aggTactical([m], ALLQ).P;
+      // 1. score du fichier = buts comptés
+      ids.forEach((t, i) => { const g = m.ev.goals.filter(x => x.tm === t).length;
+        if (m.score && m.score[i] != null && g !== m.score[i]) add('err', m, 'Score', `${teamNames()[t] || t} : ${g} but(s) dans les événements pour un score de ${m.score[i]}`);
+        if (T[t] && T[t].gf !== g) add('err', m, 'Score', `${teamNames()[t] || t} : ${T[t].gf} but(s) agrégés pour ${g} dans les événements`); });
+      // 2. les quarts d'heure se recollent avec le match entier
+      for (const t of ids) { if (!T[t]) continue; const s = {sh: 0, xg: 0, pass: 0};
+        for (let q = 0; q < 6; q++) { const o = aggTactical([m], new Set([q])).T[t]; if (o) { s.sh += o.sh; s.xg += o.xg; s.pass += o.pass; } }
+        if (s.sh !== T[t].sh || !near(s.xg, T[t].xg, .01) || s.pass !== T[t].pass) add('warn', m, 'Quarts d’heure', `${teamNames()[t]} : la somme des 6 quarts d’heure (${s.sh} tirs, ${fmt(s.xg, 2)} xG, ${s.pass} passes) ne recolle pas avec le match entier (${T[t].sh}, ${fmt(T[t].xg, 2)}, ${T[t].pass})`); }
+      // 3. somme des joueurs = équipe
+      for (const t of ids) { if (!T[t]) continue; const s = {sh: 0, xg: 0, pass: 0};
+        for (const [pid, o] of Object.entries(P)) if ((playerInfo()[pid] || {}).team === t || (m.players[pid] || {}).team === t) { s.sh += o.sh; s.xg += o.xg; s.pass += o.pass; }
+        if (s.sh > T[t].sh || s.pass > T[t].pass) add('err', m, 'Joueurs / équipe', `${teamNames()[t]} : les joueurs totalisent plus que l’équipe (${s.sh} tirs pour ${T[t].sh}, ${s.pass} passes pour ${T[t].pass})`);
+        else if (T[t].sh - s.sh > 1 || T[t].pass - s.pass > T[t].pass * .02) add('warn', m, 'Joueurs / équipe', `${teamNames()[t]} : ${T[t].sh - s.sh} tir(s) et ${T[t].pass - s.pass} passe(s) sans joueur identifié`); }
+      // 4. valeurs plausibles
+      for (const x of m.ev.shots) if (!(x.xg >= 0 && x.xg <= 1)) { add('err', m, 'xG', `tir avec un xG hors de [0 ; 1] (${x.xg})`); break; }
+      const noXg = m.ev.shots.filter(x => !x.pen && !x.xg).length; if (noXg > 2) add('warn', m, 'xG', `${noXg} tirs sans xG Second Spectrum`);
+      for (const t of ids) if (T[t] && T[t].pass && (T[t].passOk > T[t].pass)) add('err', m, 'Passes', `${teamNames()[t]} : plus de passes réussies que de passes`);
+      // 5. corners : chaque corner Second Spectrum retrouvé dans Opta
+      const nm = (m.ev.corners || []).filter(c => c.mode === undefined).length; if (nm) add('info', m, 'Corners', `${nm} corner(s) sans événement Opta correspondant (écartés des analyses CPA)`);
+      for (const t of ids) { const c = (m.ev.corners || []).filter(c => c.tm === t && c.mode !== undefined), sh = c.reduce((a, x) => a + (x.nsh || 0), 0);
+        if (T[t] && sh > T[t].sh) add('err', m, 'Corners', `${teamNames()[t]} : ${sh} tirs attribués aux corners pour ${T[t].sh} tirs au total`); }
+      // 6. composition
+      for (const t of ids) { const byNum = {}; for (const [id, pl] of Object.entries(m.players)) if (pl.team === t && pl.pos) byNum[pl.num || id] = pl; // doublons de metadata : un par numéro
+        const n = Object.values(byNum).filter(pl => String(pl.pos).toUpperCase() !== 'SUB').length; if (n && n !== 11) add('warn', m, 'Composition', `${teamNames()[t]} : ${n} titulaires dans la feuille de match`); }
+    } else add('warn', m, 'Fichiers', 'pas de fichier insight (événements) : match absent de l’analyse tactique');
+    if (m.phys) {
+      const PH = aggPhys([m]);
+      for (const t of ids) { const o = PH.T[t]; if (!o) { add('warn', m, 'Physique', `${teamNames()[t]} : pas de données physiques`); continue; }
+        let s = 0; for (const p of Object.values(PH.P)) if (p.tm === t) s += p.dist;
+        if (!near(s, o.dist, 5)) add('err', m, 'Physique', `${teamNames()[t]} : la somme des joueurs (${fmt(s, 0)} m) ne recolle pas avec l’équipe (${fmt(o.dist, 0)} m)`);
+        if (o.dist < 80000 || o.dist > 140000) add('warn', m, 'Physique', `${teamNames()[t]} : distance d’équipe inhabituelle (${fmt(o.dist / 1000, 1)} km)`); }
+      const dur = (m.periods || []).reduce((a, p) => a + (p.dur || 0), 0);
+      for (const [pid, o] of Object.entries(PH.P)) { const nm2 = (playerInfo()[pid] || m.players[pid] || {}).name || pid.slice(0, 6);
+        if (o.vmax > 37.5) add('warn', m, 'Physique', `${nm2} : vitesse max de ${fmt(o.vmax, 1)} km/h, à vérifier`);
+        if (dur && o.time > dur + 120) add('warn', m, 'Physique', `${nm2} : ${fmt(o.time / 60, 0)} min jouées pour un match de ${fmt(dur / 60, 0)} min`);
+        if (o.time > 600 && o.dist / (o.time / 60) > 160) add('warn', m, 'Physique', `${nm2} : ${fmt(o.dist / (o.time / 60), 0)} m/min, à vérifier`); }
+    } else add('info', m, 'Fichiers', 'pas de données physiques');
+    if (m.ev && !m.trk) add('info', m, 'Fichiers', 'pas de tracking : positions sur corners / CFI et vitesses indisponibles');
+  }
+  // 7. journées : une équipe ne joue qu'une fois par journée et par compétition
+  const byJ = {};
+  for (const m of list) { if (!m || !m.j) continue; for (const t of [m.home.id, m.away.id]) { const k = (m.comp || '') + '|' + seasonOf(m) + '|' + m.j + '|' + t; if (byJ[k]) add('warn', m, 'Journées', `${teamNames()[t]} joue deux fois en J${m.j}`); byJ[k] = 1; } }
+  return out;
+}
+function renderQuality() {
+  const list = CM(), Q = qualityChecks(list), L = {err: 'Erreur', warn: 'À vérifier', info: 'Info'};
+  const n = k => Q.filter(x => x.lvl === k).length;
+  $('#qcSum').innerHTML = `<b>${list.length}</b> match(s) contrôlé(s) · <span class="qc-err">${n('err')} erreur(s)</span> · <span class="qc-warn">${n('warn')} point(s) à vérifier</span> · <span class="muted">${n('info')} info(s)</span>${!n('err') && !n('warn') ? ' · <b style="color:#2e9e5b">tout est cohérent ✓</b>' : ''}`;
+  // infos identiques regroupées en une ligne (liste des matchs au survol)
+  const G = {}; const Q2 = [];
+  for (const x of Q) { if (x.lvl !== 'info') { Q2.push(x); continue; } const k = x.cat + '|' + x.msg.replace(/^\d+ /, 'n '); (G[k] = G[k] || {...x, ms: []}).ms.push(x.match); }
+  for (const g of Object.values(G)) Q2.push(g.ms.length > 1 ? {...g, match: `${g.ms.length} matchs`, tip: g.ms.join('\n')} : g);
+  const rows = Q2.slice().sort((a, b) => ({err: 0, warn: 1, info: 2}[a.lvl] - {err: 0, warn: 1, info: 2}[b.lvl]) || a.match.localeCompare(b.match));
+  $('#qcList').innerHTML = rows.length ? `<table class="gkz qct"><tr><th class="txt">Niveau</th><th class="txt">Match</th><th class="txt">Contrôle</th><th class="txt">Détail</th></tr>${rows.map(x => `<tr class="qc-${x.lvl}"><td class="txt"><b>${L[x.lvl]}</b></td><td class="txt"${x.tip ? ` title="${esc(x.tip)}"` : ''}>${esc(x.match)}</td><td class="txt">${esc(x.cat)}</td><td class="txt">${esc(x.msg)}</td></tr>`).join('')}</table>` : '';
+  return Q;
+}
 /* ---------- Physique : résumé collectif ---------- */
 // les 5 allures de Second Spectrum
 const PZ = [['walk', 'tWalk', null, 'Marche', '0-7 km/h', '--z1'], ['jog', 'tJog', null, 'Footing', '7-15 km/h', '--z2'], ['lsr', 'tLsr', 'nlsr', 'Course lente', '15-20 km/h', '--z3'],
@@ -5322,6 +5402,7 @@ function bindUI() {
   document.addEventListener('click', e => { const t = e.target.closest('.shf [data-sh]'); if (!t) return; const sc = t.closest('.subpanel, .rpage, .card') || document.body; sc.classList.toggle('shh-' + t.dataset.sh); });
   document.addEventListener('click', e => { const b = e.target.closest('[data-more]'); if (!b) return; const w = document.getElementById(b.dataset.more + 'Wrap'); if (!w) return; w.hidden = !w.hidden; b.textContent = b.textContent.replace(/^(Voir|Masquer)/, w.hidden ? 'Voir' : 'Masquer'); });
   [['#ckSide', 'side'], ['#ckZoneMode', 'zm'], ['#ckPlMode', 'pl'], ['#spType', 'ty'], ['#fkDir', 'fd']].forEach(([id, k]) => $(id).onclick = e => { const b = e.target.closest('[data-v]'); if (!b || b.disabled) return; S.ck = S.ck || {}; S.ck[k] = b.dataset.v; if (k === 'ty') S.ck.dt = b.dataset.v; scheduleRender(); });
+  $('#qcRun').onclick = () => { $('#qcSum').textContent = 'Contrôle en cours…'; setTimeout(renderQuality, 30); };
   $('#dngType').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; S.ck = S.ck || {}; S.ck.dt = b.dataset.v; if (b.dataset.v !== 'all') S.ck.ty = b.dataset.v; scheduleRender(); };
   $('#ckF3').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.ck = S.ck || {}; const K3 = S.ck.f3 = S.ck.f3 || {};
     if (b.dataset.g === 'reset') S.ck.f3 = {}; else { const grp = b.parentElement.dataset.g; if (!grp || !b.dataset.v) return; K3[grp] = b.dataset.v; } scheduleRender(); };
