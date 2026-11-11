@@ -410,7 +410,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-11 13:03 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-11 13:06 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -799,11 +799,7 @@ input.j{width:64px}
           </div>
           <p class="note">« Ballon dans le dos » : passe adverse d’au moins 15 m qui franchit la dernière ligne défensive et arrive dans l’axe, aux abords ou dans la surface. « Interventions » : sorties aériennes, sorties hors surface, récupérations, interceptions, tacles et dégagements du gardien.</p>
         </div>
-        <div class="card c12 gk-sec"><h2 class="gk-h">Performance et jeu au pied</h2></div>
-        <div class="card c12">
-          <div class="card-head"><div><h2>Buts évités, match par match</h2><p class="sub" id="gkMatchSub"></p></div></div>
-          <div class="chart-box"><canvas id="chGkMatch"></canvas></div>
-        </div>
+        <div class="card c12 gk-sec"><h2 class="gk-h">Jeu au pied</h2></div>
         <div class="card c7">
           <div class="card-head"><div><h2>Jeu au pied : où vont ses passes</h2><p class="sub" id="gkPassSub"></p></div>
           <div class="ctrl"><select id="gkPassType"><option value="all">Toutes les passes</option><option value="long">Longues (≥ 35 m)</option><option value="short">Courtes (&lt; 35 m)</option><option value="gk">Dégagements six mètres</option></select></div></div>
@@ -813,6 +809,11 @@ input.j{width:64px}
         <div class="card c5">
           <div class="card-head"><div><h2>Profil de distribution</h2><p class="sub">Répartition et réussite selon la longueur</p></div></div>
           <div id="gkDist"></div>
+        </div>
+        <div class="card c12 gk-sec"><h2 class="gk-h">Performance</h2></div>
+        <div class="card c12">
+          <div class="card-head"><div><h2>Buts évités, match par match</h2><p class="sub" id="gkMatchSub"></p></div></div>
+          <div class="chart-box"><canvas id="chGkMatch"></canvas></div>
         </div>
         <div class="card c12">
           <div class="card-head"><div><h2>Classement des gardiens</h2><p class="sub" id="gkTblSub">Cliquez sur un gardien pour l’afficher</p></div>
@@ -3631,7 +3632,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-11 13:03 UTC';
+const BUILD = '2026-11-11 13:06 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -3818,7 +3819,7 @@ function gkStats(ms, qs) {
       }
       for (const [pid, r] of Object.entries(per)) {
         if (r.min >= end * .9 && conc === 0 && qs.size === 6) G[pid].cs++;
-        G[pid].M.push({...r, lab: `J${m.j} ${TN[opp] || ''}`, h});
+        G[pid].M.push({...r, lab: `J${m.j} ${teamCodes()[opp] || TN[opp] || ''}`, labL: `J${m.j} ${TN[opp] || ''}`, h});
       }
     }
   }
