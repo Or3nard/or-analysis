@@ -407,7 +407,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-11 12:34 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-11 12:40 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3624,7 +3624,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-11 12:34 UTC';
+const BUILD = '2026-11-11 12:40 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -3782,20 +3782,20 @@ function gkStats(ms, qs) {
         if (s.gkd != null && !s.pen) { o.gkd += s.gkd; o.gkdN++; if (s.pat === 'ctr' && s.gkl != null) { o.gklC += s.gkl; o.gklCN++; } }
       }
       for (const g of m.ev.goals || []) if (g.og && g.tm === opp && (!qs || qs.has(g.q))) { const p = gkAt(TL, g.per ? minAbs(m, g.per, g.mi) : g.min || 0); if (G[p]) { G[p].og++; per[p].og++; } }
-      const crM = [], actM = [];
-      for (const e of m.ev.opta || []) {
-        if (qs && !qs.has(e.q)) continue;
-        if (e.tm === opp && e.t === 1 && e.cr) { if (G[main]) { G[main].crF++; if (e.ex != null) { const c = {x0: ox(e), y0: oy(e), x1: e.ex * 1.05, y1: (100 - e.ey) * .68, o: e.o ? 1 : 0, by: null, co: e.co ? 1 : 0}; G[main].crosses.push(c); crM.push(c); } } continue; }
-        const o = G[e.p]; if (!o || e.tm !== tid) continue;
-        if ([11, 41, 52, 53, 59, 12, 49, 8, 7].includes(e.t) && (e.x || e.y)) { const a = {t: e.t, X: 105 - ox(e), Y: 68 - oy(e), o: e.o ? 1 : 0}; o.acts.push(a); actM.push(a); }
+      const crM = [], actM = []; let lastCr = null;
+      (m.ev.opta || []).forEach((e, idx) => {
+        if (qs && !qs.has(e.q)) return;
+        if (e.tm === opp && e.t === 1 && e.cr) { if (G[main]) { G[main].crF++; if (e.ex != null) { const c = {x0: ox(e), y0: oy(e), x1: e.ex * 1.05, y1: (100 - e.ey) * .68, o: e.o ? 1 : 0, by: null, co: e.co ? 1 : 0, idx}; G[main].crosses.push(c); crM.push(c); lastCr = c; } } return; }
+        const o = G[e.p]; if (!o || e.tm !== tid) return;
+        if ([11, 41, 52, 53, 59, 12, 49, 8, 7].includes(e.t) && (e.x || e.y)) { const a = {t: e.t, X: 105 - ox(e), Y: 68 - oy(e), o: e.o ? 1 : 0, idx, cr: (e.t === 11 || e.t === 41 || e.t === 53) && lastCr && idx - lastCr.idx <= 4 ? lastCr : null}; o.acts.push(a); actM.push(a); }
         if (e.t === 11) o.cl++; else if (e.t === 41) o.pu++; else if (e.t === 52) o.pk++; else if (e.t === 53) o.nc++; else if (e.t === 59) o.sw++;
         else if (e.t === 1 && e.gk) { o.gkk++; if (e.o) o.gkkOk++; if (e.lg) o.gkkLg++; if (e.ex != null) o.gkKicks.push({x0: ox(e), y0: oy(e), x1: e.ex * 1.05, y1: (100 - e.ey) * .68, c: e.o ? 1 : 0}); }
-      }
-      // sorties aériennes ↔ centre le plus proche (point d'arrivée à moins de 9 m)
-      for (const a of actM) if (a.t === 11 || a.t === 41 || a.t === 53) {
-        let best = null, bd = 9; for (const c of crM) { if (c.by || c.o) continue; const d = Math.hypot(c.x1 - a.X, c.y1 - a.Y); if (d < bd) { bd = d; best = c; } }
-        if (best) best.by = a.t === 11 ? (a.o ? 'claim' : 'drop') : a.t === 41 ? 'punch' : 'miss';
-      }
+      });
+      // sortie aérienne ↔ centre : le centre adverse qui la précède immédiatement (4 événements Opta au plus),
+      // et dont le point d'arrivée est à moins de 15 m de l'intervention
+      for (const a of actM) { const c = a.cr; if (!c || c.by || c.o) continue; if (Math.hypot(c.x1 - a.X, c.y1 - a.Y) > 15) continue;
+        c.by = a.t === 11 ? (a.o ? 'claim' : 'drop') : a.t === 41 ? 'punch' : 'miss'; }
+      for (const c of crM) delete c.idx; for (const a of actM) { delete a.cr; delete a.idx; }
       for (const p of m.ev.passes || []) if (p.tm === opp && p.br && p.x1 >= 83 && Math.abs(p.y1 - 34) <= 22 && Math.hypot(p.x1 - p.x0, p.y1 - p.y0) >= 15 && (!qs || qs.has(p.q))) { const g = gkAt(TL, p.per ? minAbs(m, p.per, p.mi) : 0); if (G[g]) G[g].behind.push({x1: p.x1, y1: p.y1, x0: p.x0, y0: p.y0, c: p.c}); }
       for (const p of m.ev.passes || []) {
         const o = G[p.p]; if (!o || p.tm !== tid || (qs && !qs.has(p.q))) continue;
