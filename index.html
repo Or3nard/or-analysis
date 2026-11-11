@@ -407,7 +407,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-11 12:40 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-11 12:50 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -1547,7 +1547,7 @@ function baseFromMeta(meta, md) {
 }
 
 /* ---------- Insight : événements Opta + marquages tracking ---------- */
-const EV_VER = 12; // version du traitement des événements (à incrémenter si procInsight change)
+const EV_VER = 14; // version du traitement des événements (à incrémenter si procInsight change)
 const OPTA_KEEP = new Set([1, 3, 4, 7, 8, 10, 11, 12, 17, 41, 44, 45, 49, 50, 52, 53, 59, 61, 74]);
 function procInsight(m, rows) {
   const L = m.L, W = m.W;
@@ -1636,7 +1636,7 @@ function procInsight(m, rows) {
       continue;
     }
     if (!OPTA_KEEP.has(o.typeId)) continue;
-    const e = {t: o.typeId, o: o.outcome, p: pid, tm, q, x: o.x, y: o.y};
+    const e = {t: o.typeId, o: o.outcome, p: pid, tm, q, x: o.x, y: o.y, per: pm.per, mi: pm.mi};
     if (o.typeId === 1) {
       e.cr = qv[2] !== undefined ? 1 : 0; if (qv[6] !== undefined) e.co = 1; if (qv[124] !== undefined) e.gk = 1; if (qv[1] !== undefined) e.lg = 1;
       if (qv[140] !== undefined) { e.ex = +qv[140]; e.ey = +qv[141]; }
@@ -1765,8 +1765,11 @@ function procInsight(m, rows) {
     const absOf = o => o.typeId === 34 ? -1 : (o.periodId === 1 ? 0 : D1) + ((o.periodId === 1 ? o.timeMin : o.timeMin - 45) + (o.timeSec || 0) / 60) * 60;
     const lst = optaRaw.filter(o => teamOf[o.contestantId] && (o.typeId === 34 || ((o.periodId === 1 || o.periodId === 2) && [40, 18, 19, 17].includes(o.typeId))))
       .map((o, i) => ({o, i, t: absOf(o)})).sort((a, b) => a.t - b.t || a.i - b.i);
-    const form = {}, pos = {}, cur = {}, curF = {};
-    const close = (pid, t) => { const c = cur[pid]; if (!c) return; const d = Math.max(0, t - c.t0) / 60; const L = pos[pid] || (pos[pid] = []); const x = L.find(y => y[0] === c.f && y[1] === c.s); if (x) x[2] += d; else L.push([c.f, c.s, d, c.t0 <= 0 ? 1 : 0]); delete cur[pid]; };
+    const form = {}, pos = {}, cur = {}, curF = {}, gkT = {};
+    const mAbs = t => Math.round((t < D1 ? t / 60 : 45 + (t - D1) / 60) * 100) / 100; // même échelle que minAbs()
+    const close = (pid, t) => { const c = cur[pid]; if (!c) return;
+      if (c.s === 1 && t > c.t0) { const tm = (m.players[pid] || {}).team; if (tm) (gkT[tm] = gkT[tm] || []).push([pid, mAbs(c.t0), mAbs(t)]); } /* qui est dans les buts, et quand */
+      const d = Math.max(0, t - c.t0) / 60; const L = pos[pid] || (pos[pid] = []); const x = L.find(y => y[0] === c.f && y[1] === c.s); if (x) x[2] += d; else L.push([c.f, c.s, d, c.t0 <= 0 ? 1 : 0]); delete cur[pid]; };
     const open = (pid, f, s, t) => { const c = cur[pid]; if (c && c.f === f && c.s === s) return; close(pid, t); cur[pid] = {f, s, t0: Math.max(0, t), tm: null}; };
     for (const {o, t} of lst) {
       const tm = teamOf[o.contestantId], qv = {}; (o.qualifier || []).forEach(x => qv[x.qualifierId] = x.value);
@@ -1782,7 +1785,9 @@ function procInsight(m, rows) {
     }
     for (const pid of Object.keys(cur)) close(pid, END);
     for (const L of Object.values(pos)) L.forEach(x => x[2] = Math.round(x[2]));
-    ev.form = form; ev.pos = pos;
+    for (const tm in gkT) { const L = gkT[tm].sort((x, y) => x[1] - y[1]), M = []; // même gardien sur deux systèmes successifs : un seul intervalle
+      for (const x of L) { const l = M[M.length - 1]; if (l && l[0] === x[0] && x[1] - l[2] < .5) l[2] = Math.max(l[2], x[2]); else M.push(x.slice()); } gkT[tm] = M; }
+    ev.form = form; ev.pos = pos; ev.gkT = gkT;
   }
   ev.v = EV_VER;
   m.ev = ev;
@@ -3624,7 +3629,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-11 12:40 UTC';
+const BUILD = '2026-11-11 12:50 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -3704,6 +3709,11 @@ function renderPlayerCard(ms, TN, PI, f, P) {
    ===================================================================== */
 // Gardien(s) d'une équipe dans un match : [{p, t0}] (t0 en minutes de jeu, 0 = coup d'envoi)
 function gkTimeline(m, tid) {
+  // intervalles exacts « dans les buts » (remplacement, carton rouge, joueur de champ au but après un changement de système)
+  const T = m.ev && m.ev.gkT && m.ev.gkT[tid];
+  if (T && T.length) { const out = [];
+    for (const [p, a, b] of T.slice().sort((x, y) => x[1] - y[1])) { const last = out[out.length - 1]; if (last && last.p === p && a - (last.t0 + last.d) < .5) last.d = b - last.t0; else out.push({p, t0: a, d: b - a}); }
+    return out; }
   const out = [], pos = (m.ev && m.ev.pos) || {};
   for (const [pid, L] of Object.entries(pos)) {
     if ((m.players[pid] || {}).team !== tid) continue;
@@ -3785,7 +3795,8 @@ function gkStats(ms, qs) {
       const crM = [], actM = []; let lastCr = null;
       (m.ev.opta || []).forEach((e, idx) => {
         if (qs && !qs.has(e.q)) return;
-        if (e.tm === opp && e.t === 1 && e.cr) { if (G[main]) { G[main].crF++; if (e.ex != null) { const c = {x0: ox(e), y0: oy(e), x1: e.ex * 1.05, y1: (100 - e.ey) * .68, o: e.o ? 1 : 0, by: null, co: e.co ? 1 : 0, idx}; G[main].crosses.push(c); crM.push(c); lastCr = c; } } return; }
+        // centre adverse : attribué au gardien sur le terrain à cet instant (remplacement, carton rouge, blessure)
+        if (e.tm === opp && e.t === 1 && e.cr) { const gk = e.per ? gkAt(TL, minAbs(m, e.per, e.mi)) : main; if (G[gk]) { G[gk].crF++; if (e.ex != null) { const c = {x0: ox(e), y0: oy(e), x1: e.ex * 1.05, y1: (100 - e.ey) * .68, o: e.o ? 1 : 0, by: null, co: e.co ? 1 : 0, idx}; G[gk].crosses.push(c); crM.push(c); lastCr = c; } } return; }
         const o = G[e.p]; if (!o || e.tm !== tid) return;
         if ([11, 41, 52, 53, 59, 12, 49, 8, 7].includes(e.t) && (e.x || e.y)) { const a = {t: e.t, X: 105 - ox(e), Y: 68 - oy(e), o: e.o ? 1 : 0, idx, cr: (e.t === 11 || e.t === 41 || e.t === 53) && lastCr && idx - lastCr.idx <= 4 ? lastCr : null}; o.acts.push(a); actM.push(a); }
         if (e.t === 11) o.cl++; else if (e.t === 41) o.pu++; else if (e.t === 52) o.pk++; else if (e.t === 53) o.nc++; else if (e.t === 59) o.sw++;
@@ -4265,6 +4276,12 @@ function qualityChecks(list) {
       const nm = (m.ev.corners || []).filter(c => c.mode === undefined).length; if (nm) add('info', m, 'Corners', `${nm} corner(s) sans événement Opta correspondant (écartés des analyses CPA)`);
       for (const t of ids) { const c = (m.ev.corners || []).filter(c => c.tm === t && c.mode !== undefined), sh = c.reduce((a, x) => a + (x.nsh || 0), 0);
         if (T[t] && sh > T[t].sh) add('err', m, 'Corners', `${teamNames()[t]} : ${sh} tirs attribués aux corners pour ${T[t].sh} tirs au total`); }
+      // 5 bis. un gardien dans les buts pendant tout le match
+      if (m.ev.gkT) for (const t of ids) { const L = (m.ev.gkT[t] || []).slice().sort((x, y) => x[1] - y[1]), end = 45 + ((m.periods || []).find(p => p.n === 2) || {dur: 2940}).dur / 60; // échelle minAbs
+        if (!L.length) { add('warn', m, 'Gardien', `${teamNames()[t]} : aucun gardien identifié dans la composition`); continue; }
+        let cov = 0, gap = L[0][1]; L.forEach((x, i) => { cov += Math.min(x[2], end) - x[1]; if (i) gap = Math.max(gap, x[1] - L[i - 1][2]); });
+        if (gap > 2 || end - cov > 3) add('warn', m, 'Gardien', `${teamNames()[t]} : pas de gardien identifié pendant ${fmt(Math.max(gap, end - cov), 0)} min`);
+        if (L.length > 1) add('info', m, 'Gardien', `${teamNames()[t]} : changement de gardien en cours de match (${L.map(x => `${(playerInfo()[x[0]] || {}).name || '?'} ${fmt(x[1], 0)}'-${fmt(x[2], 0)}'`).join(', ')})`); }
       // 6. composition
       for (const t of ids) { const byNum = {}; for (const [id, pl] of Object.entries(m.players)) if (pl.team === t && pl.pos) byNum[pl.num || id] = pl; // doublons de metadata : un par numéro
         const n = Object.values(byNum).filter(pl => String(pl.pos).toUpperCase() !== 'SUB').length; if (n && n !== 11) add('warn', m, 'Composition', `${teamNames()[t]} : ${n} titulaires dans la feuille de match`); }
