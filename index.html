@@ -181,7 +181,8 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .ph-one{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--grid)}.ph-one h3{font-size:13.5px;margin:0 0 2px}.pitch.zhalf{max-width:380px;display:block;margin:6px auto 0}#ph3 #shotMap,#dph3 #shotMapAg,#plyShotMap{max-width:430px;margin:0 auto}
 .ph-vis h3{font-size:13.5px;margin:0 0 2px}.ph-more{margin-top:8px;font-size:12px}.ph-arrows{margin-top:8px}
 .top5{display:flex;flex-direction:column;gap:8px;margin-top:8px}.t5{display:grid;grid-template-columns:minmax(0,1.3fr) 1fr 74px;gap:10px;align-items:center;font-size:12.5px}.t5n{display:flex;flex-direction:column;min-width:0}.t5n small{color:var(--text-3);font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.t5 i{display:block;height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden}.t5 i b{display:block;height:100%}.t5 em{font-style:normal;font-weight:700;text-align:right}
-details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}
+details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}#offDet>summary,#defDet>summary{cursor:default;pointer-events:none;list-style:none}#offDet>summary::-webkit-details-marker,#defDet>summary::-webkit-details-marker{display:none}
+.cr-blk{margin-top:18px;padding-top:14px;border-top:1px solid var(--grid)}.cr-h{font-size:15px;margin:0 0 8px}.crend{display:grid;gap:8px}
 .lvls{display:inline-flex;background:var(--surface-2);border-radius:10px;padding:3px;margin:0 0 10px;gap:2px}.lvls button{border:0;background:transparent;padding:7px 18px;border-radius:8px;font-weight:700;font-size:13.5px;color:var(--text-2);cursor:pointer}.lvls button[aria-selected=true]{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .ply-head{display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:14px 18px}.ply-head .pn{font-size:22px;font-weight:800}.ply-head .pm{color:var(--text-2);font-size:13px}.ply-head .tlogo{height:34px}.ply-stats{display:flex;gap:18px;margin-left:auto;flex-wrap:wrap}.ply-stats div{text-align:center}.ply-stats b{display:block;font-size:20px}.ply-stats span{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
 .empty-card{padding:28px;text-align:center}.empty-card p{color:var(--text-2)}
@@ -410,7 +411,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-11 13:09 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-11 13:18 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -590,8 +591,16 @@ input.j{width:64px}
               <button class="btn ph-more" data-more="fp">Voir les passes dans la surface</button><div class="ph-arrows" id="fpWrap" hidden><div id="fpMap"></div></div></div>
             <div><h3>Type de tirs</h3><p class="sub" id="shTypeSub"></p><div id="shTypes"></div></div>
           </div>
+          <div class="cr-blk"><h3 class="cr-h">Les centres <span class="muted">— dans le jeu, hors corners</span></h3><div class="ph-kpis" id="crK"></div>
+            <div class="ph-vis">
+              <div><h3>D’où partent les centres</h3><p class="sub" id="crSub"></p><div id="crGrid"></div>
+                <button class="btn ph-more" data-more="cr">Voir chaque centre</button><div class="ph-arrows" id="crWrap" hidden><div id="crMap"></div></div></div>
+              <div><h3>Où arrivent les centres</h3><p class="sub" id="crEndSub"></p><div id="crEnd"></div>
+                <h3 style="margin-top:14px">Les meilleurs centreurs</h3><p class="sub" id="crTopSub"></p><div id="crTop"></div></div>
+            </div>
+          </div>
         </div>
-        <details class="card c12 det" id="offDet">
+        <details class="card c12 det" id="offDet" open>
           <summary><b>Détails</b> <span class="muted">— début des possessions, menace (xT), classement des joueurs, momentum, </span></summary>
           <div class="grid" style="margin-top:12px">
             <div class="card c5">
@@ -672,6 +681,14 @@ input.j{width:64px}
             <div><h3>Où arrivent les tirs concédés</h3><p class="sub" id="cageAgSub"></p><div id="cageAg" class="cage-wrap"></div>
               <h3 style="margin-top:14px">Type de tirs concédés</h3><div id="shATypes"></div></div>
           </div>
+          <div class="cr-blk"><h3 class="cr-h">Les centres concédés <span class="muted">— dans le jeu, hors corners</span></h3><div class="ph-kpis" id="dcrK"></div>
+            <div class="ph-vis">
+              <div><h3>D’où l’adversaire centre</h3><p class="sub" id="dcrSub"></p><div id="dcrGrid"></div>
+                <button class="btn ph-more" data-more="dcr">Voir chaque centre</button><div class="ph-arrows" id="dcrWrap" hidden><div id="dcrMap"></div></div></div>
+              <div><h3>Où arrivent les centres adverses</h3><p class="sub" id="dcrEndSub"></p><div id="dcrEnd"></div>
+                <h3 style="margin-top:14px">Les adversaires qui centrent le plus</h3><p class="sub" id="dcrTopSub"></p><div id="dcrTop"></div></div>
+            </div>
+          </div>
         </div>
         <div class="card c12 ph" id="dph4">
           <div class="ph-head"><span class="chap-n">4</span><div><h2>Duels</h2><p>Est-ce que l’équipe gagne ses duels ?</p></div><span class="ph-verdict" id="dphV4"></span></div>
@@ -684,7 +701,7 @@ input.j{width:64px}
               <h3 style="margin-top:16px">Les joueurs les plus forts dans les duels</h3><p class="sub" id="duelTopSub"></p><div id="duelTop"></div></div>
           </div>
         </div>
-        <details class="card c12 det" id="defDet">
+        <details class="card c12 det" id="defDet" open>
           <summary><b>Détails</b> <span class="muted">— pressing vs xG concédés, duels par joueur, classement des joueurs, tableau des équipes</span></summary>
           <div class="grid" style="margin-top:12px">
             <div class="card c6">
@@ -2031,7 +2048,7 @@ const TAC_FIELDS = ['mp', 'secs', 'gf', 'ga', 'xg', 'xga', 'xgot', 'xgota', 'gfo
   'cross', 'crossOk', 'carry', 'carryD', 'carryProg', 'rec', 'intc', 'possN', 'possT', 'possTot', 'possXg', 'vp', 'vc', 'tk', 'tkW', 'int', 'recov', 'clr',
   'aer', 'aerW', 'foul', 'fouled', 'drb', 'drbOk', 'lost', 'yc', 'rc', 'saves', 'blk', 'opp60', 'defAct', 'corners',
   'recovH', 'shCtr', 'xgCtr', 'shCpa', 'xgCpa', 'gfCpa', 'gaCpa', 'shaCpa', 'xgaCpa', 'pen', 'penG', 'cpaPoss', 'cpaXgP', 'cpaXgaP', 'cornD', 'cornAtt', 'cornShort', 'cornIn', 'cornOut', 'mV2',
-  'gd', 'gdW', 'lbA', 'f3A', 'boxA', 'progA', 'passA', 'own60', 'defActA', 'lostLow', 'bpass', 'bpassOk', 'blong', 'blongOk', 'bout', 'carryF3', 'possD', 'possD2', 'possD3', 'recX', 'recN'];
+  'gd', 'gdW', 'lbA', 'f3A', 'boxA', 'progA', 'passA', 'own60', 'defActA', 'lostLow', 'bpass', 'bpassOk', 'blong', 'blongOk', 'bout', 'carryF3', 'possD', 'possD2', 'possD3', 'recX', 'recN', 'crO', 'crOk', 'crSh', 'crA', 'crAok', 'crASh'];
 const newAgg = () => { const o = {starts: {}, cpaT: {}, cpaTa: {}, byQ: [0, 1, 2, 3, 4, 5].map(() => ({xg: 0, xga: 0, gf: 0, ga: 0, sh: 0, lb: 0, pass: 0, possT: 0, possTot: 0}))}; TAC_FIELDS.forEach(k => o[k] = 0); return o; };
 
 /* Cache des agrégations : changer d'onglet ou de sous-onglet ne recalcule rien
@@ -2131,12 +2148,15 @@ function aggTacticalRaw(ms, qsOverride) {
       if (['cor', 'cfd', 'cfi', 'tou', 'pen'].includes(s.pat)) { for (const o of tgt) if (o) { o.shCpa++; o.xgCpa += s.xg; if (s.g) o.gfCpa++; } d.shaCpa++; d.xgaCpa += s.xg; if (s.g) d.gaCpa++; }
       if (s.pat === 'pen') for (const o of tgt) if (o) { o.pen++; if (s.g) o.penG++; }
     }
+    const shK = {}; for (const s of E.shots) if (s.per) (shK[s.tm + '|' + s.per] = shK[s.tm + '|' + s.per] || []).push(s.mi);
     for (const e of E.opta) { if (!ok(e)) continue;
       if (!qs.has(e.q)) continue;
       const tgt = [t(e.tm), e.p && p(e.p)];
       const defZone = e.x >= 40;
       switch (e.t) {
-        case 1: if (e.x < 60) { t(opp(e.tm)).opp60++; t(e.tm).own60++; } for (const o of tgt) if (o) { if (e.kp) o.kp++; if (e.cr) { o.cross++; if (e.o) o.crossOk++; } } break;
+        case 1: if (e.x < 60) { t(opp(e.tm)).opp60++; t(e.tm).own60++; } for (const o of tgt) if (o) { if (e.kp) o.kp++; if (e.cr) { o.cross++; if (e.o) o.crossOk++; } }
+          if (e.cr && !e.co) { const sh = (shK[e.tm + '|' + e.per] || []).some(mi => mi >= e.mi && mi - e.mi <= 10 / 60), d = t(opp(e.tm));
+            for (const o of tgt) if (o) { o.crO++; if (e.o) o.crOk++; if (sh) o.crSh++; } d.crA++; if (e.o) d.crAok++; if (sh) d.crASh++; } break;
         case 7: for (const o of tgt) if (o) { o.tk++; if (e.o) { o.tkW++; o.recX += e.x * 1.05; o.recN++; } o.gd++; o.gdW++; } if (defZone) { t(e.tm).defAct++; t(opp(e.tm)).defActA++; } break;
         case 8: for (const o of tgt) if (o) { o.int++; o.recX += e.x * 1.05; o.recN++; } if (defZone) { t(e.tm).defAct++; t(opp(e.tm)).defActA++; } break;
         case 4: for (const o of tgt) if (o) { if (e.o) o.fouled++; else o.foul++; } if (!e.o && defZone) { t(e.tm).defAct++; t(opp(e.tm)).defActA++; } break;
@@ -2216,6 +2236,9 @@ const TAC = {
   prog: {l: 'Passes prog.', t: 'add', h: 'Passes réussies gagnant ≥ 10 m vers l’avant (hors 1er tiers)'},
   f3: {l: 'Entrées dernier tiers', t: 'add'}, box: {l: 'Entrées surface', t: 'add', h: 'Passes réussies se terminant dans la surface'},
   kp: {l: 'Passes clés', t: 'add', h: 'Passes menant à un tir'},
+  crO: {l: 'Centres dans le jeu', t: 'add'}, crOPct: {l: '% centres trouvés', t: 'ratio', d: 1, f: o => o.crO ? o.crOk / o.crO * 100 : null}, crSh: {l: 'Centres suivis d’un tir', t: 'add'},
+  crShPct: {l: '% centres suivis d’un tir', t: 'ratio', d: 1, f: o => o.crO ? o.crSh / o.crO * 100 : null}, crA: {l: 'Centres concédés', t: 'add'}, crAPct: {l: '% centres adverses trouvés', t: 'ratio', d: 1, f: o => o.crA ? o.crAok / o.crA * 100 : null},
+  crASh: {l: 'Centres concédés suivis d’un tir', t: 'add'}, crAShPct: {l: '% centres concédés suivis d’un tir', t: 'ratio', d: 1, f: o => o.crA ? o.crASh / o.crA * 100 : null},
   cross: {l: 'Centres', t: 'add'}, crossPct: {l: '% centres', t: 'ratio', d: 1, f: o => o.cross ? o.crossOk / o.cross * 100 : null},
   carryProg: {l: 'Conduites prog.', t: 'add', h: 'Conduites gagnant ≥ 10 m'}, carryD: {l: 'Dist. conduite (m)', t: 'add'},
   drbOk: {l: 'Dribbles réussis', t: 'add'}, drbPct: {l: '% dribbles', t: 'ratio', d: 1, f: o => o.drb ? o.drbOk / o.drb * 100 : null},
@@ -3132,6 +3155,16 @@ function renderTactical() {
     $('#fpMap').innerHTML = passMapSVG(BX, PI, TN, cF);
     const STY = [['Jeu placé', x => !x.pat || x.pat === 'jeu'], ['Contre-attaque', x => x.pat === 'ctr'], ['Coup de pied arrêté', x => ['cor', 'cfd', 'cfi', 'tou'].includes(x.pat)], ['Penalty', x => x.pat === 'pen' || x.pen]];
     const stv = STY.map(([l, fn]) => { const L = shots.filter(fn); return {l, n: L.length, g: L.filter(x => x.g).length, xg: L.reduce((a, x) => a + x.xg, 0)}; });
+    { const CR = crossList(ms, f.qs, e => mine(e)), cc = cF;
+      $('#crK').innerHTML = kpiRowHTML([['Centres', 'crO', 1, 'pm'], ['Centres trouvés', 'crOPct', 1, '%'], ['Centres suivis d’un tir', 'crSh', 1, 'pm'], ['Part des centres suivis d’un tir', 'crShPct', 1, '%']], f, tmFocus, !PMODE, tmFocus && T[tmFocus] ? T[tmFocus].mp : 1);
+      const ok = CR.filter(e => e.c).length, sh = CR.filter(e => e.sh).length;
+      $('#crSub').textContent = `${cnt(CR.length)} centres${PMODE ? ' par match' : ''} · ${CR.length ? Math.round(ok / CR.length * 100) : 0} % trouvés · ${cnt(sh)} suivis d’un tir dans les 10 s · sens d’attaque →`;
+      $('#crGrid').innerHTML = zoneGridSVG(CR.map(e => ({x: e.x0, y: e.y0})), cc, {xs: [52.5, 70, 88.5, 105], div: PMODE ? nM : 1, restLabel: ''});
+      $('#crMap').innerHTML = crossMapSVG(CR, PI, TN, cc);
+      $('#crEndSub').textContent = 'Point d’arrivée du ballon · % de centres trouvant un partenaire';
+      $('#crEnd').innerHTML = crossEndsHTML(CR, cc, cnt);
+      $('#crTopSub').textContent = `Centres dans le jeu${tmFocus ? '' : ' · tout le championnat'}`;
+      $('#crTop').innerHTML = topList(topBy(o => o.crO), v => fmt(v), o => `${fmt(o.crOk)} trouvés (${o.crO ? Math.round(o.crOk / o.crO * 100) : 0} %) · ${fmt(o.crSh)} suivis d’un tir`); }
     $('#shTypeSub').textContent = 'Nombre de tirs, buts et xG selon la situation';
     $('#shTypes').innerHTML = `<table class="gkz"><tr><th class="txt">Situation</th><th>Tirs</th><th>Buts</th><th>xG</th><th>xG / tir</th></tr>${stv.map(x => `<tr><td class="txt">${x.l}</td><td>${cnt(x.n)}</td><td>${x.g}</td><td>${fmt(x.xg, 2)}</td><td>${x.n ? fmt(x.xg / x.n, 2) : '—'}</td></tr>`).join('')}</table>`;
     // ---- Détails (uniquement si la section est ouverte)
@@ -3144,7 +3177,7 @@ function renderTactical() {
       renderXt(ms, TN, PI, P);
       rankPlayers('chOffRank', '#offRankSub', $('#offMetric').value, TAC, plRows, pmP, minMin, f.player);
       renderMomentum('Off', ms, TN, PI);
-      teamTable('tblOffTeams', ['mp', 'possD', 'possD2Pct', 'possD3Pct', 'bpassPct', 'blongPct', 'bout', 'lostLow', 'ppdaF', 'lb', 'byp', 'prog', 'carryProg', 'f3', 'box', 'kp', 'cross', 'crossPct', 'sh', 'sot', 'xg', 'xgot', 'gf', 'gmx', 'xgsh', 'shCtr', 'xgCtr', 'possPct', 'pass', 'passPct'],
+      teamTable('tblOffTeams', ['mp', 'possD', 'possD2Pct', 'possD3Pct', 'bpassPct', 'blongPct', 'bout', 'lostLow', 'ppdaF', 'lb', 'byp', 'prog', 'carryProg', 'f3', 'box', 'kp', 'crO', 'crOPct', 'crSh', 'sh', 'sot', 'xg', 'xgot', 'gf', 'gmx', 'xgsh', 'shCtr', 'xgCtr', 'possPct', 'pass', 'passPct'],
         teamRows, $('#offTeamMode').value, 'xg', f);
     }
   }
@@ -3199,6 +3232,23 @@ function renderTactical() {
       const STY = [['Jeu placé', x => !x.pat || x.pat === 'jeu'], ['Contre-attaque', x => x.pat === 'ctr'], ['Coup de pied arrêté', x => ['cor', 'cfd', 'cfi', 'tou'].includes(x.pat)], ['Penalty', x => x.pat === 'pen' || x.pen]];
       $('#shATypes').innerHTML = `<table class="gkz"><tr><th class="txt">Situation</th><th>Tirs</th><th>Buts</th><th>xG</th><th>xG / tir</th></tr>${STY.map(([l, fn]) => { const L = sa.filter(fn), xg = L.reduce((a, x) => a + x.xg, 0); return `<tr><td class="txt">${l}</td><td>${cnt(L.length)}</td><td>${L.filter(x => x.g).length}</td><td>${fmt(xg, 2)}</td><td>${L.length ? fmt(xg / L.length, 2) : '—'}</td></tr>`; }).join('')}</table>`;
     }
+    // 3 bis. Centres concédés
+    if (!tid) { $('#dcrK').innerHTML = kpiRowHTML([['Centres concédés', 'crA', -1, 'pm'], ['Centres adverses trouvés', 'crAPct', -1, '%'], ['Centres concédés suivis d’un tir', 'crASh', -1, 'pm'], ['Part suivie d’un tir', 'crAShPct', -1, '%']], f, null, false, 1);
+      needFocus('#dcrGrid', '#dcrSub', 'Sélectionnez une équipe pour voir les centres qu’elle concède.'); needFocus('#dcrEnd', '#dcrEndSub', 'Sélectionnez une équipe.'); $('#dcrMap').innerHTML = ''; $('#dcrTop').innerHTML = ''; $('#dcrTopSub').textContent = ''; }
+    else {
+      const CR = crossList(ms, f.qs, (e, m) => (m.home.id === tid || m.away.id === tid) && e.tm !== tid), RED = '#d0453f';
+      $('#dcrK').innerHTML = kpiRowHTML([['Centres concédés', 'crA', -1, 'pm'], ['Centres adverses trouvés', 'crAPct', -1, '%'], ['Centres concédés suivis d’un tir', 'crASh', -1, 'pm'], ['Part suivie d’un tir', 'crAShPct', -1, '%']], f, tid, !PMODE, T[tid] ? T[tid].mp : 1);
+      const ok = CR.filter(e => e.c).length, sh = CR.filter(e => e.sh).length;
+      $('#dcrSub').textContent = `${cnt(CR.length)} centres adverses${PMODE ? ' par match' : ''} · ${CR.length ? Math.round(ok / CR.length * 100) : 0} % trouvés · ${cnt(sh)} suivis d’un tir dans les 10 s · attaque adverse →, notre but à droite`;
+      $('#dcrGrid').innerHTML = zoneGridSVG(CR.map(e => ({x: e.x0, y: e.y0})), RED, {xs: [52.5, 70, 88.5, 105], div: PMODE ? nM : 1, restLabel: ''});
+      $('#dcrMap').innerHTML = crossMapSVG(CR, PI, TN, RED);
+      $('#dcrEndSub').textContent = 'Point d’arrivée du ballon · % de centres adverses trouvant un partenaire';
+      $('#dcrEnd').innerHTML = crossEndsHTML(CR, RED, cnt);
+      const H = {}; for (const e of CR) { const h = H[e.p] = H[e.p] || {n: 0, ok: 0, sh: 0, tm: e.tm}; h.n++; h.ok += e.c; h.sh += e.sh; }
+      const HT = Object.entries(H).filter(([id]) => PI[id]).map(([id, h]) => ({r: {name: PI[id].name, tid: h.tm, o: h}, v: h.n})).sort((a, b) => b.v - a.v).slice(0, 5);
+      $('#dcrTopSub').textContent = 'Joueurs adverses ayant le plus centré contre l’équipe';
+      $('#dcrTop').innerHTML = topList(HT, v => fmt(v), o => `${fmt(o.ok)} trouvés · ${fmt(o.sh)} suivis d’un tir · ${TN[o.tm] || ''}`);
+    }
     // 4. Duels
     const DU = [];
     for (const m of ms) if (m.ev) for (const e of m.ev.opta) {
@@ -3237,7 +3287,7 @@ function renderTactical() {
         {k: 'tkW', l: 'Tacles gagnés', v: r => r.o.tkW}, {k: 'chl', l: 'Dribblé', v: r => Math.max(0, r.o.gd - r.o.tk - r.o.drb)}, {k: 'foul', l: 'Fautes', v: r => r.o.foul}],
         dRows, {hl: r => r.id === f.player, onRow: id => setFilter('player', id)});
       if (!S.sort.tblDefTeams) S.sort.tblDefTeams = {k: 'ppda', asc: true};
-      teamTable('tblDefTeams', ['mp', 'ppda', 'recov', 'recovH', 'recH', 'int', 'tkW', 'lbA', 'progA', 'f3A', 'boxA', 'ga', 'xga', 'xgota', 'sha', 'xgsha', 'blk', 'clr', 'duelPct', 'gdPct', 'aerPct', 'foul', 'yc', 'rc'],
+      teamTable('tblDefTeams', ['mp', 'ppda', 'recov', 'recovH', 'recH', 'int', 'tkW', 'lbA', 'progA', 'f3A', 'boxA', 'crA', 'crAPct', 'crASh', 'ga', 'xga', 'xgota', 'sha', 'xgsha', 'blk', 'clr', 'duelPct', 'gdPct', 'aerPct', 'foul', 'yc', 'rc'],
         teamRows, $('#defTeamMode').value, 'ppda', f);
     }
   }
@@ -3632,7 +3682,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-11 13:09 UTC';
+const BUILD = '2026-11-11 13:18 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4879,6 +4929,45 @@ function zoneGridSVG(pts, col, o = {}) {
   const lab = ['Gauche', 'Axe', 'Droite'].map((l, j) => `<rect x="${xs[0] + .5}" y="${ys[j] + .6}" width="${l.length * 1.55 + 1.6}" height="3.4" rx="1" fill="var(--surface)" fill-opacity=".85"/><text x="${xs[0] + 1.3}" y="${ys[j] + 3.1}" font-size="2.3" fill="var(--text-2)" font-weight="700">${l.toUpperCase()}</text>`).join('');
   const rest = xs[xs.length - 1] < 105 ? `<rect x="${xs[xs.length - 1]}" y="0" width="${105 - xs[xs.length - 1]}" height="68" fill="var(--surface-2)" fill-opacity=".55"/><text x="${(xs[xs.length - 1] + 105) / 2}" y="64" text-anchor="middle" font-size="2.4" fill="var(--text-3)">${esc(o.restLabel || '')}</text>` : '';
   return `<svg class="pitch" viewBox="-1.5 -1.5 ${W} 71">${rest}${cells}<g opacity=".55" pointer-events="none">${pitchLines(true)}</g>${lab}</svg>`;
+}
+/* ---------- Centres dans le jeu (hors corners) ---------- */
+// Liste des centres d'un ensemble de matchs, avec « suivi d'un tir de la même équipe dans les 10 s »
+function crossList(ms, qs, keep) {
+  const out = [];
+  for (const m of ms) if (m.ev) {
+    const shK = {}; for (const s of m.ev.shots) if (s.per) (shK[s.tm + '|' + s.per] = shK[s.tm + '|' + s.per] || []).push(s);
+    for (const e of m.ev.opta) {
+      if (e.t !== 1 || !e.cr || e.co || !qs.has(e.q) || !keep(e, m)) continue;
+      const S = (shK[e.tm + '|' + e.per] || []).filter(s => s.mi >= e.mi && s.mi - e.mi <= 10 / 60);
+      out.push({x0: r1(e.x * 1.05), y0: r1((100 - e.y) * .68), x1: e.ex != null ? r1(e.ex * 1.05) : null, y1: e.ex != null ? r1((100 - e.ey) * .68) : null, c: e.o ? 1 : 0, p: e.p, tm: e.tm,
+        sh: S.length ? 1 : 0, g: S.some(s => s.g) ? 1 : 0, xg: S.reduce((a, s) => Math.max(a, s.xg || 0), 0)});
+    }
+  }
+  return out;
+}
+// Ligne de 4 indicateurs avec rang championnat (même présentation que les phases)
+function kpiRowHTML(defs, f, tF, TOT, mp) {
+  const LG = leagueRanks(f); mp = mp || 1;
+  const cT = tF ? clubColor(tF) : css('--text-3');
+  return defs.map(([l, k, dir, u]) => { const r = {l, k, dir, u, ...LG.get(k, dir, u, tF)};
+    const fv = v => v == null ? '—' : u === '%' ? fmt(v, 1) + ' %' : fmt(v, 1), isPm = u === 'pm', tot = TOT && tF && isPm;
+    const shown = tot ? (r.v == null ? null : r.v * mp) : (tF ? r.v : r.avg), unit = isPm ? (tot ? ' <small>au total</small>' : ' <small>/ match</small>') : '';
+    const cmp = tot ? `soit ${fv(r.v)} / match · moy. ${fv(r.avg)} · meilleur ${fv(r.best)}` : `moy. ${fv(r.avg)} · meilleur ${fv(r.best)}`;
+    return `<div class="phk"><span>${esc(l)}${unit}</span><div><b style="color:${tF ? cT : 'var(--text)'}">${tot ? (shown == null ? '—' : fmt(shown)) : fv(shown)}</b>${tF && r.rank ? `<em class="rk ${r.q}">${ordFr(r.rank)}</em>` : ''}</div>`
+      + (tF ? `<span class="kbar"><i class="avg" style="left:${r.pAvg}%"></i><b style="left:${r.pV}%;background:${cT}"></b></span><small>${cmp}</small>` : `<small>meilleur ${fv(r.best)}</small>`) + '</div>'; }).join('');
+}
+// Où arrivent les centres : zone des 6 m / reste de la surface / hors surface, avec % trouvés et tirs
+function crossEndsHTML(L, col, cnt) {
+  const Z = [['Zone des 6 mètres', e => e.x1 >= 99.5 && Math.abs(e.y1 - 34) <= 9.16], ['Reste de la surface', e => e.x1 >= 88.5 && Math.abs(e.y1 - 34) <= 20.16], ['Hors de la surface', () => true]];
+  const W = L.filter(e => e.x1 != null), B = Z.map(() => []);
+  for (const e of W) B[Z.findIndex(z => z[1](e))].push(e);
+  const mx = Math.max(1, ...B.map(b => b.length));
+  return `<div class="top5">${B.map((b, i) => { const ok = b.filter(e => e.c).length, sh = b.filter(e => e.sh).length;
+    return `<div class="t5"><span class="t5n">${Z[i][0]}<small>${b.length ? `${Math.round(ok / b.length * 100)} % trouvés · ${cnt(sh)} suivi(s) d’un tir` : '—'}</small></span><i><b style="width:${b.length / mx * 100}%;background:${col}"></b></i><em>${cnt(b.length)} · ${W.length ? Math.round(b.length / W.length * 100) : 0} %</em></div>`; }).join('')}</div>`;
+}
+function crossMapSVG(L, PI, TN, col) {
+  const g = L.filter(e => e.x1 != null).map(e => ({...e, by: e.sh ? (e.g ? 'suivi d’un but' : `suivi d’un tir (${fmt(e.xg, 2)} xG)`) : ''}));
+  return passMapSVG(g, PI, TN, col).replace(/défenseur\(s\) éliminé\(s\)/g, '');
 }
 function laneBars(cnts, labels, col, tot, cnt) {
   const mx = Math.max(1, ...cnts);
