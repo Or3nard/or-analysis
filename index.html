@@ -215,6 +215,7 @@ details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}
 .ptz{width:100%;max-width:1100px}.ptz td,.ptz th{padding:8px 10px}.ptz tr.few td{opacity:.45}.ptz td.up{color:#2e9e5b;font-weight:700}.ptz td.dn{color:#d0453f;font-weight:700}.zdot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:-1px}
 @media (max-width:1100px){.pt-groups{grid-template-columns:1fr}.pt-row{grid-auto-flow:row;grid-template-columns:1fr 1fr}}
 .qc-err{color:#d0453f;font-weight:700}.qc-warn{color:#c47f00;font-weight:700}.qct td{vertical-align:top}.qct tr.qc-err td:first-child{color:#d0453f}.qct tr.qc-warn td:first-child{color:#c47f00}.qct tr.qc-info td{color:var(--text-3)}
+.gk-rk{margin-top:8px;padding-top:7px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:2px;font-size:12px;color:var(--text-2)}.gk-rk b{font-size:14px;color:var(--text)}.gk-rk .up b{color:#2e9e5b}.gk-rk .dn b{color:#d0453f}.gk-rk small{color:var(--text-3)}
 .fn-head{font-size:15px;line-height:1.5;margin:6px 0 14px;color:var(--text-2)}.fn-head b{color:var(--text)}
 .fn{display:grid;grid-template-columns:1fr 34px 1fr 34px 1fr 34px 1fr;align-items:stretch}.fn-s{background:var(--surface-2);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:3px}.fn-s>span{font-size:12px;color:var(--text-2);font-weight:600}.fn-s>b{font-size:30px;line-height:1.1;font-weight:800}.fn-s>small{font-size:11.5px;color:var(--text-3)}
 .fn-a{display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text-3)}.fn-a svg{width:22px}
@@ -406,7 +407,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-11 12:30 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-11 12:34 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3623,7 +3624,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-11 12:30 UTC';
+const BUILD = '2026-11-11 12:34 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -3832,15 +3833,24 @@ function renderGK(TN, PI, f) {
   const col = clubColor(o.tid), p90 = v => o.min ? v / o.min * 90 : null;
   $('#gkInfo').innerHTML = `${logoHTML(o.tid)} ${esc(TN[o.tid] || '')} · ${o.mp} match(s) · ${Math.round(o.min)} min${f.qs.size < 6 ? ' · quarts d’heure filtrés' : ''}`;
   const gp = gkVal.gp(o), sgn = v => (v >= 0 ? '+' : '') + fmt(v, 2);
+  // classement parmi les gardiens ayant assez joué (au moins 270 min et 30 % du temps de jeu du plus utilisé)
+  const maxMin = Math.max(0, ...list.map(x => x.min)), pool = list.filter(x => x.min >= Math.max(270, maxMin * .3));
+  const gkR = (fn, better, fv, note) => { const vals = pool.map(x => ({x, v: fn(x)})).filter(z => z.v != null && isFinite(z.v)); if (!vals.length) return '';
+    const best = vals.slice().sort((a, b) => better * (b.v - a.v))[0], mine = fn(o), inPool = pool.includes(o);
+    const rk = inPool && mine != null ? rankOf(vals.map(z => z.v), mine, better) : null;
+    const top = rk && rk.tie < 3 && rk.r <= Math.ceil(rk.of / 3), bot = rk && rk.tie < 3 && rk.r > rk.of - Math.ceil(rk.of / 3);
+    return `<div class="gk-rk">${rk ? `<span class="${top ? 'up' : bot ? 'dn' : ''}"><b>${rk.r}<sup>${rk.r === 1 ? 'er' : 'e'}</sup></b> / ${rk.of}${rk.tie > 1 ? ' ex æquo' : ''}</span>` : '<span class="muted">pas classé (temps de jeu)</span>'}
+      <small>${rk && rk.r === 1 ? (rk.tie > 1 ? 'meilleur, à égalité' : 'le meilleur') : `meilleur : ${esc(PI[best.x.id] ? PI[best.x.id].name : '?')} (${fv(best.v)})`}${note ? ' · ' + note : ''}</small></div>`; };
+  const per90 = k => x => x.min ? x[k] / x.min * 90 : null;
   $('#gkKpis').innerHTML = kpiHTML([
-    {l: 'Buts encaissés', v: fmt(o.ga + o.og), s: `${fmt(p90(o.ga + o.og), 2)} /90${o.og ? ` · dont ${o.og} CSC` : ''}${o.penG ? ` · ${o.penG} pen.` : ''}`},
-    {l: 'Arrêts', v: fmt(gkVal.sv(o)), s: `${fmt(gkVal.svPct(o), 1)} % des ${o.sot} tirs cadrés`},
-    {l: 'xGOT subis', v: fmt(o.ps, 2), s: `${fmt(gkVal.psSot(o), 2)} par tir cadré · xG des mêmes tirs ${fmt(o.xgot, 2)}`},
-    {l: 'Buts évités', v: `<span style="color:${gp >= 0 ? '#2e9e5b' : '#d0453f'}">${sgn(gp)}</span>`, s: `${sgn(gkVal.gp90(o) || 0)} /90 · xGOT − buts`},
-    {l: 'Clean sheets', v: fmt(o.cs), s: f.qs.size < 6 ? 'match entier uniquement' : `sur ${o.mp} match(s)`},
-    {l: 'Penaltys', v: `${o.pen - o.penG} / ${o.pen}`, s: 'arrêtés ou manqués / subis'},
-    {l: 'Sorties sur centres', v: fmt(o.cl + o.pu), s: `${o.cl} captés · ${o.pu} boxés · ${fmt(gkVal.crPct(o), 1)} % des ${o.crF} centres`},
-    {l: 'Jeu au pied', v: fmt(gkVal.pasPct(o), 1) + ' %', s: `${o.pas} passes · ${fmt(gkVal.lgShare(o), 0)} % longues (${fmt(gkVal.lgPct(o), 0)} % réussies)`}
+    {l: 'Buts encaissés', v: fmt(o.ga + o.og), s: `${fmt(p90(o.ga + o.og), 2)} /90${o.og ? ` · dont ${o.og} CSC` : ''}${o.penG ? ` · ${o.penG} pen.` : ''}` + gkR(x => x.min ? (x.ga + x.og) / x.min * 90 : null, -1, v => fmt(v, 2) + ' /90')},
+    {l: 'Arrêts', v: fmt(gkVal.sv(o)), s: `${fmt(gkVal.svPct(o), 1)} % des ${o.sot} tirs cadrés` + gkR(gkVal.svPct, 1, v => fmt(v, 1) + ' %')},
+    {l: 'xGOT subis', v: fmt(o.ps, 2), s: `${fmt(gkVal.psSot(o), 2)} par tir cadré · xG des mêmes tirs ${fmt(o.xgot, 2)}` + gkR(per90('ps'), -1, v => fmt(v, 2) + ' /90', '1<sup>er</sup> = le moins exposé')},
+    {l: 'Buts évités', v: `<span style="color:${gp >= 0 ? '#2e9e5b' : '#d0453f'}">${sgn(gp)}</span>`, s: `${sgn(gkVal.gp90(o) || 0)} /90 · xGOT − buts` + gkR(gkVal.gp90, 1, v => sgn(v) + ' /90')},
+    {l: 'Clean sheets', v: fmt(o.cs), s: (f.qs.size < 6 ? 'match entier uniquement' : `sur ${o.mp} match(s)`) + gkR(x => x.mp ? x.cs / x.mp * 100 : null, 1, v => fmt(v, 0) + ' % des matchs')},
+    {l: 'Penaltys', v: `${o.pen - o.penG} / ${o.pen}`, s: 'arrêtés ou manqués / subis' + gkR(x => x.pen ? (x.pen - x.penG) : null, 1, v => fmt(v, 0) + ' arrêté(s) ou manqué(s)')},
+    {l: 'Sorties sur centres', v: fmt(o.cl + o.pu), s: `${o.cl} captés · ${o.pu} boxés · ${fmt(gkVal.crPct(o), 1)} % des ${o.crF} centres` + gkR(gkVal.crPct, 1, v => fmt(v, 1) + ' %')},
+    {l: 'Jeu au pied', v: fmt(gkVal.pasPct(o), 1) + ' %', s: `${o.pas} passes · ${fmt(gkVal.lgShare(o), 0)} % longues (${fmt(gkVal.lgPct(o), 0)} % réussies)` + gkR(gkVal.pasPct, 1, v => fmt(v, 1) + ' %')}
   ]);
   // Cage et zones
   const sot = o.shots.filter(s => s.ot || s.g), c = cageSVG(sot, col);
