@@ -216,6 +216,9 @@ details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}
 @media (max-width:1100px){.pt-groups{grid-template-columns:1fr}.pt-row{grid-auto-flow:row;grid-template-columns:1fr 1fr}}
 .qc-err{color:#d0453f;font-weight:700}.qc-warn{color:#c47f00;font-weight:700}.qct td{vertical-align:top}.qct tr.qc-err td:first-child{color:#d0453f}.qct tr.qc-warn td:first-child{color:#c47f00}.qct tr.qc-info td{color:var(--text-3)}
 .gk-rk{margin-top:8px;padding-top:7px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:2px;font-size:12px;color:var(--text-2)}.gk-rk b{font-size:14px;color:var(--text)}.gk-rk .up b{color:#2e9e5b}.gk-rk .dn b{color:#d0453f}.gk-rk small{color:var(--text-3)}
+.gk-dep2{display:grid;grid-template-columns:3fr 2fr;gap:24px;margin-top:16px}@media (max-width:900px){.gk-dep2{grid-template-columns:1fr}}
+.bfly{font-size:12.5px}.bf-h,.bf-r{display:grid;grid-template-columns:1fr 150px 1fr;gap:10px;align-items:center}.bf-h{font-weight:700;font-size:12px;margin-bottom:6px}.bf-h span:last-child{text-align:left}.bf-h span:first-child{text-align:right}
+.bf-r{margin:6px 0}.bf-l{display:flex;justify-content:flex-end;align-items:center;gap:6px}.bf-rr{display:flex;align-items:center;gap:6px}.bf-l i,.bf-rr i{display:block;height:16px;border-radius:4px;min-width:2px}.bf-c{text-align:center;line-height:1.15}.bf-c small{display:block;color:var(--text-3);font-size:11px}.bf-l em,.bf-rr em{font-style:normal;font-weight:700;min-width:18px}
 .fn-head{font-size:15px;line-height:1.5;margin:6px 0 14px;color:var(--text-2)}.fn-head b{color:var(--text)}
 .fn{display:grid;grid-template-columns:1fr 34px 1fr 34px 1fr 34px 1fr;align-items:stretch}.fn-s{background:var(--surface-2);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:3px}.fn-s>span{font-size:12px;color:var(--text-2);font-weight:600}.fn-s>b{font-size:30px;line-height:1.1;font-weight:800}.fn-s>small{font-size:11.5px;color:var(--text-3)}
 .fn-a{display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text-3)}.fn-a svg{width:22px}
@@ -407,7 +410,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-11 12:50 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-11 12:58 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -787,15 +790,17 @@ input.j{width:64px}
           <div id="gkCrStats"></div>
         </div>
         <div class="card c12 gk-sec"><h2 class="gk-h">Gestion de la profondeur</h2></div>
-        <div class="card c7">
-          <div class="card-head"><div><h2>Rayon d’action et ballons dans le dos de la défense</h2><p class="sub" id="gkDepSub"></p></div>
-          <div class="ctrl"><select id="gkDepType"><option value="both">Actions du gardien + passes dans le dos</option><option value="acts">Actions du gardien</option><option value="beh">Passes adverses dans le dos</option></select></div></div>
-          <div id="gkDepMap" class="gk-half"></div>
-          <div class="legend" id="gkDepLeg"></div>
-        </div>
-        <div class="card c5">
-          <div class="card-head"><div><h2>Profondeur : les chiffres</h2><p class="sub">Hauteur du gardien et gestion des ballons dans le dos</p></div></div>
-          <div id="gkDepStats"></div>
+        <div class="card c12">
+          <div class="card-head"><div><h2>Le gardien couvre-t-il l’espace dans le dos de sa défense ?</h2><p class="sub" id="gkDepSub"></p></div></div>
+          <div class="pt-row" id="gkDepTiles"></div>
+          <div class="gk-dep2">
+            <div><h3>Où il intervient, où l’adversaire reçoit dans le dos</h3><p class="sub">Distance au but, de la ligne de but vers le milieu de terrain</p><div id="gkDepProfile"></div></div>
+            <div><h3>Ses interventions hors de la surface</h3><p class="sub" id="gkDepOutSub"></p><div id="gkDepOut"></div></div>
+          </div>
+          <details class="ph-more det" id="gkDepDet"><summary>Voir la carte détaillée</summary>
+            <div class="ctrl" style="margin:8px 0"><select id="gkDepType"><option value="both">Actions du gardien + passes dans le dos</option><option value="acts">Actions du gardien</option><option value="beh">Passes adverses dans le dos</option></select></div>
+            <div id="gkDepMap" class="gk-half"></div><div class="legend" id="gkDepLeg"></div></details>
+          <p class="note">« Ballon dans le dos » : passe adverse d’au moins 15 m qui franchit la dernière ligne défensive et arrive dans l’axe, aux abords ou dans la surface. « Interventions » : sorties aériennes, sorties hors surface, récupérations, interceptions, tacles et dégagements du gardien.</p>
         </div>
         <div class="card c12 gk-sec"><h2 class="gk-h">Performance et jeu au pied</h2></div>
         <div class="card c12">
@@ -3629,7 +3634,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-11 12:50 UTC';
+const BUILD = '2026-11-11 12:58 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -3902,18 +3907,28 @@ function renderGK(TN, PI, f) {
     if (dt !== 'beh') inner += o.acts.filter(a => a.t !== 52).map(a => { const [x, y] = V(a.X, a.Y), [c, l] = AC[a.t] || ['var(--text-3)', '']; return a.t === 53 ? `<circle cx="${x}" cy="${y}" r="1.05" fill="var(--surface)" stroke="${c}" stroke-width=".5" data-tip="${l}"/>` : `<circle cx="${x}" cy="${y}" r="1.05" fill="${c}" fill-opacity="${a.t === 41 ? .45 : .9}" stroke="var(--surface)" stroke-width=".25" data-tip="${l}"/>`; }).join('');
     $('#gkDepMap').innerHTML = half(inner);
     $('#gkDepLeg').innerHTML = (dt !== 'beh' ? `<span><i style="background:${col}"></i>Sortie aérienne</span><span><i style="background:#7b4fd0"></i>Sortie hors surface</span><span><i style="background:#2e9e5b"></i>Récup. / interception / tacle</span><span><i style="background:#e08a00"></i>Dégagement</span><span><i style="border:1.5px solid #d0453f;background:transparent"></i>Sortie manquée</span>` : '') + (dt !== 'acts' ? `<span><b style="color:${RED}">✕</b> Passe dans le dos réussie</span><span><b style="color:var(--text-3)">✕</b> ratée / coupée</span>` : '');
-    const def = o.acts.filter(a => a.t !== 52), outB = def.filter(a => !inBox(a.X, a.Y)), dist = mean(def.map(a => 105 - a.X));
-    const bh = o.behind, bhOk = bh.filter(p => p.c).length, bhBox = bh.filter(p => p.c && inBox(p.x1, p.y1)).length;
-    $('#gkDepSub').textContent = `${def.length} actions défensives du gardien · ${bh.length} passes adverses jouées dans le dos de la défense · son but en haut`;
-    $('#gkDepStats').innerHTML = `<ul class="rkv"><li>Position moyenne au moment des tirs<b>${gkVal.gkd(o) != null ? fmt(gkVal.gkd(o), 1) + ' m du but' : '—'}</b></li>`
-      + `<li>… sur contre-attaques<b>${o.gklCN ? fmt(o.gklC / o.gklCN, 1) + ' m de la ligne' : '—'}</b></li>`
-      + `<li>Distance moyenne de ses actions défensives<b>${def.length ? fmt(dist, 1) + ' m' : '—'}</b></li>`
-      + `<li>Actions hors de la surface<b>${outB.length} (${def.length ? Math.round(outB.length / def.length * 100) : 0} %)</b></li>`
-      + `<li>Sorties libéro (hors surface)<b>${o.sw} · ${fmt(p90(o.sw), 2)} /90</b></li>`
-      + `<li>Passes dans le dos subies<b>${bh.length} · ${fmt(p90(bh.length), 1)} /90</b></li>`
-      + `<li>… réussies par l’adversaire<b>${bh.length ? Math.round(bhOk / bh.length * 100) : 0} %</b></li>`
-      + `<li>… réussies et reçues dans la surface<b>${bhBox}</b></li></ul>`
-      + `<p class="note">« Passe dans le dos » = passe adverse d’au moins 15 m qui casse la dernière ligne et arrive dans l’axe, aux abords ou dans la surface. Plus le gardien couvre la profondeur, plus ces passes sont coupées (✕ gris) et plus ses actions sont hautes.</p>`;
+    const defOf = x => x.acts.filter(a => a.t !== 52), outOf = x => defOf(x).filter(a => !inBox(a.X, a.Y));
+    const def = defOf(o), outB = outOf(o), dist = mean(def.map(a => 105 - a.X));
+    const bh = o.behind, bhOk = bh.filter(p => p.c).length;
+    $('#gkDepSub').textContent = `${def.length} interventions du gardien · ${bh.length} ballons adverses joués dans le dos de sa défense · rang parmi les gardiens ayant assez joué`;
+    const T = (l, v, unit, d, sub, rkH) => `<div class="dng-t"><span>${l}</span><b style="color:${col}">${v == null ? '—' : fmt(v, d)}<small class="u">${unit}</small></b><small>${sub}</small>${rkH}</div>`;
+    $('#gkDepTiles').innerHTML = T('Hauteur au moment des tirs', gkVal.gkd(o), 'm', 1, 'distance moyenne à son but', gkR(gkVal.gkd, 1, v => fmt(v, 1) + ' m', '1<sup>er</sup> = le plus haut'))
+      + T('Interventions hors surface', p90(outB.length), '/90', 2, `${outB.length} au total · ${def.length ? Math.round(outB.length / def.length * 100) : 0} % de ses interventions`, gkR(x => x.min ? outOf(x).length / x.min * 90 : null, 1, v => fmt(v, 2) + ' /90'))
+      + T('Distance de ses interventions', def.length ? dist : null, 'm', 1, 'moyenne, depuis sa ligne de but', gkR(x => { const D = defOf(x); return D.length >= 5 ? mean(D.map(a => 105 - a.X)) : null; }, 1, v => fmt(v, 1) + ' m', '1<sup>er</sup> = le plus loin'))
+      + T('Ballons dans le dos subis', p90(bh.length), '/90', 1, `${bh.length} au total`, gkR(x => x.min ? x.behind.length / x.min * 90 : null, -1, v => fmt(v, 1) + ' /90', '1<sup>er</sup> = le moins exposé'))
+      + T('… réussis par l’adversaire', bh.length ? bhOk / bh.length * 100 : null, '%', 0, `${bhOk} sur ${bh.length}`, gkR(x => x.behind.length >= 10 ? x.behind.filter(p => p.c).length / x.behind.length * 100 : null, -1, v => fmt(v, 0) + ' %', '1<sup>er</sup> = le moins'));
+    // profil en profondeur : interventions du gardien (gauche) / ballons dans le dos réussis par l'adversaire (droite)
+    const BANDS = [[0, 5.5, '0 – 5,5 m', 'zone de but'], [5.5, 11, '5,5 – 11 m', 'point de penalty'], [11, 16.5, '11 – 16,5 m', 'entrée de surface'], [16.5, 25, '16,5 – 25 m', 'devant la surface'], [25, 200, '+ de 25 m', 'loin de son but']];
+    const P = BANDS.map(([a, b2]) => ({g: def.filter(x => 105 - x.X >= a && 105 - x.X < b2).length, r: bh.filter(p => p.c && 105 - p.x1 >= a && 105 - p.x1 < b2).length}));
+    const mxp = Math.max(1, ...P.map(x => Math.max(x.g, x.r)));
+    $('#gkDepProfile').innerHTML = `<div class="bfly"><div class="bf-h"><span style="color:${col}">Interventions du gardien</span><span></span><span style="color:#d0453f">Ballons dans le dos réussis</span></div>${BANDS.map(([, , l, sub], i) => `<div class="bf-r"><div class="bf-l"><em>${P[i].g || ''}</em><i style="width:${P[i].g / mxp * 100}%;background:${col}"></i></div><div class="bf-c"><b>${l}</b><small>${sub}</small></div><div class="bf-rr"><i style="width:${P[i].r / mxp * 100}%;background:#d0453f"></i><em>${P[i].r || ''}</em></div></div>`).join('')}</div>
+      <p class="note">Un gardien qui couvre bien la profondeur a des interventions plus haut (barres bleues vers le bas du tableau) et laisse peu de ballons réussis dans le dos.</p>`;
+    // interventions hors surface : par type
+    const TY = [[59, 'Sortie hors surface (libéro)'], [12, 'Dégagement'], [49, 'Récupération'], [8, 'Interception'], [7, 'Tacle'], [11, 'Ballon capté'], [41, 'Ballon boxé'], [53, 'Sortie manquée']];
+    const tc = TY.map(([t, l]) => [l, outB.filter(a => a.t === t).length, t]).filter(x => x[1]);
+    $('#gkDepOutSub').textContent = outB.length ? `${outB.length} intervention(s) hors de la surface, ${fmt(p90(outB.length), 2)} par 90 min` : 'Aucune intervention hors de la surface';
+    const mo = Math.max(1, ...tc.map(x => x[1]));
+    $('#gkDepOut').innerHTML = tc.length ? `<div class="gkd">${tc.map(([l, n, t]) => `<div class="gkdr"><span>${l}</span><i><b style="width:${n / mo * 100}%;background:${t === 53 ? '#d0453f' : col}"></b></i><em>${n}</em></div>`).join('')}</div>` : '<div class="empty">—</div>';
   }
   // Match par match
   { const PSm = psModel(); $('#gkMatchSub').textContent = `xGOT subis − buts encaissés (hors CSC). Positif = moins de buts que ne le laissaient prévoir les tirs cadrés. Modèle xGOT ${PSm.simple ? 'simplifié (xG recalibré, peu de données)' : 'ajusté sur les ' + PSm.n + ' tirs cadrés du championnat (qualité du tir + placement dans le cadre)'}.`; }
