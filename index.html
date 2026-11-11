@@ -406,7 +406,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-11 12:19 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-11 12:27 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -1538,7 +1538,10 @@ function baseFromMeta(meta, md) {
     m.players[id] = {name: p.name, num: +p.number, pos: p.position, team, opta: isMeta ? p.optaUuid : (p.externalIds || {}).performId};
   });
   if (d) { add(d.homeTeam.players, m.home.id, false); add(d.awayTeam.players, m.away.id, false); }
-  if (meta) { add(meta.homePlayers, m.home.id, true); add(meta.awayPlayers, m.away.id, true); } // meta = postes détaillés
+  if (meta) { add(meta.homePlayers, m.home.id, true); add(meta.awayPlayers, m.away.id, true); // meta = postes détaillés
+    // meta.json fait foi pour la feuille de match : un joueur seulement présent dans metadata.json (liste parfois périmée) n'y figure pas
+    const inMeta = new Set([...meta.homePlayers, ...meta.awayPlayers].map(p => p.ssiId));
+    for (const [id, p] of Object.entries(m.players)) if (!inMeta.has(id)) p.pos = ''; }
   return m;
 }
 
@@ -3620,7 +3623,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-11 12:19 UTC';
+const BUILD = '2026-11-11 12:27 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
