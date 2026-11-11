@@ -411,7 +411,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-11 13:18 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-11 13:21 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -591,7 +591,7 @@ input.j{width:64px}
               <button class="btn ph-more" data-more="fp">Voir les passes dans la surface</button><div class="ph-arrows" id="fpWrap" hidden><div id="fpMap"></div></div></div>
             <div><h3>Type de tirs</h3><p class="sub" id="shTypeSub"></p><div id="shTypes"></div></div>
           </div>
-          <div class="cr-blk"><h3 class="cr-h">Les centres <span class="muted">— dans le jeu, hors corners</span></h3><div class="ph-kpis" id="crK"></div>
+          <div class="cr-blk"><h3 class="cr-h">Les centres <span class="muted">— dans le jeu, hors coups de pied arrêtés</span></h3><div class="ph-kpis" id="crK"></div>
             <div class="ph-vis">
               <div><h3>D’où partent les centres</h3><p class="sub" id="crSub"></p><div id="crGrid"></div>
                 <button class="btn ph-more" data-more="cr">Voir chaque centre</button><div class="ph-arrows" id="crWrap" hidden><div id="crMap"></div></div></div>
@@ -681,7 +681,7 @@ input.j{width:64px}
             <div><h3>Où arrivent les tirs concédés</h3><p class="sub" id="cageAgSub"></p><div id="cageAg" class="cage-wrap"></div>
               <h3 style="margin-top:14px">Type de tirs concédés</h3><div id="shATypes"></div></div>
           </div>
-          <div class="cr-blk"><h3 class="cr-h">Les centres concédés <span class="muted">— dans le jeu, hors corners</span></h3><div class="ph-kpis" id="dcrK"></div>
+          <div class="cr-blk"><h3 class="cr-h">Les centres concédés <span class="muted">— dans le jeu, hors coups de pied arrêtés</span></h3><div class="ph-kpis" id="dcrK"></div>
             <div class="ph-vis">
               <div><h3>D’où l’adversaire centre</h3><p class="sub" id="dcrSub"></p><div id="dcrGrid"></div>
                 <button class="btn ph-more" data-more="dcr">Voir chaque centre</button><div class="ph-arrows" id="dcrWrap" hidden><div id="dcrMap"></div></div></div>
@@ -2149,13 +2149,14 @@ function aggTacticalRaw(ms, qsOverride) {
       if (s.pat === 'pen') for (const o of tgt) if (o) { o.pen++; if (s.g) o.penG++; }
     }
     const shK = {}; for (const s of E.shots) if (s.per) (shK[s.tm + '|' + s.per] = shK[s.tm + '|' + s.per] || []).push(s.mi);
+    const SPC = spCrossSet(m);
     for (const e of E.opta) { if (!ok(e)) continue;
       if (!qs.has(e.q)) continue;
       const tgt = [t(e.tm), e.p && p(e.p)];
       const defZone = e.x >= 40;
       switch (e.t) {
         case 1: if (e.x < 60) { t(opp(e.tm)).opp60++; t(e.tm).own60++; } for (const o of tgt) if (o) { if (e.kp) o.kp++; if (e.cr) { o.cross++; if (e.o) o.crossOk++; } }
-          if (e.cr && !e.co) { const sh = (shK[e.tm + '|' + e.per] || []).some(mi => mi >= e.mi && mi - e.mi <= 10 / 60), d = t(opp(e.tm));
+          if (e.cr && !SPC.has(e)) { const sh = (shK[e.tm + '|' + e.per] || []).some(mi => mi >= e.mi && mi - e.mi <= 10 / 60), d = t(opp(e.tm));
             for (const o of tgt) if (o) { o.crO++; if (e.o) o.crOk++; if (sh) o.crSh++; } d.crA++; if (e.o) d.crAok++; if (sh) d.crASh++; } break;
         case 7: for (const o of tgt) if (o) { o.tk++; if (e.o) { o.tkW++; o.recX += e.x * 1.05; o.recN++; } o.gd++; o.gdW++; } if (defZone) { t(e.tm).defAct++; t(opp(e.tm)).defActA++; } break;
         case 8: for (const o of tgt) if (o) { o.int++; o.recX += e.x * 1.05; o.recN++; } if (defZone) { t(e.tm).defAct++; t(opp(e.tm)).defActA++; } break;
@@ -2236,7 +2237,7 @@ const TAC = {
   prog: {l: 'Passes prog.', t: 'add', h: 'Passes réussies gagnant ≥ 10 m vers l’avant (hors 1er tiers)'},
   f3: {l: 'Entrées dernier tiers', t: 'add'}, box: {l: 'Entrées surface', t: 'add', h: 'Passes réussies se terminant dans la surface'},
   kp: {l: 'Passes clés', t: 'add', h: 'Passes menant à un tir'},
-  crO: {l: 'Centres dans le jeu', t: 'add'}, crOPct: {l: '% centres trouvés', t: 'ratio', d: 1, f: o => o.crO ? o.crOk / o.crO * 100 : null}, crSh: {l: 'Centres suivis d’un tir', t: 'add'},
+  crO: {l: 'Centres dans le jeu (hors CPA)', t: 'add'}, crOPct: {l: '% centres trouvés', t: 'ratio', d: 1, f: o => o.crO ? o.crOk / o.crO * 100 : null}, crSh: {l: 'Centres suivis d’un tir', t: 'add'},
   crShPct: {l: '% centres suivis d’un tir', t: 'ratio', d: 1, f: o => o.crO ? o.crSh / o.crO * 100 : null}, crA: {l: 'Centres concédés', t: 'add'}, crAPct: {l: '% centres adverses trouvés', t: 'ratio', d: 1, f: o => o.crA ? o.crAok / o.crA * 100 : null},
   crASh: {l: 'Centres concédés suivis d’un tir', t: 'add'}, crAShPct: {l: '% centres concédés suivis d’un tir', t: 'ratio', d: 1, f: o => o.crA ? o.crASh / o.crA * 100 : null},
   cross: {l: 'Centres', t: 'add'}, crossPct: {l: '% centres', t: 'ratio', d: 1, f: o => o.cross ? o.crossOk / o.cross * 100 : null},
@@ -3682,7 +3683,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-11 13:18 UTC';
+const BUILD = '2026-11-11 13:21 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4930,14 +4931,25 @@ function zoneGridSVG(pts, col, o = {}) {
   const rest = xs[xs.length - 1] < 105 ? `<rect x="${xs[xs.length - 1]}" y="0" width="${105 - xs[xs.length - 1]}" height="68" fill="var(--surface-2)" fill-opacity=".55"/><text x="${(xs[xs.length - 1] + 105) / 2}" y="64" text-anchor="middle" font-size="2.4" fill="var(--text-3)">${esc(o.restLabel || '')}</text>` : '';
   return `<svg class="pitch" viewBox="-1.5 -1.5 ${W} 71">${rest}${cells}<g opacity=".55" pointer-events="none">${pitchLines(true)}</g>${lab}</svg>`;
 }
-/* ---------- Centres dans le jeu (hors corners) ---------- */
+/* ---------- Centres dans le jeu (hors CPA) ---------- */
+// Centres liés à un coup de pied arrêté : le corner ou le coup franc lui-même, et tout centre de la même équipe
+// dans les 15 s qui suivent un corner ou un coup franc (seconde phase). Les touches ne sont pas des CPA ici.
+const SP_CR = new WeakMap();
+function spCrossSet(m) {
+  const E = m.ev; if (!E) return new Set(); let S = SP_CR.get(E); if (S) return S; S = new Set();
+  const fkK = new Set((E.fks || []).map(c => c.tm + '|' + c.per + '|' + c.x0 + '|' + c.y0));
+  const K = E.opta.filter(e => e.t === 1 && (e.co || fkK.has(e.tm + '|' + e.per + '|' + r1(e.x * 1.05) + '|' + r1((100 - e.y) * .68))));
+  for (const e of E.opta) if (e.t === 1 && e.cr && (K.includes(e) || K.some(k => k.tm === e.tm && k.per === e.per && e.mi >= k.mi && e.mi - k.mi <= .25))) S.add(e);
+  SP_CR.set(E, S); return S;
+}
 // Liste des centres d'un ensemble de matchs, avec « suivi d'un tir de la même équipe dans les 10 s »
 function crossList(ms, qs, keep) {
   const out = [];
   for (const m of ms) if (m.ev) {
     const shK = {}; for (const s of m.ev.shots) if (s.per) (shK[s.tm + '|' + s.per] = shK[s.tm + '|' + s.per] || []).push(s);
+    const SPC = spCrossSet(m);
     for (const e of m.ev.opta) {
-      if (e.t !== 1 || !e.cr || e.co || !qs.has(e.q) || !keep(e, m)) continue;
+      if (e.t !== 1 || !e.cr || SPC.has(e) || !qs.has(e.q) || !keep(e, m)) continue;
       const S = (shK[e.tm + '|' + e.per] || []).filter(s => s.mi >= e.mi && s.mi - e.mi <= 10 / 60);
       out.push({x0: r1(e.x * 1.05), y0: r1((100 - e.y) * .68), x1: e.ex != null ? r1(e.ex * 1.05) : null, y1: e.ex != null ? r1((100 - e.ey) * .68) : null, c: e.o ? 1 : 0, p: e.p, tm: e.tm,
         sh: S.length ? 1 : 0, g: S.some(s => s.g) ? 1 : 0, xg: S.reduce((a, s) => Math.max(a, s.xg || 0), 0)});
