@@ -412,7 +412,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-12 08:36 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-12 08:40 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -2465,6 +2465,16 @@ function logoImg(tid, size) {
   return im.complete && im.naturalWidth && !im._bad ? im : null; // image prête uniquement (sinon point classique)
 }
 function logoHTML(tid) { const d = logoData(tid); return d ? `<img class="tlogo" src="${d}" alt="">` : ''; }
+// Logos sous l'axe horizontal (un par colonne) ; l'étiquette de la colonne passe sous le logo
+function xLogos(tids) {
+  return {id: 'xLogos', afterDraw(c) {
+    const x = c.scales.x; if (!x) return; const n = (c.data.labels || []).length, sz = Math.max(14, Math.min(24, x.width / Math.max(1, n) * .55));
+    tids.forEach((t, i) => { const im = t && logoImg(t, 48); if (!im) return; const px = x.getPixelForValue(i); c.ctx.drawImage(im, px - sz / 2, x.top + 5, sz, sz); });
+  }};
+}
+// étiquettes « J3 » quand le logo de l'adversaire est disponible, sinon « J3 PSG »
+const oppTick = (m, tid, TN) => logoData(otherSide(m, tid)) ? 'J' + m.j : oppLabel(m, tid, TN);
+const xLogoTicks = tids => tids.some(t => t && logoData(t)) ? {padding: 32} : {};
 function barLogos(tids) {
   return {id: 'barLogos', afterDatasetsDraw(c) {
     const ctx = c.ctx, yS = c.scales.y;
@@ -3704,7 +3714,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-12 08:36 UTC';
+const BUILD = '2026-11-12 08:40 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4489,17 +4499,19 @@ function renderPhyTeam(ms, lg, TN, PI) {
   // 1. Distance par match
   let per, labs;
   if (tid) { const TM = ms.filter(m => m.phys && (m.home.id === tid || m.away.id === tid));
-    per = TM.map(m => ({m, o: aggPhys([m]).T[tid]})).filter(x => x.o); labs = per.map(x => oppLabel(x.m, tid, TN)); }
+    per = TM.map(m => ({m, o: aggPhys([m]).T[tid]})).filter(x => x.o); labs = per.map(x => oppTick(x.m, tid, TN)); }
   else { // sans équipe : moyenne des équipes de Ligue 1, journée par journée
     const byJ = {}; for (const m of lg) if (m.phys) (byJ[m.j] = byJ[m.j] || []).push(m);
     per = Object.keys(byJ).map(Number).sort((a, b) => a - b).map(j => { const T = Object.values(aggPhys(byJ[j]).T).filter(o => o.mp);
       const av = k => T.length ? T.reduce((a, o) => a + o[k] / o.mp, 0) / T.length : 0; return {j, o: {dist: av('dist'), hsr: av('hsr'), spr: av('spr')}}; });
     labs = per.map(x => 'J' + x.j); }
+  const oppT = tid ? per.map(x => otherSide(x.m, tid)) : [], tipT = tid ? {title: it => oppLabel(per[it[0].dataIndex].m, tid, TN)} : {};
   $('#ptDistSub').textContent = tid ? `Distance de l’équipe par match (km) · ligne = moyenne de la Ligue 1 (${fmt(L('dist') / 1000, 1)} km)` : `Moyenne des équipes de Ligue 1, journée par journée (km) · ligne = moyenne sur la période (${fmt(L('dist') / 1000, 1)} km)`;
   chart('chPtDist', {type: 'bar', data: {labels: labs, datasets: [
       {label: 'Distance (km)', data: per.map(x => x.o.dist / 1000), backgroundColor: col, borderRadius: 4},
       {label: 'Moyenne L1', type: 'line', data: per.map(() => L('dist') / 1000), borderColor: lc, borderDash: [5, 4], pointRadius: per.length < 2 ? 4 : 0, borderWidth: 1.5}]},
-    options: {plugins: {legend: {display: false}, tooltip: {callbacks: {label: c => `${c.dataset.label} : ${fmt(c.raw, 1)} km`}}}, scales: {y: {min: per.length ? Math.floor(Math.min(L('dist') / 1000, ...per.map(x => x.o.dist / 1000)) * .9) : undefined, grid: {color: css('--grid')}}, x: {grid: {display: false}}}}});
+    plugins: [xLogos(oppT)],
+    options: {plugins: {legend: {display: false}, tooltip: {callbacks: {...tipT, label: c => `${c.dataset.label} : ${fmt(c.raw, 1)} km`}}}, scales: {x: {grid: {display: false}, ticks: xLogoTicks(oppT)}, y: {min: per.length ? Math.floor(Math.min(L('dist') / 1000, ...per.map(x => x.o.dist / 1000)) * .9) : undefined, grid: {color: css('--grid')}}}}});
   const split = (a, b, la, lb, unit, d) => { const t = (a || 0) + (b || 0); return `<div class="pt-split"><div><span>${la}</span><b>${fmt(a, d)} ${unit}</b><i style="width:${t ? a / t * 100 : 0}%;background:${col}"></i></div><div><span>${lb}</span><b>${fmt(b, d)} ${unit}</b><i style="width:${t ? b / t * 100 : 0}%;background:${lc}"></i></div></div>`; };
   if (F) {
     $('#ptDistSplit').innerHTML = split(pmV('dIP', F) / 1000, pmV('dOP', F) / 1000, 'Quand l’équipe a le ballon', 'Quand l’adversaire a le ballon', 'km', 1)
@@ -4511,7 +4523,8 @@ function renderPhyTeam(ms, lg, TN, PI) {
       {label: '20-25 km/h', data: per.map(x => x.o.hsr), backgroundColor: color4(col, .55), borderRadius: 3, stack: 's'},
       {label: '> 25 km/h', data: per.map(x => x.o.spr), backgroundColor: col, borderRadius: 3, stack: 's'},
       {label: 'Moyenne L1', type: 'line', data: per.map(() => L('hi')), borderColor: lc, borderDash: [5, 4], pointRadius: per.length < 2 ? 4 : 0, borderWidth: 1.5}]},
-    options: {plugins: {legend: {position: 'bottom'}, tooltip: {callbacks: {label: c => `${c.dataset.label} : ${fmt(c.raw, 0)} m`}}}, scales: {y: {stacked: true, grid: {color: css('--grid')}}, x: {stacked: true, grid: {display: false}}}}});
+    plugins: [xLogos(oppT)],
+    options: {plugins: {legend: {position: 'bottom'}, tooltip: {callbacks: {...tipT, label: c => `${c.dataset.label} : ${fmt(c.raw, 0)} m`}}}, scales: {y: {stacked: true, grid: {color: css('--grid')}}, x: {stacked: true, grid: {display: false}, ticks: xLogoTicks(oppT)}}}});
   // par quart d'heure : distance > 20 km/h par match (équipe) vs moyenne L1
   const qAvg = (list, pred) => { const s = [0, 0, 0, 0, 0, 0], n = [0, 0, 0, 0, 0, 0];
     for (const m of list) { if (!m.phys || !m.phys.bins) continue; const tms = [m.home.id, m.away.id].filter(pred); for (const t of tms) { const acc = [0, 0, 0, 0, 0, 0]; for (const b of m.phys.bins) if (b.tm === t) acc[b.q] += (b.v[5] || 0) + (b.v[6] || 0); acc.forEach((v, q) => { s[q] += v; n[q]++; }); } }
@@ -4601,12 +4614,12 @@ function renderPhyPlayer(ms, lg, TN, PI) {
       : `<div class="dng-t"><span>Explosivité</span><small>Importez le tracking des matchs pour mesurer les courses jusqu’à 30 km/h.</small></div>`]]);
   // 1. Par match
   const per = ms.filter(m => m.phys).map(m => ({m, o: aggPhys([m]).P[pid]})).filter(x => x.o && x.o.time > 0);
-  const labs = per.map(x => oppLabel(x.m, x.o.tm, TN));
+  const labs = per.map(x => oppTick(x.m, x.o.tm, TN)), oppP = per.map(x => otherSide(x.m, x.o.tm));
   chart('chPpMatch', {type: 'bar', data: {labels: labs, datasets: [
       {label: 'Distance (km)', data: per.map(x => x.o.dist / 1000), backgroundColor: color4(col, .75), borderRadius: 4, yAxisID: 'y'},
       {label: '> 20 km/h (m)', type: 'line', data: per.map(x => x.o.hsr + x.o.spr), borderColor: css('--text'), backgroundColor: css('--text'), pointRadius: 3, borderWidth: 2, yAxisID: 'y2'}]},
-    options: {plugins: {legend: {position: 'bottom'}, tooltip: {callbacks: {afterTitle: it => `${fmt(per[it[0].dataIndex].o.time / 60, 0)} min jouées`, label: c => c.datasetIndex ? `> 20 km/h : ${fmt(c.raw, 0)} m` : `Distance : ${fmt(c.raw, 2)} km`}}},
-      scales: {y: {beginAtZero: true, grid: {color: css('--grid')}, title: {display: true, text: 'km'}}, y2: {position: 'right', beginAtZero: true, grid: {display: false}, title: {display: true, text: 'm > 20 km/h'}}, x: {grid: {display: false}}}}});
+    options: {plugins: {legend: {position: 'bottom'}, tooltip: {callbacks: {title: it => oppLabel(per[it[0].dataIndex].m, per[it[0].dataIndex].o.tm, TN), afterTitle: it => `${fmt(per[it[0].dataIndex].o.time / 60, 0)} min jouées`, label: c => c.datasetIndex ? `> 20 km/h : ${fmt(c.raw, 0)} m` : `Distance : ${fmt(c.raw, 2)} km`}}},
+      scales: {y: {beginAtZero: true, grid: {color: css('--grid')}, title: {display: true, text: 'km'}}, y2: {position: 'right', beginAtZero: true, grid: {display: false}, title: {display: true, text: 'm > 20 km/h'}}, x: {grid: {display: false}, ticks: xLogoTicks(oppP)}}}, plugins: [xLogos(oppP)]});
   // 2. Allures par 90
   $('#ppZonesSub').textContent = `Par 90 minutes, comparé à la moyenne des ${rl ? ROLE_PL[rl] : 'joueurs'} de Ligue 1 (matchs d’au moins ${minMin} min).`;
   $('#ppZones').innerHTML = `<table class="gkz ptz"><tr><th class="txt">Allure</th><th>Distance /90</th><th>Moyenne du poste</th><th>Écart</th><th>Temps /90</th><th>Efforts /90</th><th>Rang au poste</th></tr>${PZ.map(([dk, tk, nk, nmz, rng, zc]) => {
