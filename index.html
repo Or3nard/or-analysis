@@ -412,7 +412,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-12 08:13 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-12 08:19 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -717,7 +717,7 @@ input.j{width:64px}
               <div class="chart-box tall"><canvas id="chDefRank"></canvas></div>
             </div>
             <div class="card c12">
-              <div class="card-head"><div><h2>Duels par joueur</h2><p class="sub" id="duelTblSub"></p></div>
+              <div class="card-head"><div><h2>Duels défensifs par joueur</h2><p class="sub" id="duelTblSub"></p></div>
               <div class="ctrl"><label class="lbl" style="margin:0">Min. duels <input type="number" id="duelMin" value="10" min="0" step="5" style="width:60px"></label><button class="btn" data-csv="tblDuels">CSV</button></div></div>
               <div class="tbl-wrap" id="tblDuels"></div>
             </div>
@@ -2255,6 +2255,8 @@ const TAC = {
   rec: {l: 'Réceptions', t: 'add'},
   recov: {l: 'Récupérations', t: 'add'}, int: {l: 'Interceptions', t: 'add'}, tkW: {l: 'Tacles gagnés', t: 'add'}, tk: {l: 'Tacles', t: 'add'},
   clr: {l: 'Dégagements', t: 'add'}, blk: {l: 'Passes contrées', t: 'add'},
+  duelD: {l: 'Duels défensifs', t: 'add', f: o => o.tk + o.chal + o.aerD, h: 'Duels au sol (tacles + dribblé) et duels aériens sur un ballon venant de l’adversaire'}, duelDW: {l: 'Duels défensifs gagnés', t: 'add', f: o => o.tk + o.aerDW},
+  duelDPct: {l: '% duels défensifs', t: 'ratio', d: 1, f: o => o.tk + o.chal + o.aerD ? (o.tk + o.aerDW) / (o.tk + o.chal + o.aerD) * 100 : null},
   gdD: {l: 'Duels déf. au sol', t: 'add', f: o => o.tk + o.chal, h: 'Tacles + fois où le joueur a été dribblé'}, gdDW: {l: 'Duels déf. au sol gagnés', t: 'add', f: o => o.tk, h: 'Tacles (Opta)'},
   gdDPct: {l: '% duels déf. au sol', t: 'ratio', d: 1, f: o => o.tk + o.chal ? o.tk / (o.tk + o.chal) * 100 : null},
   aerD: {l: 'Duels aériens déf.', t: 'add', h: 'Duels aériens sur un ballon venant de l’adversaire'}, aerDW: {l: 'Duels aériens déf. gagnés', t: 'add'},
@@ -3000,7 +3002,7 @@ const KEY_GROUPS = [
     KM('Passes cassant une ligne / match', perM('lb'), 1, 1), KM('Passes progressives / match', perM('prog'), 1, 1), KM('Entrées dernier tiers / match', perM('f3'), 1, 1),
     KM('Entrées surface / match', perM('box'), 1, 1), KM('Passes clés / match', perM('kp'), 1, 1), KM('Centres / match', perM('cross'), 1, 1), KM('Dribbles réussis / match', perM('drbOk'), 1, 1)]],
   ['Événements défensifs', [KM('PPDA (bas = pressing intense)', w => val(TAC, 'ppda', w.A), 1, -1), KM('Récupérations / match', perM('recov'), 1, 1), KM('Récup. camp adverse / match', perM('recovH'), 1, 1),
-    KM('Interceptions / match', perM('int'), 1, 1), KM('Tacles gagnés / match', perM('tkW'), 1, 1), KM('% duels gagnés', w => val(TAC, 'duelPct', w.A), 1, 1), KM('% duels aériens', w => val(TAC, 'aerPct', w.A), 1, 1),
+    KM('Interceptions / match', perM('int'), 1, 1), KM('Tacles gagnés / match', perM('tkW'), 1, 1), KM('% duels défensifs gagnés', w => val(TAC, 'duelDPct', w.A), 1, 1), KM('% duels aériens déf. gagnés', w => val(TAC, 'aerDPct', w.A), 1, 1),
     KM('Tirs concédés / match', perM('sha'), 1, -1), KM('Entrées surface concédées / match', perM('boxA'), 1, -1), KM('Fautes / match', perM('foul'), 1, -1)]],
   ['CPA', [KM('Buts sur CPA / match', perM('gfCpa'), 2, 1), KM('xG sur CPA / match', perM('xgCpa'), 2, 1), KM('Buts encaissés sur CPA / match', perM('gaCpa'), 2, -1),
     KM('xG concédés sur CPA / match', perM('xgaCpa'), 2, -1), KM('Corners / match', perM('corners'), 1, 1)]],
@@ -3203,7 +3205,7 @@ function renderTactical() {
       [['PPDA (bas = pressing intense)', 'ppda', -1, 'r'], ['Récupérations dans le camp adverse', 'recovH', 1, 'pm'], ['Hauteur moyenne des récupérations', 'recH', 1, 'm'], ['Ballons récupérés', 'recAll', 1, 'pm']],
       [['Passes adverses qui cassent nos lignes', 'lbA', -1, 'pm'], ['Passes progressives concédées', 'progA', -1, 'pm'], ['Entrées adverses dans notre dernier tiers', 'f3A', -1, 'pm'], ['Entrées adverses dans notre surface', 'boxA', -1, 'pm']],
       [['Tirs concédés', 'sha', -1, 'pm'], ['xG concédés', 'xga', -1, 'pm2'], ['xG concédé par tir', 'xgsha', -1, 'r2'], ['Buts encaissés', 'ga', -1, 'pm2']],
-      [['Duels gagnés', 'duelPct', 1, '%'], ['Duels au sol gagnés', 'gdPct', 1, '%'], ['Duels aériens gagnés', 'aerPct', 1, '%'], ['Fautes commises', 'foul', -1, 'pm']]
+      [['Duels défensifs gagnés', 'duelDPct', 1, '%'], ['Duels au sol gagnés', 'gdDPct', 1, '%'], ['Duels aériens gagnés', 'aerDPct', 1, '%'], ['Fautes commises', 'foul', -1, 'pm']]
     ], ['Pressing et récupération', 'Déséquilibres concédés', '30 derniers mètres', 'Duels'], tid, TN, f, !PMODE, tid && T[tid] ? T[tid].mp : 1);
     const topBy = (fn, n = 5) => plRows.filter(r => !tid || r.tid === tid).map(r => ({r, v: fn(r.o)})).filter(x => x.v > 0).sort((a, b) => b.v - a.v).slice(0, n);
     // 1. Pressing et récupération
@@ -3265,21 +3267,21 @@ function renderTactical() {
     }
     // 4. Duels
     const DU = [];
-    for (const m of ms) if (m.ev) for (const e of m.ev.opta) {
+    for (const m of ms) if (m.ev) { const AD = aerDefSet(m); for (const e of m.ev.opta) {
       if (!f.qs.has(e.q) || !mine(e)) continue;
-      const g = e.t === 7 || e.t === 45 || e.t === 3, a = e.t === 44; if (!g && !a) continue;
-      DU.push({x: e.x * 1.05, y: (100 - e.y) * .68, w: e.t === 7 ? 1 : e.t === 45 ? 0 : e.o ? 1 : 0, a, p: e.p, t: e.t});
+      const g = e.t === 7 || e.t === 45, a = e.t === 44 && AD.has(e); if (!g && !a) continue;
+      DU.push({x: e.x * 1.05, y: (100 - e.y) * .68, w: e.t === 7 ? 1 : e.t === 45 ? 0 : e.o ? 1 : 0, a, p: e.p, t: e.t}); }
     }
-    $('#duelSub').textContent = `${cnt(DU.length)} duels${PMODE ? ' par match' : ''} · couleur = % de duels gagnés dans la zone (vert ≥ 55 %, rouge ≤ 45 %) · sens d’attaque →`;
+    $('#duelSub').textContent = `${cnt(DU.length)} duels défensifs${PMODE ? ' par match' : ''} · couleur = % de duels gagnés dans la zone (vert ≥ 55 %, rouge ≤ 45 %) · sens d’attaque →`;
     $('#duelGrid').innerHTML = winGridSVG(DU);
-    const DL = {7: 'Tacle', 45: 'Dribblé (duel perdu)', 3: 'Dribble', 44: 'Duel aérien'};
+    const DL = {7: 'Tacle', 45: 'Dribblé (duel perdu)', 44: 'Duel aérien défensif'};
     $('#duelMap').innerHTML = `<svg class="pitch" viewBox="-2 -2 109 72">${pitchLines(true)}${DU.slice(0, 2000).map(d => { const c = d.w ? '#2e9e5b' : '#d0453f', tip = esc(`${DL[d.t]} ${d.w ? 'gagné' : 'perdu'} · ${PI[d.p] ? PI[d.p].name : ''}`);
       return d.a ? `<path d="M${r1(d.x)} ${r1(d.y - 1.1)}L${r1(d.x + 1)} ${r1(d.y + .7)}L${r1(d.x - 1)} ${r1(d.y + .7)}Z" fill="${c}" fill-opacity=".8" data-tip="${tip}"/>` : `<circle cx="${r1(d.x)}" cy="${r1(d.y)}" r=".85" fill="${c}" fill-opacity=".75" data-tip="${tip}"/>`; }).join('')}</svg>`;
     const G = DU.filter(d => !d.a), A = DU.filter(d => d.a), pc = L => L.length ? L.filter(d => d.w).length / L.length * 100 : 0;
     $('#duelSplit').innerHTML = `<div class="gkd">${[['Au sol', G], ['Aériens', A], ['Total', DU]].map(([l, L]) => `<div class="gkdr"><span>${l} <small class="muted">(${cnt(L.length)})</small></span><i><b style="width:100%;background:#d0453f55"></b><b class="ok" style="width:${pc(L)}%;background:#2e9e5b"></b></i><em>${fmt(pc(L), 0)} % gagnés</em></div>`).join('')}</div>`;
     const dMinTop = Math.max(10, +$('#duelMin').value || 0);
-    $('#duelTopSub').textContent = `% de duels gagnés · au moins ${dMinTop} duels${tid ? '' : ' · tout le championnat'}`;
-    $('#duelTop').innerHTML = topList(plRows.filter(r => (!tid || r.tid === tid) && (r.o.gd + r.o.aer) >= dMinTop).map(r => ({r, v: TAC.duelPct.f(r.o)})).sort((a, b) => b.v - a.v).slice(0, 5), v => fmt(v, 0) + ' %', o => `${fmt(o.gdW + o.aerW)} gagnés sur ${fmt(o.gd + o.aer)} · au sol ${fmt(TAC.gdPct.f(o), 0)} % · aériens ${fmt(TAC.aerPct.f(o), 0)} %`);
+    $('#duelTopSub').textContent = `% de duels défensifs gagnés · au moins ${dMinTop} duels${tid ? '' : ' · tout le championnat'}`;
+    $('#duelTop').innerHTML = topList(plRows.filter(r => (!tid || r.tid === tid) && TAC.duelD.f(r.o) >= dMinTop).map(r => ({r, v: TAC.duelDPct.f(r.o)})).sort((a, b) => b.v - a.v).slice(0, 5), v => fmt(v, 0) + ' %', o => `${fmt(TAC.duelDW.f(o))} gagnés sur ${fmt(TAC.duelD.f(o))} · au sol ${fmt(TAC.gdDPct.f(o), 0)} % · aériens ${fmt(TAC.aerDPct.f(o), 0)} %`);
     // Détails
     if ($('#defDet').open) {
       const pp = teamRows.filter(r => r.o.mp && TAC.ppda.f(r.o) != null).map(r => ({x: TAC.ppda.f(r.o), y: r.o.xga / r.o.mp, lab: r.name, id: r.id}));
@@ -3291,17 +3293,17 @@ function renderTactical() {
         plugins: [pointLabels, avgLines(mean(pp.map(p => p.x)), mean(pp.map(p => p.y)), {tl: 'Bloc bas solide', tr: 'Presse et protège', bl: 'Passif et exposé', br: 'Presse mais concède'}, v => fmt(v, 1), v => fmt(v, 2))]});
       rankPlayers('chDefRank', '#defRankSub', $('#defMetric').value, TAC, plRows, pmP, minMin, f.player);
       const dMin = +$('#duelMin').value || 0;
-      const dRows = Object.entries(P).filter(([id, o]) => PI[id] && (!tid || PI[id].team === tid) && (o.gd + o.aer) >= dMin && (o.gd + o.aer) > 0).map(([id, o]) => ({id, tid: PI[id].team, name: PI[id].name, team: TN[PI[id].team] || '', o}));
+      const dRows = Object.entries(P).filter(([id, o]) => PI[id] && (!tid || PI[id].team === tid) && TAC.duelD.f(o) >= dMin && TAC.duelD.f(o) > 0).map(([id, o]) => ({id, tid: PI[id].team, name: PI[id].name, team: TN[PI[id].team] || '', o}));
       $('#duelTblSub').textContent = `${dRows.length} joueurs · ≥ ${dMin} duels${tid ? ' · ' + TN[tid] : ''} · cliquez sur un joueur pour le sélectionner`;
       if (!S.sort.tblDuels) S.sort.tblDuels = {k: 'duel', asc: false};
       renderTable('tblDuels', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'team', l: 'Équipe', txt: 1, v: r => r.team, html: r => logoHTML(r.tid) + esc(r.team)},
-        {k: 'min', l: 'Min', v: r => Math.round(r.o.secs / 60)}, {k: 'duel', l: 'Duels', v: r => r.o.gd + r.o.aer}, {k: 'duelW', l: 'Gagnés', v: r => r.o.gdW + r.o.aerW},
-        {k: 'duelPct', l: '% gagnés', d: 1, v: r => TAC.duelPct.f(r.o)}, {k: 'd90', l: 'Duels /90', d: 1, v: r => r.o.secs ? (r.o.gd + r.o.aer) / r.o.secs * 5400 : null},
-        {k: 'gd', l: 'Au sol', v: r => r.o.gd}, {k: 'gdPct', l: '% sol', d: 1, v: r => TAC.gdPct.f(r.o)}, {k: 'aer', l: 'Aériens', v: r => r.o.aer}, {k: 'aerPct', l: '% aériens', d: 1, v: r => TAC.aerPct.f(r.o)},
-        {k: 'tkW', l: 'Tacles gagnés', v: r => r.o.tkW}, {k: 'chl', l: 'Dribblé', v: r => Math.max(0, r.o.gd - r.o.tk - r.o.drb)}, {k: 'foul', l: 'Fautes', v: r => r.o.foul}],
+        {k: 'min', l: 'Min', v: r => Math.round(r.o.secs / 60)}, {k: 'duel', l: 'Duels déf.', v: r => TAC.duelD.f(r.o)}, {k: 'duelW', l: 'Gagnés', v: r => TAC.duelDW.f(r.o)},
+        {k: 'duelPct', l: '% gagnés', d: 1, v: r => TAC.duelDPct.f(r.o)}, {k: 'd90', l: 'Duels déf. /90', d: 1, v: r => r.o.secs ? TAC.duelD.f(r.o) / r.o.secs * 5400 : null},
+        {k: 'gd', l: 'Au sol', v: r => r.o.tk + r.o.chal}, {k: 'gdPct', l: '% sol', d: 1, v: r => TAC.gdDPct.f(r.o)}, {k: 'aer', l: 'Aériens', v: r => r.o.aerD}, {k: 'aerPct', l: '% aériens', d: 1, v: r => TAC.aerDPct.f(r.o)},
+        {k: 'tkW', l: 'Tacles gagnés', v: r => r.o.tkW}, {k: 'chl', l: 'Dribblé', v: r => r.o.chal}, {k: 'foul', l: 'Fautes', v: r => r.o.foul}],
         dRows, {hl: r => r.id === f.player, onRow: id => setFilter('player', id)});
       if (!S.sort.tblDefTeams) S.sort.tblDefTeams = {k: 'ppda', asc: true};
-      teamTable('tblDefTeams', ['mp', 'ppda', 'recov', 'recovH', 'recH', 'int', 'tkW', 'lbA', 'progA', 'f3A', 'boxA', 'crA', 'crAPct', 'crASh', 'ga', 'xga', 'xgota', 'sha', 'xgsha', 'blk', 'clr', 'duelPct', 'gdPct', 'aerPct', 'foul', 'yc', 'rc'],
+      teamTable('tblDefTeams', ['mp', 'ppda', 'recov', 'recovH', 'recH', 'int', 'tkW', 'lbA', 'progA', 'f3A', 'boxA', 'crA', 'crAPct', 'crASh', 'ga', 'xga', 'xgota', 'sha', 'xgsha', 'blk', 'clr', 'duelDPct', 'gdDPct', 'aerDPct', 'foul', 'yc', 'rc'],
         teamRows, $('#defTeamMode').value, 'ppda', f);
     }
   }
@@ -3364,11 +3366,11 @@ function renderTactical() {
 
   if (sub === 'cls') {
     const tm = $('#tacTeamMode').value;
-    teamTable('tblTacTeams', ['mp', 'gf', 'ga', 'xg', 'xga', 'xgd', 'xgot', 'xgota', 'sh', 'sot', 'sha', 'possPct', 'pass', 'passPct', 'xpd', 'lb', 'prog', 'f3', 'box', 'kp', 'carryProg', 'ppda', 'recov', 'int', 'tkW', 'aerPct', 'foul', 'yc', 'rc', 'corners', 'vert', 'xgPoss'],
+    teamTable('tblTacTeams', ['mp', 'gf', 'ga', 'xg', 'xga', 'xgd', 'xgot', 'xgota', 'sh', 'sot', 'sha', 'possPct', 'pass', 'passPct', 'xpd', 'lb', 'prog', 'f3', 'box', 'kp', 'carryProg', 'ppda', 'recov', 'int', 'tkW', 'duelDPct', 'aerDPct', 'foul', 'yc', 'rc', 'corners', 'vert', 'xgPoss'],
       teamRows, tm, 'xgd', f);
   }
   if (sub === 'pcls') {
-    const plCols = ['mp', 'min', 'gf', 'ast', 'xg', 'xgot', 'xgotmxg', 'gmx', 'sh', 'sot', 'pass', 'passPct', 'xpd', 'lb', 'byp', 'prog', 'kp', 'f3', 'box', 'cross', 'carryProg', 'drbOk', 'recov', 'recovH', 'int', 'tkW', 'aerW', 'aerPct', 'lost', 'foul', 'fouled', 'yc', 'saves'];
+    const plCols = ['mp', 'min', 'gf', 'ast', 'xg', 'xgot', 'xgotmxg', 'gmx', 'sh', 'sot', 'pass', 'passPct', 'xpd', 'lb', 'byp', 'prog', 'kp', 'f3', 'box', 'cross', 'carryProg', 'drbOk', 'recov', 'recovH', 'int', 'tkW', 'aerW', 'duelDPct', 'aerDPct', 'lost', 'foul', 'fouled', 'yc', 'saves'];
     renderTable('tblTacPlayers', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'team', l: 'Équipe', txt: 1, v: r => r.team, html: r => logoHTML(r.tid) + esc(r.team)}, {k: 'pos', l: 'Poste', txt: 1, v: r => r.pos},
       ...plCols.map(k => ({k, l: TAC[k].l, h: TAC[k].h, d: dec(TAC, k, pmP), v: r => val(TAC, k, r.o, pmP)}))],
       plRows, {defaultSort: 'xg', hl: r => r.id === f.player, onRow: id => setFilter('player', id)});
@@ -3696,7 +3698,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-12 08:13 UTC';
+const BUILD = '2026-11-12 08:19 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -3718,7 +3720,7 @@ const PLY_GROUPS = [
   ['Construction', [['Passes', P90('pass'), 1, 1], ['% passes réussies', o => val(TAC, 'passPct', o), 1, 1], ['Passes progressives', P90('prog'), 1, 1], ['Passes qui cassent une ligne', P90('lb'), 1, 1], ['Défenseurs éliminés par la passe', P90('byp'), 1, 1]]],
   ['Déséquilibre', [['Conduites progressives', P90('carryProg'), 1, 1], ['Dribbles réussis', P90('drbOk'), 1, 1], ['% dribbles réussis', o => val(TAC, 'drbPct', o), 0, 1], ['Entrées dans le dernier tiers', o => o.secs ? (o.f3 + o.carryF3) / o.secs * 5400 : null, 1, 1]]],
   ['30 derniers mètres', [['Buts', P90('gf'), 2, 1], ['Passes décisives', P90('ast'), 2, 1], ['Tirs', P90('sh'), 1, 1], ['xG', P90('xg'), 2, 1], ['xGOT', P90('xgot'), 2, 1], ['Passes clés', P90('kp'), 1, 1], ['Entrées dans la surface', P90('box'), 1, 1]]],
-  ['Défense et duels', [['Récupérations', P90('recov'), 1, 1], ['Interceptions', P90('int'), 1, 1], ['Tacles gagnés', P90('tkW'), 1, 1], ['% duels gagnés', o => val(TAC, 'duelPct', o), 1, 1], ['% duels aériens gagnés', o => val(TAC, 'aerPct', o), 1, 1], ['Pertes de balle', P90('lost'), 1, -1], ['Fautes', P90('foul'), 1, -1]]]
+  ['Défense et duels', [['Récupérations', P90('recov'), 1, 1], ['Interceptions', P90('int'), 1, 1], ['Tacles gagnés', P90('tkW'), 1, 1], ['% duels défensifs gagnés', o => val(TAC, 'duelDPct', o), 1, 1], ['% duels aériens déf. gagnés', o => val(TAC, 'aerDPct', o), 1, 1], ['Pertes de balle', P90('lost'), 1, -1], ['Fautes', P90('foul'), 1, -1]]]
 ];
 /* ---------- Classements « top 5 » quand aucun joueur n'est choisi ---------- */
 // rows : [{id, tid, secs, o}] · groupes : [{t, m: [[libellé, fn(o, row), décimales, {dir, rate, unit}]]}]
@@ -4796,7 +4798,7 @@ function fillMetricSelects() {
   $('#tacMetric').innerHTML = tacOpts.map(k => `<option value="${k}">${TAC[k].l}</option>`).join('');
   const offOpts = ['xg', 'xgot', 'xgotmxg', 'gmxgot', 'gf', 'ast', 'sh', 'sot', 'gmx', 'kp', 'box', 'f3', 'lb', 'byp', 'prog', 'carryProg', 'drbOk', 'cross', 'shCtr'];
   $('#offMetric').innerHTML = offOpts.map(k => `<option value="${k}">${TAC[k].l}</option>`).join('');
-  const defOpts = ['recov', 'recovH', 'int', 'tkW', 'tk', 'aerW', 'clr', 'blk', 'foul'];
+  const defOpts = ['recov', 'recovH', 'int', 'tkW', 'tk', 'duelDW', 'aerDW', 'clr', 'blk', 'foul'];
   $('#defMetric').innerHTML = defOpts.map(k => `<option value="${k}">${TAC[k].l}</option>`).join('');
   const phyOpts = ['dist', 'mpm', 'hi', 'hsr', 'spr', 'nspr', 'nhsr', 'vmax', 'hiPct', 'hOP', 'hIP'];
   $('#phyMetric').innerHTML = phyOpts.map(k => `<option value="${k}">${PHY[k].l}</option>`).join('');
