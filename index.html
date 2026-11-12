@@ -413,7 +413,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-12 09:04 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-12 09:20 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -1114,6 +1114,7 @@ input.j{width:64px}
             <div><h2 id="xcTitle">Graphique croisé</h2><p class="sub" id="xcSub"></p></div>
             <div class="ctrl xc-ctl">
               <label class="lbl">Qui <select id="xcPop"><option value="team">Équipes</option><option value="CB">Défenseurs centraux</option><option value="FB">Latéraux</option><option value="CM">Milieux centraux</option><option value="WM">Milieux excentrés</option><option value="FW">Attaquants</option><option value="all">Tous les joueurs de champ</option></select></label>
+              <label class="lbl">Valeurs <select id="xcMode"><option value="pm">Moyenne par match</option><option value="p90">Par 90 min</option></select></label>
               <label class="lbl">Axe horizontal <select id="xcX"></select></label>
               <label class="lbl">Axe vertical <select id="xcY"></select></label>
             </div>
@@ -3728,7 +3729,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-12 09:04 UTC';
+const BUILD = '2026-11-12 09:20 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4763,17 +4764,19 @@ const XC_IMG = {};
 function renderCross(lg, TN, PI) {
   const f = S.f, SR = seasonRoles(), pop = $('#xcPop').value;
   if (!$('#xcX').options.length) { const o = XC_K.map(k => `<option value="${k}">${XC_L[k]}</option>`).join(''); $('#xcX').innerHTML = o; $('#xcY').innerHTML = o; $('#xcX').value = 'dist'; $('#xcY').value = 'spr'; }
-  const kx = $('#xcX').value, ky = $('#xcY').value, C = teamCodes(), team = pop === 'team';
+  const kx = $('#xcX').value, ky = $('#xcY').value, C = teamCodes(), team = pop === 'team', md = $('#xcMode').value, mdL = md === 'pm' ? 'par match' : 'par 90 min';
+  // équipe par 90 min : temps de l'équipe sur le terrain = somme des temps des joueurs / 11
+  const tv = (k, o) => md === 'pm' ? val(PHY, k, o, 'pm') : PHY[k].t === 'add' ? (o.time ? val(PHY, k, o) / (o.time / 11 / 5400) : null) : val(PHY, k, o);
   const conv = (k, v) => v == null ? null : ['dist', 'dIP', 'dOP'].includes(k) ? v / 1000 : v;
   let rows, minMin = 0;
-  if (team) rows = Object.entries(aggPhys(lg).T).filter(([, o]) => o.mp).map(([id, o]) => ({id, tid: id, name: C[id] || TN[id], full: TN[id], o, x: conv(kx, val(PHY, kx, o, 'pm')), y: conv(ky, val(PHY, ky, o, 'pm'))}));
+  if (team) rows = Object.entries(aggPhys(lg).T).filter(([, o]) => o.mp).map(([id, o]) => ({id, tid: id, name: C[id] || TN[id], full: TN[id], o, x: conv(kx, tv(kx, o)), y: conv(ky, tv(ky, o))}));
   else { minMin = pop === 'all' ? (S.roleMin.all ?? ROLE_MIN.all) : (S.roleMin[pop] ?? ROLE_MIN[pop]);
     rows = Object.entries(phyByPlayer(lg, minMin * 60)).filter(([id, o]) => PI[id] && SR[id] && SR[id] !== 'GK' && (pop === 'all' || SR[id] === pop) && o.mp >= 3)
-      .map(([id, o]) => ({id, tid: o.tm, name: PI[id].name, full: `${PI[id].name} · ${TN[o.tm] || ''} · ${o.mp} match(s)`, o, x: conv(kx, val(PHY, kx, o, 'p90')), y: conv(ky, val(PHY, ky, o, 'p90'))})); }
+      .map(([id, o]) => ({id, tid: o.tm, name: PI[id].name, full: `${PI[id].name} · ${TN[o.tm] || ''} · ${o.mp} match(s)`, o, x: conv(kx, val(PHY, kx, o, md)), y: conv(ky, val(PHY, ky, o, md))})); }
   rows = rows.filter(r => r.x != null && r.y != null && isFinite(r.x) && isFinite(r.y));
   const comp = (COMPS.find(c => c[0] === S.comp) || [, ''])[1], popL = $('#xcPop').selectedOptions[0].textContent;
   $('#xcTitle').textContent = `${XC_S[kx]} vs ${XC_S[ky]}`;
-  $('#xcSub').textContent = `${comp} · ${popL} · ${rows.length} ${team ? 'équipes' : 'joueurs'} · ${team ? 'moyenne par match' : `par 90 min, sur les matchs d’au moins ${minMin} min joués (au moins 3 matchs)`}`;
+  $('#xcSub').textContent = `${comp} · ${popL} · ${rows.length} ${team ? 'équipes' : 'joueurs'} · ${team ? (md === 'pm' ? 'moyenne par match' : 'par 90 minutes de jeu') : `${mdL}, sur les matchs d’au moins ${minMin} min joués (au moins 3 matchs)`}`;
   $('#xcNote').textContent = 'Lignes pointillées bleue (axe horizontal) et violette (axe vertical) : médiane de chaque axe · ligne orange : tendance (régression linéaire entre les deux indicateurs) · l’équipe choisie en haut de page est mise en avant · cliquez une ligne des tableaux pour choisir l’équipe ou le joueur.';
   const dx = XC_D(kx), dy = XC_D(ky), mx = median(rows.map(r => r.x)), my = median(rows.map(r => r.y));
   const n = rows.length, sx = rows.reduce((a, r) => a + r.x, 0), sy = rows.reduce((a, r) => a + r.y, 0), sxx = rows.reduce((a, r) => a + r.x * r.x, 0), sxy = rows.reduce((a, r) => a + r.x * r.y, 0);
@@ -4787,10 +4790,10 @@ function renderCross(lg, TN, PI) {
         backgroundColor: pts.map(p => color4(clubColor(p.tid), !f.team || p.hl ? 1 : .3)), borderColor: css('--surface'), borderWidth: 1},
       {label: 'Tendance', type: 'line', data: n > 1 ? [{x: x0, y: a0 + b * x0}, {x: x1, y: a0 + b * x1}] : [], borderColor: '#f08a24', borderDash: [6, 5], borderWidth: 1.6, pointRadius: 0, fill: false}]},
     options: {animation: false, layout: {padding: {left: 8, right: 30, bottom: 4, top: 26}}, plugins: {legend: {display: false}, tooltip: {filter: it => it.datasetIndex === 0, callbacks: {label: c => `${c.raw.full} : ${fmt(c.raw.x, dx)} · ${fmt(c.raw.y, dy)}`}}},
-      scales: {x: {grace: '4%', title: {display: true, text: XC_L[kx] + (team ? ' · par match' : ' · par 90 min')}, grid: {color: css('--grid')}, ticks: {callback: v => fmt(v, dx)}}, y: {grace: '6%', title: {display: true, text: XC_L[ky] + (team ? ' · par match' : ' · par 90 min')}, grid: {color: css('--grid')}, ticks: {callback: v => fmt(v, dy)}}}},
+      scales: {x: {grace: '4%', title: {display: true, text: XC_L[kx] + ' · ' + mdL}, grid: {color: css('--grid')}, ticks: {callback: v => fmt(v, dx)}}, y: {grace: '6%', title: {display: true, text: XC_L[ky] + ' · ' + mdL}, grid: {color: css('--grid')}, ticks: {callback: v => fmt(v, dy)}}}},
     plugins: [medLines(mx, my, v => fmt(v, dx), v => fmt(v, dy)), nameAbove]});
   const tbl = (id, k, key, d) => { const L = rows.slice().sort((p, q) => q[key] - p[key]);
-    $(id).innerHTML = `<table><thead><tr><th class="txt" colspan="2">${esc(XC_L[k])} ↓</th><th>${team ? 'par match' : '/ 90 min'}</th></tr></thead><tbody>${L.map((r, i) => `<tr class="${foc(r) ? 'hl' : ''}" ${team ? 'data-lbtid' : 'data-lbpid'}="${esc(r.id)}" style="cursor:pointer"><td class="txt rk0">${ordFr(i + 1)}</td><td class="txt">${logoHTML(r.tid)}${esc(team ? r.full : r.name)}</td><td><b>${fmt(r[key], d)}</b></td></tr>`).join('')}</tbody></table>`; };
+    $(id).innerHTML = `<table><thead><tr><th class="txt" colspan="2">${esc(XC_L[k])} ↓</th><th>${mdL}</th></tr></thead><tbody>${L.map((r, i) => `<tr class="${foc(r) ? 'hl' : ''}" ${team ? 'data-lbtid' : 'data-lbpid'}="${esc(r.id)}" style="cursor:pointer"><td class="txt rk0">${ordFr(i + 1)}</td><td class="txt">${logoHTML(r.tid)}${esc(team ? r.full : r.name)}</td><td><b>${fmt(r[key], d)}</b></td></tr>`).join('')}</tbody></table>`; };
   tbl('#xcTblX', kx, 'x', dx); tbl('#xcTblY', ky, 'y', dy);
 }
 function renderPhyRank(ms, TN, PI, lg) {
@@ -5759,7 +5762,7 @@ function bindUI() {
     refreshAll();
   };
   $('#fReset').onclick = () => { S.f = {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0, 1, 2, 3, 4, 5])}; refreshAll(); };
-  ['#plyPeer', '#plyOvMode', '#xcPop', '#xcX', '#xcY', '#ptLeadMode', '#ppLeadMode', '#plyPassType', '#offMode', '#bmGk', '#defMode', '#duelMin', '#gkCrType', '#gkShotType', '#gkPassType', '#gkTblMode', '#gkMinMin', '#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyTeamMode', '#h2hEvoMetric', '#momOffMode', '#xtPlMode',
+  ['#plyPeer', '#plyOvMode', '#xcPop', '#xcMode', '#xcX', '#xcY', '#ptLeadMode', '#ppLeadMode', '#plyPassType', '#offMode', '#bmGk', '#defMode', '#duelMin', '#gkCrType', '#gkShotType', '#gkPassType', '#gkTblMode', '#gkMinMin', '#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyTeamMode', '#h2hEvoMetric', '#momOffMode', '#xtPlMode',
    '#offMetric', '#offTeamMode', '#defMetric', '#defTeamMode', '#dngMode']
     .forEach(s => $(s).onchange = () => scheduleRender());
   document.querySelectorAll('[data-csv]').forEach(b => b.onclick = () => exportCSV(b.dataset.csv));
