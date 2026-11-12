@@ -413,7 +413,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-12 09:44 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-12 09:49 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3483,7 +3483,8 @@ function renderDanger(LMS, TN, f) {
         A.n++; A[x.pat === 'pen' ? 'npen' : 'ncfd']++; D.na++; D[x.pat === 'pen' ? 'npenA' : 'ncfdA']++; A.nsh++; D.nshA++; add(A, D, 1, x.xg, x.g ? 1 : 0);
         if (x.g) addG(A, D, goalTxt(m, x.tm, x.per, (x.mi || 0) * 60, x.p, 0, x.pat === 'pen' ? 'penalty' : 'coup franc direct')); } }
     const tipOf = (L, conc) => L.slice().sort((a, b) => a.j - b.j || a.t - b.t).map(g => `J${g.j} ${conc ? (C[g.sc] || '') : 'vs ' + (C[g.opp] || '')} · ${g.min}' · ${g.who} · ${g.typ}`).join('\n');
-    for (const o of Object.values(R)) { o.glTip = tipOf(o.gl, 0); o.galTip = tipOf(o.gal, 1); }
+    for (const o of Object.values(R)) { o.glTip = tipOf(o.gl, 0); o.galTip = tipOf(o.gal, 1); const np = L => L.filter(g => g.typ !== 'penalty');
+      o.gnp = np(o.gl).length; o.ganp = np(o.gal).length; o.glTipNp = tipOf(np(o.gl), 0); o.galTipNp = tipOf(np(o.gal), 1); }
     rows = Object.values(R).map(o => ({...o, shp: o.n ? o.nsh / o.n * 100 : null, xpc: o.n ? o.xg / o.n : null, share: o.xgT ? o.xg / o.xgT * 100 : null, shpA: o.na ? o.nshA / o.na * 100 : null, xpcA: o.na ? o.xga / o.na : null, shareA: o.xgaT ? o.xga / o.xgaT * 100 : null}));
   }
   const pm = (r, v) => mode === 'pm' ? (r.mp ? v / r.mp : null) : v;
@@ -3503,12 +3504,12 @@ function renderDanger(LMS, TN, f) {
   const colsDef = dt === 'all' ? [
       {k: 'mp', l: 'MJ', v: r => r.mp}, {k: 'nckA', l: 'Corners concédés', d: d1, v: r => pm(r, r.nckA)}, {k: 'nfkA', l: 'CFI concédés', h: 'Coups francs indirects adverses dans notre moitié', d: d1, v: r => pm(r, r.nfkA)},
       {k: 'ncfdA', l: 'CF directs subis', d: d2, v: r => pm(r, r.ncfdA)}, {k: 'npenA', l: 'Penaltys concédés', d: d2, v: r => pm(r, r.npenA)},
-      {k: 'sha', l: 'Tirs concédés', d: d1, v: r => pm(r, r.sha)}, {k: 'xga', l: 'xG concédés', d: 2, v: r => pm(r, r.xga)}, {k: 'shareA', l: 'Part xG concédés CPA %', d: 0, h: 'Part des xG concédés par l’équipe venant de ces CPA', v: r => r.shareA}, {k: 'ga', l: 'Buts encaissés', d: d2, v: r => pm(r, r.ga), html: r => gTipCell(fmt(pm(r, r.ga), d2), r.galTip)}]
+      {k: 'sha', l: 'Tirs concédés', d: d1, v: r => pm(r, r.sha)}, {k: 'xga', l: 'xG concédés', d: 2, v: r => pm(r, r.xga)}, {k: 'shareA', l: 'Part xG concédés CPA %', d: 0, h: 'Part des xG concédés par l’équipe venant de ces CPA', v: r => r.shareA}, {k: 'ga', l: 'Buts encaissés CPA', h: 'Tous les buts encaissés sur CPA, penaltys compris', d: d2, v: r => pm(r, r.ga), html: r => gTipCell(fmt(pm(r, r.ga), d2), r.galTip)}, {k: 'ganp', l: 'Buts encaissés hors pen.', h: 'Buts encaissés sur corners, CFI et coups francs directs (sans les penaltys)', d: d2, v: r => pm(r, r.ganp), html: r => gTipCell(fmt(pm(r, r.ganp), d2), r.galTipNp)}]
     : [{k: 'mp', l: 'MJ', v: r => r.mp}, {k: 'na', l: `${Up} concédés`, d: d1, v: r => pm(r, r.na)}, {k: 'shpA', l: '% suivis d’un tir adverse', d: 0, v: r => r.shpA}, {k: 'sha', l: 'Tirs concédés', d: d1, v: r => pm(r, r.sha)},
       {k: 'xga', l: 'xG concédés', d: 2, v: r => pm(r, r.xga)}, {k: 'xpcA', l: `xG concédé / ${lbl}`, d: 3, v: r => r.xpcA}, {k: 'ga', l: 'Buts encaissés', d: d2, v: r => pm(r, r.ga), html: r => gTipCell(fmt(pm(r, r.ga), d2), r.galTip)}];
   const colsOff = dt === 'all' ? [
       {k: 'mp', l: 'MJ', v: r => r.mp}, {k: 'nck', l: 'Corners', d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.nck)}, {k: 'nfk', l: 'CFI', h: 'Coups francs indirects dans le camp adverse', d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.nfk)}, {k: 'ncfd', l: 'CF directs', h: 'Coups francs tirés directement au but', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.ncfd)}, {k: 'npen', l: 'Penaltys', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.npen)},
-      {k: 'sh', l: 'Tirs', d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.sh)}, {k: 'xg', l: 'xG', d: 2, v: r => pm(r, r.xg)}, {k: 'share', l: 'Part xG CPA %', d: 0, h: 'Part des xG de l’équipe venant de ces CPA', v: r => r.share}, {k: 'g', l: 'Buts', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.g), html: r => gTipCell(fmt(pm(r, r.g), mode === 'pm' ? 2 : 0), r.glTip)},
+      {k: 'sh', l: 'Tirs', d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.sh)}, {k: 'xg', l: 'xG', d: 2, v: r => pm(r, r.xg)}, {k: 'share', l: 'Part xG CPA %', d: 0, h: 'Part des xG de l’équipe venant de ces CPA', v: r => r.share}, {k: 'g', l: 'Buts CPA', h: 'Tous les buts sur CPA, penaltys compris', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.g), html: r => gTipCell(fmt(pm(r, r.g), mode === 'pm' ? 2 : 0), r.glTip)}, {k: 'gnp', l: 'Buts CPA hors pen.', h: 'Buts sur corners, CFI et coups francs directs (sans les penaltys)', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.gnp), html: r => gTipCell(fmt(pm(r, r.gnp), mode === 'pm' ? 2 : 0), r.glTipNp)},
     ]
     : [{k: 'mp', l: 'MJ', v: r => r.mp}, {k: 'n', l: lblP[0].toUpperCase() + lblP.slice(1), d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.n)}, {k: 'shp', l: '% suivis d’un tir', d: 0, v: r => r.shp}, {k: 'sh', l: 'Tirs', d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.sh)},
       {k: 'xg', l: 'xG', d: 2, v: r => pm(r, r.xg)}, {k: 'xpc', l: `xG / ${lbl}`, d: 3, v: r => r.xpc}, {k: 'g', l: 'Buts', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.g), html: r => gTipCell(fmt(pm(r, r.g), mode === 'pm' ? 2 : 0), r.glTip)}];
@@ -3750,7 +3751,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-12 09:44 UTC';
+const BUILD = '2026-11-12 09:49 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
