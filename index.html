@@ -413,7 +413,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-12 09:20 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-12 09:23 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3729,7 +3729,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-12 09:20 UTC';
+const BUILD = '2026-11-12 09:23 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4789,7 +4789,7 @@ function renderCross(lg, TN, PI) {
       {label: team ? 'Équipes' : 'Joueurs', data: pts, pointStyle: pts.map(p => p.img || 'circle'), pointRadius: pts.map(p => p.img ? sz / 2 : 6), pointHoverRadius: pts.map(p => p.img ? sz / 2 + 2 : 8),
         backgroundColor: pts.map(p => color4(clubColor(p.tid), !f.team || p.hl ? 1 : .3)), borderColor: css('--surface'), borderWidth: 1},
       {label: 'Tendance', type: 'line', data: n > 1 ? [{x: x0, y: a0 + b * x0}, {x: x1, y: a0 + b * x1}] : [], borderColor: '#f08a24', borderDash: [6, 5], borderWidth: 1.6, pointRadius: 0, fill: false}]},
-    options: {animation: false, layout: {padding: {left: 8, right: 30, bottom: 4, top: 26}}, plugins: {legend: {display: false}, tooltip: {filter: it => it.datasetIndex === 0, callbacks: {label: c => `${c.raw.full} : ${fmt(c.raw.x, dx)} · ${fmt(c.raw.y, dy)}`}}},
+    options: {animation: false, layout: {padding: {left: 8, right: 30, bottom: 4, top: 26}}, plugins: {legend: {display: false}, tooltip: {filter: it => it.datasetIndex === 0, displayColors: false, callbacks: {title: it => it[0].raw.full, label: c => [`${XC_L[kx]} : ${fmt(c.raw.x, dx)}`, `${XC_L[ky]} : ${fmt(c.raw.y, dy)}`], footer: () => mdL}}},
       scales: {x: {grace: '4%', title: {display: true, text: XC_L[kx] + ' · ' + mdL}, grid: {color: css('--grid')}, ticks: {callback: v => fmt(v, dx)}}, y: {grace: '6%', title: {display: true, text: XC_L[ky] + ' · ' + mdL}, grid: {color: css('--grid')}, ticks: {callback: v => fmt(v, dy)}}}},
     plugins: [medLines(mx, my, v => fmt(v, dx), v => fmt(v, dy)), nameAbove]});
   const tbl = (id, k, key, d) => { const L = rows.slice().sort((p, q) => q[key] - p[key]);
