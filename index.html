@@ -186,6 +186,7 @@ details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}
 .lvls{display:inline-flex;background:var(--surface-2);border-radius:10px;padding:3px;margin:0 0 10px;gap:2px}.lvls button{border:0;background:transparent;padding:7px 18px;border-radius:8px;font-weight:700;font-size:13.5px;color:var(--text-2);cursor:pointer}.lvls button[aria-selected=true]{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .ply-head{display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:14px 18px}.ply-head .pn{font-size:22px;font-weight:800}.ply-head .pm{color:var(--text-2);font-size:13px}.ply-head .tlogo{height:34px}.ply-stats{display:flex;gap:18px;margin-left:auto;flex-wrap:wrap}.ply-stats div{text-align:center}.ply-stats b{display:block;font-size:20px}.ply-stats span{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
 .empty-card{padding:28px;text-align:center}
+.xc-ctl{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}.xc-ctl .lbl{display:flex;flex-direction:column;gap:3px;font-size:11px;margin:0}.xc-box{height:620px}.xc-tbls{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:14px}.xc-tbls .tbl-wrap{max-height:520px;overflow:auto}.xc-tbls table td.rk0{width:44px;color:var(--text-3)}.xc-tbls tr.hl td{font-weight:700;background:var(--hover,rgba(127,127,127,.08))}@media(max-width:760px){.xc-tbls{grid-template-columns:1fr}.xc-box{height:460px}}
 .lb-team{display:flex;align-items:center;gap:8px}.lb-logo{width:30px;height:30px;object-fit:contain;flex:none}.lb-team b{font-weight:600}.lb-g{margin-top:6px}.lb-g+.lb-g{margin-top:18px;padding-top:14px;border-top:1px solid var(--grid)}.lb-g>h3{font-size:15px;margin:0 0 10px}.lb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px 22px}.lb-grid h4{font-size:13px;margin:0 0 6px;color:var(--text-2);font-weight:600}.lb-grid .t5[data-lbpid],.lb-grid .t5[data-lbtid]{cursor:pointer;border-radius:6px}.lb-grid .t5[data-lbpid]:hover,.lb-grid .t5[data-lbtid]:hover{background:var(--hover,rgba(127,127,127,.08))}.empty-card p{color:var(--text-2)}
 .shf [data-sh]{cursor:pointer;user-select:none;border-radius:6px;padding:1px 5px;transition:opacity .15s}.shf [data-sh]:hover{background:var(--surface-2)}
 .shh-g .sh-g,.shh-ot .sh-ot,.shh-off .sh-off{display:none}
@@ -412,7 +413,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-12 08:40 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-12 09:04 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -1108,6 +1109,19 @@ input.j{width:64px}
     </div>
     <div class="subpanel" data-sub="cls">
       <div class="grid">
+        <div class="card c12" id="xcCard">
+          <div class="card-head">
+            <div><h2 id="xcTitle">Graphique croisé</h2><p class="sub" id="xcSub"></p></div>
+            <div class="ctrl xc-ctl">
+              <label class="lbl">Qui <select id="xcPop"><option value="team">Équipes</option><option value="CB">Défenseurs centraux</option><option value="FB">Latéraux</option><option value="CM">Milieux centraux</option><option value="WM">Milieux excentrés</option><option value="FW">Attaquants</option><option value="all">Tous les joueurs de champ</option></select></label>
+              <label class="lbl">Axe horizontal <select id="xcX"></select></label>
+              <label class="lbl">Axe vertical <select id="xcY"></select></label>
+            </div>
+          </div>
+          <div class="chart-box xc-box"><canvas id="chXc"></canvas></div>
+          <p class="note" id="xcNote"></p>
+          <div class="xc-tbls"><div class="tbl-wrap" id="xcTblX"></div><div class="tbl-wrap" id="xcTblY"></div></div>
+        </div>
         <div class="card c7">
           <div class="card-head">
             <div><h2>Classement joueurs</h2><p class="sub" id="phyRankSub"></p></div>
@@ -3714,7 +3728,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-12 08:40 UTC';
+const BUILD = '2026-11-12 09:04 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4355,7 +4369,7 @@ function renderPhysical() {
   if (sub === 'team') renderPhyTeam(ms, lg, TN, PI);
   else if (sub === 'player') renderPhyPlayer(ms, lg, TN, PI);
   else if (sub === 'h2h') renderPhyH2H(lg, TN, PI);
-  else renderPhyRank(ms, TN, PI);
+  else renderPhyRank(ms, TN, PI, lg);
 }
 
 // couleur avec transparence (hex #rgb / #rrggbb ou rgb())
@@ -4727,8 +4741,61 @@ function bindPhyUI() {
 }
 
 /* ---------- Sous-onglet Classements ---------- */
-function renderPhyRank(ms, TN, PI) {
+// Graphique croisé (deux indicateurs physiques), comme le rapport « Dist. Totale vs Dist. > 25 km/h »
+const XC_K = ['dist', 'mpm', 'hi', 'hsr', 'spr', 'nspr', 'nhsr', 'hiPct', 'vmax', 'dIP', 'dOP', 'hIP', 'hOP', 'sIP', 'sOP'];
+const XC_L = {dist: 'Distance totale (km)', mpm: 'Mètres par minute', hi: 'Distance > 20 km/h (m)', hsr: 'Distance 20-25 km/h (m)', spr: 'Distance > 25 km/h (m)', nspr: 'Nombre de sprints', nhsr: 'Efforts 20-25 km/h',
+  hiPct: '% de haute intensité', vmax: 'Vitesse max (km/h)', dIP: 'Distance avec ballon (km)', dOP: 'Distance sans ballon (km)', hIP: '> 20 km/h avec ballon (m)', hOP: '> 20 km/h sans ballon (m)', sIP: 'Sprint avec ballon (m)', sOP: 'Sprint sans ballon (m)'};
+const XC_S = {dist: 'Distance totale', mpm: 'Mètres par minute', hi: '> 20 km/h', hsr: '20-25 km/h', spr: '> 25 km/h', nspr: 'Sprints', nhsr: 'Efforts 20-25 km/h', hiPct: '% haute intensité', vmax: 'Vitesse max', dIP: 'Distance avec ballon', dOP: 'Distance sans ballon', hIP: '> 20 km/h avec ballon', hOP: '> 20 km/h sans ballon', sIP: 'Sprint avec ballon', sOP: 'Sprint sans ballon'};
+const XC_D = k => ['dist', 'dIP', 'dOP'].includes(k) ? 1 : ['mpm', 'hiPct', 'vmax', 'nspr', 'nhsr'].includes(k) ? 1 : 0;
+function medLines(mx, my, fx, fy) {
+  return {id: 'medLines', beforeDatasetsDraw(c) {
+    if (mx == null || my == null) return; const {ctx, chartArea: a, scales: {x, y}} = c, px = x.getPixelForValue(mx), py = y.getPixelForValue(my);
+    const tag = (txt, cx, cy, bg, al) => { ctx.font = '700 11px system-ui,sans-serif'; const w = ctx.measureText(txt).width + 10, x0 = al === 'c' ? cx - w / 2 : al === 'l' ? cx : cx - w;
+      ctx.fillStyle = bg; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x0, cy - 9, w, 18, 4); else ctx.rect(x0, cy - 9, w, 18); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(txt, x0 + w / 2, cy); };
+    ctx.save(); ctx.lineWidth = 1.2; ctx.setLineDash([5, 4]);
+    ctx.strokeStyle = '#3b6fd8'; ctx.beginPath(); ctx.moveTo(px, a.top); ctx.lineTo(px, a.bottom); ctx.stroke();
+    ctx.strokeStyle = '#8a4fd8'; ctx.beginPath(); ctx.moveTo(a.left, py); ctx.lineTo(a.right, py); ctx.stroke(); ctx.setLineDash([]);
+    tag('Méd. ' + fx(mx), px, a.bottom - 12, '#3b6fd8', 'c'); tag('Méd. ' + fy(my), a.left + 4, py, '#8a4fd8', 'l'); ctx.restore();
+  }};
+}
+const XC_IMG = {};
+function renderCross(lg, TN, PI) {
+  const f = S.f, SR = seasonRoles(), pop = $('#xcPop').value;
+  if (!$('#xcX').options.length) { const o = XC_K.map(k => `<option value="${k}">${XC_L[k]}</option>`).join(''); $('#xcX').innerHTML = o; $('#xcY').innerHTML = o; $('#xcX').value = 'dist'; $('#xcY').value = 'spr'; }
+  const kx = $('#xcX').value, ky = $('#xcY').value, C = teamCodes(), team = pop === 'team';
+  const conv = (k, v) => v == null ? null : ['dist', 'dIP', 'dOP'].includes(k) ? v / 1000 : v;
+  let rows, minMin = 0;
+  if (team) rows = Object.entries(aggPhys(lg).T).filter(([, o]) => o.mp).map(([id, o]) => ({id, tid: id, name: C[id] || TN[id], full: TN[id], o, x: conv(kx, val(PHY, kx, o, 'pm')), y: conv(ky, val(PHY, ky, o, 'pm'))}));
+  else { minMin = pop === 'all' ? (S.roleMin.all ?? ROLE_MIN.all) : (S.roleMin[pop] ?? ROLE_MIN[pop]);
+    rows = Object.entries(phyByPlayer(lg, minMin * 60)).filter(([id, o]) => PI[id] && SR[id] && SR[id] !== 'GK' && (pop === 'all' || SR[id] === pop) && o.mp >= 3)
+      .map(([id, o]) => ({id, tid: o.tm, name: PI[id].name, full: `${PI[id].name} · ${TN[o.tm] || ''} · ${o.mp} match(s)`, o, x: conv(kx, val(PHY, kx, o, 'p90')), y: conv(ky, val(PHY, ky, o, 'p90'))})); }
+  rows = rows.filter(r => r.x != null && r.y != null && isFinite(r.x) && isFinite(r.y));
+  const comp = (COMPS.find(c => c[0] === S.comp) || [, ''])[1], popL = $('#xcPop').selectedOptions[0].textContent;
+  $('#xcTitle').textContent = `${XC_S[kx]} vs ${XC_S[ky]}`;
+  $('#xcSub').textContent = `${comp} · ${popL} · ${rows.length} ${team ? 'équipes' : 'joueurs'} · ${team ? 'moyenne par match' : `par 90 min, sur les matchs d’au moins ${minMin} min joués (au moins 3 matchs)`}`;
+  $('#xcNote').textContent = 'Lignes pointillées bleue (axe horizontal) et violette (axe vertical) : médiane de chaque axe · ligne orange : tendance (régression linéaire entre les deux indicateurs) · l’équipe choisie en haut de page est mise en avant · cliquez une ligne des tableaux pour choisir l’équipe ou le joueur.';
+  const dx = XC_D(kx), dy = XC_D(ky), mx = median(rows.map(r => r.x)), my = median(rows.map(r => r.y));
+  const n = rows.length, sx = rows.reduce((a, r) => a + r.x, 0), sy = rows.reduce((a, r) => a + r.y, 0), sxx = rows.reduce((a, r) => a + r.x * r.x, 0), sxy = rows.reduce((a, r) => a + r.x * r.y, 0);
+  const den = n * sxx - sx * sx, b = den ? (n * sxy - sx * sy) / den : 0, a0 = n ? (sy - b * sx) / n : 0;
+  const xs = rows.map(r => r.x), x0 = Math.min(...xs), x1 = Math.max(...xs);
+  const foc = r => (f.team && r.tid === f.team) || r.id === f.player, sz = team ? 30 : 22;
+  const icon = tid => { const d = logoData(tid); if (!d) return null; const k = tid + '@' + sz; let im = XC_IMG[k]; if (!im) { im = new Image(sz, sz); im.onload = () => scheduleRender(); im.src = d; XC_IMG[k] = im; } return im.complete && im.naturalWidth ? im : null; };
+  const pts = rows.map(r => ({x: r.x, y: r.y, lab: r.name, full: r.full, hl: foc(r), dim: !!f.team && !foc(r), tid: r.tid, img: icon(r.tid)}));
+  chart('chXc', {type: 'scatter', data: {datasets: [
+      {label: team ? 'Équipes' : 'Joueurs', data: pts, pointStyle: pts.map(p => p.img || 'circle'), pointRadius: pts.map(p => p.img ? sz / 2 : 6), pointHoverRadius: pts.map(p => p.img ? sz / 2 + 2 : 8),
+        backgroundColor: pts.map(p => color4(clubColor(p.tid), !f.team || p.hl ? 1 : .3)), borderColor: css('--surface'), borderWidth: 1},
+      {label: 'Tendance', type: 'line', data: n > 1 ? [{x: x0, y: a0 + b * x0}, {x: x1, y: a0 + b * x1}] : [], borderColor: '#f08a24', borderDash: [6, 5], borderWidth: 1.6, pointRadius: 0, fill: false}]},
+    options: {animation: false, layout: {padding: {left: 8, right: 30, bottom: 4, top: 26}}, plugins: {legend: {display: false}, tooltip: {filter: it => it.datasetIndex === 0, callbacks: {label: c => `${c.raw.full} : ${fmt(c.raw.x, dx)} · ${fmt(c.raw.y, dy)}`}}},
+      scales: {x: {grace: '4%', title: {display: true, text: XC_L[kx] + (team ? ' · par match' : ' · par 90 min')}, grid: {color: css('--grid')}, ticks: {callback: v => fmt(v, dx)}}, y: {grace: '6%', title: {display: true, text: XC_L[ky] + (team ? ' · par match' : ' · par 90 min')}, grid: {color: css('--grid')}, ticks: {callback: v => fmt(v, dy)}}}},
+    plugins: [medLines(mx, my, v => fmt(v, dx), v => fmt(v, dy)), nameAbove]});
+  const tbl = (id, k, key, d) => { const L = rows.slice().sort((p, q) => q[key] - p[key]);
+    $(id).innerHTML = `<table><thead><tr><th class="txt" colspan="2">${esc(XC_L[k])} ↓</th><th>${team ? 'par match' : '/ 90 min'}</th></tr></thead><tbody>${L.map((r, i) => `<tr class="${foc(r) ? 'hl' : ''}" ${team ? 'data-lbtid' : 'data-lbpid'}="${esc(r.id)}" style="cursor:pointer"><td class="txt rk0">${ordFr(i + 1)}</td><td class="txt">${logoHTML(r.tid)}${esc(team ? r.full : r.name)}</td><td><b>${fmt(r[key], d)}</b></td></tr>`).join('')}</tbody></table>`; };
+  tbl('#xcTblX', kx, 'x', dx); tbl('#xcTblY', ky, 'y', dy);
+}
+function renderPhyRank(ms, TN, PI, lg) {
   const f = S.f, SR = seasonRoles();
+  if (lg) renderCross(lg, TN, PI);
   const {P} = aggPhys(ms);
   const pm = $('#phyPlMode').value, minMin = +$('#phyMinMin').value || 0;
   const plRows = Object.entries(P).filter(([id, o]) => PI[id] && (!f.team || PI[id].team === f.team) && o.time / 60 >= minMin && o.time > 0)
@@ -5692,7 +5759,7 @@ function bindUI() {
     refreshAll();
   };
   $('#fReset').onclick = () => { S.f = {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0, 1, 2, 3, 4, 5])}; refreshAll(); };
-  ['#plyPeer', '#plyOvMode', '#ptLeadMode', '#ppLeadMode', '#plyPassType', '#offMode', '#bmGk', '#defMode', '#duelMin', '#gkCrType', '#gkShotType', '#gkPassType', '#gkTblMode', '#gkMinMin', '#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyTeamMode', '#h2hEvoMetric', '#momOffMode', '#xtPlMode',
+  ['#plyPeer', '#plyOvMode', '#xcPop', '#xcX', '#xcY', '#ptLeadMode', '#ppLeadMode', '#plyPassType', '#offMode', '#bmGk', '#defMode', '#duelMin', '#gkCrType', '#gkShotType', '#gkPassType', '#gkTblMode', '#gkMinMin', '#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyTeamMode', '#h2hEvoMetric', '#momOffMode', '#xtPlMode',
    '#offMetric', '#offTeamMode', '#defMetric', '#defTeamMode', '#dngMode']
     .forEach(s => $(s).onchange = () => scheduleRender());
   document.querySelectorAll('[data-csv]').forEach(b => b.onclick = () => exportCSV(b.dataset.csv));
