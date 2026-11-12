@@ -413,7 +413,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-12 09:23 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-12 09:35 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3185,7 +3185,7 @@ function renderTactical() {
     const topBy = (fn, n = 5) => plRows.filter(r => !tmFocus || r.tid === tmFocus).map(r => ({r, v: fn(r.o)})).filter(x => x.v > 0).sort((a, b) => b.v - a.v).slice(0, n);
     const topList = (L, lab, sub) => { const mx = Math.max(1e-9, ...L.map(x => x.v)); return L.length ? `<div class="top5">${L.map(x => `<div class="t5"><span class="t5n">${esc(x.r.name)}<small>${esc(sub(x.r.o))}</small></span><i><b style="width:${x.v / mx * 100}%;background:${clubColor(x.r.tid)}"></b></i><em>${lab(x.v)}</em></div>`).join('')}</div>` : '<div class="empty">Aucun joueur.</div>'; };
     $('#lbTopSub').textContent = `Passes qui cassent une ligne + conduites progressives${tmFocus ? '' : ' · tout le championnat'}`;
-    $('#lbTop').innerHTML = topList(topBy(o => o.lb + o.carryProg), v => fmt(v), o => `${fmt(o.lb)} passes · ${fmt(o.carryProg)} conduites · ${fmt(o.f3)} entrées dernier tiers`);
+    $('#lbTop').innerHTML = topList(topBy(o => o.lb + o.carryProg), v => fmt(v), o => `${fmt(o.lb)} passes · ${fmt(o.carryProg)} conduites · ${fmt(o.f3 + o.carryF3)} entrées dernier tiers (${fmt(o.f3)} par la passe, ${fmt(o.carryF3)} en conduite)`);
     // ---- 3. 30 derniers mètres
     const shots = [];
     for (const m of ms) if (m.ev) for (const x of m.ev.shots) if (f.qs.has(x.q) && focusShot(x)) shots.push(x);
@@ -3729,7 +3729,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-12 09:23 UTC';
+const BUILD = '2026-11-12 09:35 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
