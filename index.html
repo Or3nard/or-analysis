@@ -185,7 +185,8 @@ details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}
 .cr-blk{margin-top:18px;padding-top:14px;border-top:1px solid var(--grid)}.cr-h{font-size:15px;margin:0 0 8px}.crend{display:grid;gap:8px}
 .lvls{display:inline-flex;background:var(--surface-2);border-radius:10px;padding:3px;margin:0 0 10px;gap:2px}.lvls button{border:0;background:transparent;padding:7px 18px;border-radius:8px;font-weight:700;font-size:13.5px;color:var(--text-2);cursor:pointer}.lvls button[aria-selected=true]{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .ply-head{display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:14px 18px}.ply-head .pn{font-size:22px;font-weight:800}.ply-head .pm{color:var(--text-2);font-size:13px}.ply-head .tlogo{height:34px}.ply-stats{display:flex;gap:18px;margin-left:auto;flex-wrap:wrap}.ply-stats div{text-align:center}.ply-stats b{display:block;font-size:20px}.ply-stats span{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
-.empty-card{padding:28px;text-align:center}.empty-card p{color:var(--text-2)}
+.empty-card{padding:28px;text-align:center}
+.lb-g{margin-top:6px}.lb-g+.lb-g{margin-top:18px;padding-top:14px;border-top:1px solid var(--grid)}.lb-g>h3{font-size:15px;margin:0 0 10px}.lb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px 22px}.lb-grid h4{font-size:13px;margin:0 0 6px;color:var(--text-2);font-weight:600}.lb-grid .t5[data-lbpid]{cursor:pointer;border-radius:6px}.lb-grid .t5[data-lbpid]:hover{background:var(--hover,rgba(127,127,127,.08))}.empty-card p{color:var(--text-2)}
 .shf [data-sh]{cursor:pointer;user-select:none;border-radius:6px;padding:1px 5px;transition:opacity .15s}.shf [data-sh]:hover{background:var(--surface-2)}
 .shh-g .sh-g,.shh-ot .sh-ot,.shh-off .sh-off{display:none}
 .cage .cz-g,.cage .cz-ot{display:none}.shh-g .cage .cz-all,.shh-ot .cage .cz-all{display:none}.shh-ot .cage .cz-g{display:inline}.shh-g .cage .cz-ot{display:inline}.shh-g.shh-ot .cage .cz-g,.shh-g.shh-ot .cage .cz-ot{display:none}
@@ -411,7 +412,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-11 13:21 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-12 08:08 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -874,7 +875,11 @@ input.j{width:64px}
     </div>
     <!-- Fiche joueur -->
     <div class="subpanel" data-sub="ply">
-      <div id="plyEmpty" class="card empty-card" hidden><b>Choisissez un joueur</b><p>Sélectionnez un joueur dans le filtre « Joueur » en haut de la page (ou cliquez sur un joueur dans un classement).</p></div>
+      <div id="plyEmpty" class="card" hidden>
+        <div class="card-head"><div><h2 id="plyOvT">Les joueurs</h2><p class="sub" id="plyOvSub"></p></div>
+          <div class="ctrl"><select id="plyOvMode"><option value="tot">Total</option><option value="p90">Par 90 minutes</option></select></div></div>
+        <div id="plyOv"></div>
+      </div>
       <div id="plyBody">
         <div class="card ply-head" id="plyHead"></div>
         <div class="grid" style="margin-top:14px">
@@ -1053,6 +1058,10 @@ input.j{width:64px}
         <div class="card c12 phase" id="ppC4">
           <div class="ph-head"><span class="chap-n">3</span><div><h2>Explosivité : les courses jusqu’à 30 km/h</h2><p id="ppExpSub">Distance et temps pour passer du début de l’accélération à 30 km/h, course par course (tracking).</p></div></div>
           <div id="ppExp"></div>
+        </div>
+        <div class="card c12" id="ppLead" hidden>
+          <div class="card-head"><div><h2 id="ppLeadT">Les leaders physiques</h2><p class="sub" id="ppLeadSub"></p></div></div>
+          <div id="ppLeadB"></div>
         </div>
         <div class="card c12" id="ppTeamCard">
           <div class="card-head"><div><h2 id="ppTeamTitle">Les joueurs de l’équipe</h2><p class="sub" id="ppTeamSub"></p></div><div class="ctrl"><button class="btn" data-csv="tblPpTeam">CSV</button></div></div>
@@ -3683,7 +3692,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-11 13:21 UTC';
+const BUILD = '2026-11-12 08:08 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -3707,10 +3716,43 @@ const PLY_GROUPS = [
   ['30 derniers mètres', [['Buts', P90('gf'), 2, 1], ['Passes décisives', P90('ast'), 2, 1], ['Tirs', P90('sh'), 1, 1], ['xG', P90('xg'), 2, 1], ['xGOT', P90('xgot'), 2, 1], ['Passes clés', P90('kp'), 1, 1], ['Entrées dans la surface', P90('box'), 1, 1]]],
   ['Défense et duels', [['Récupérations', P90('recov'), 1, 1], ['Interceptions', P90('int'), 1, 1], ['Tacles gagnés', P90('tkW'), 1, 1], ['% duels gagnés', o => val(TAC, 'duelPct', o), 1, 1], ['% duels aériens gagnés', o => val(TAC, 'aerPct', o), 1, 1], ['Pertes de balle', P90('lost'), 1, -1], ['Fautes', P90('foul'), 1, -1]]]
 ];
+/* ---------- Classements « top 5 » quand aucun joueur n'est choisi ---------- */
+// rows : [{id, tid, secs, o}] · groupes : [{t, m: [[libellé, fn(o, row), décimales, {dir, rate, unit}]]}]
+// p90 : valeurs ramenées à 90 min (joueurs ≥ 270 min) ; « rate » = valeur déjà par 90 ou ratio, jamais divisée
+function leadersHTML(groups, rows, PI, p90, minSecs = 270 * 60) {
+  const C = teamCodes();
+  const one = ([l, fn, d, o = {}]) => {
+    const dir = o.dir || 1, need = p90 || o.rate;
+    const L = rows.filter(r => !need || r.secs >= minSecs).map(r => { let v = fn(r.o, r); if (v != null && p90 && !o.rate) v = v / (r.secs / 5400); return {r, v}; })
+      .filter(x => x.v != null && isFinite(x.v) && (dir < 0 || x.v > 0)).sort((a, b) => dir * (b.v - a.v)).slice(0, 5);
+    if (!L.length) return `<div><h4>${esc(l)}</h4><div class="empty">Aucune donnée</div></div>`;
+    const mx = Math.max(...L.map(x => x.v)), mn = Math.min(...L.map(x => x.v));
+    const w = v => dir > 0 ? v / (mx || 1) * 100 : (mx > mn ? 35 + (mx - v) / (mx - mn) * 65 : 100);
+    return `<div><h4>${esc(l)}${p90 && !o.rate ? ' <small class="muted">/ 90 min</small>' : ''}</h4><div class="top5">${L.map(x => `<div class="t5" data-lbpid="${esc(x.r.id)}" title="Ouvrir la fiche de ${esc(PI[x.r.id].name)}"><span class="t5n">${esc(PI[x.r.id].name)}<small>${esc(C[x.r.tid] || '')} · ${fmt(Math.round(x.r.secs / 60))} min</small></span><i><b style="width:${w(x.v)}%;background:${clubColor(x.r.tid)}"></b></i><em>${fmt(x.v, d)}${o.unit || ''}</em></div>`).join('')}</div></div>`;
+  };
+  return groups.map(g => `<div class="lb-g"><h3>${esc(g.t)}</h3><div class="lb-grid">${g.m.map(one).join('')}</div></div>`).join('');
+}
+document.addEventListener('click', e => { const r = e.target.closest && e.target.closest('[data-lbpid]'); if (r) { setFilter('player', r.dataset.lbpid); window.scrollTo({top: 0}); } });
+function renderPlyOverview(ms, TN, PI, f, P) {
+  const SR = seasonRoles(), mode = $('#plyOvMode').value, p90 = mode === 'p90';
+  const rows = Object.entries(P).filter(([id, o]) => PI[id] && o.secs > 0 && (!f.team || PI[id].team === f.team)).map(([id, o]) => ({id, tid: PI[id].team, secs: o.secs, o}));
+  const out = rows.filter(r => SR[r.id] !== 'GK');
+  const comp = (COMPS.find(c => c[0] === S.comp) || [, ''])[1];
+  $('#plyOvT').textContent = f.team ? `Les joueurs de ${TN[f.team]}` : `Les meilleurs joueurs de ${comp || 'la compétition'}`;
+  $('#plyOvSub').textContent = `${ms.length} match(s) · top 5 de chaque statistique${p90 ? ' · par 90 min, au moins 270 minutes jouées' : ''} · cliquez sur un joueur pour ouvrir sa fiche`;
+  const G = [
+    {t: 'Finition', m: [['Buts', o => o.gf, 0], ['xG', o => o.xg, 2], ['Tirs cadrés', o => o.sot, p90 ? 1 : 0], ['Buts − xG', o => o.gf - o.xg, 2, {rate: !p90 ? 0 : 1}]]},
+    {t: 'Création', m: [['Passes décisives', o => o.ast, p90 ? 2 : 0], ['Passes clés', o => o.kp, p90 ? 1 : 0], ['Passes cassant la ligne', o => o.lb, p90 ? 1 : 0], ['Centres trouvés (hors CPA)', o => o.crOk, p90 ? 1 : 0]]},
+    {t: 'Progression', m: [['Passes progressives', o => o.prog, p90 ? 1 : 0], ['Conduites progressives', o => o.carryProg, p90 ? 1 : 0], ['Dribbles réussis', o => o.drbOk, p90 ? 1 : 0], ['Entrées dans la surface', o => o.box, p90 ? 1 : 0]]},
+    {t: 'Défense', m: [['Récupérations', o => o.recov, p90 ? 1 : 0], ['Récupérations camp adverse', o => o.recovH, p90 ? 1 : 0], ['Interceptions', o => o.int, p90 ? 1 : 0], ['Duels gagnés', o => (o.gdW || 0) + (o.aerW || 0), p90 ? 1 : 0]]}
+  ];
+  G[0].m[3][3] = {rate: true}; G[0].m[3][1] = p90 ? (o => o.secs >= 270 * 60 ? (o.gf - o.xg) / (o.secs / 5400) : null) : (o => o.gf - o.xg);
+  $('#plyOv').innerHTML = leadersHTML(G, out, PI, p90);
+}
 function renderPlayerCard(ms, TN, PI, f, P) {
-  const pid = f.player;
-  $('#plyEmpty').hidden = !!pid; $('#plyBody').hidden = !pid;
-  if (!pid || !PI[pid]) return;
+  const pid = f.player, has = !!(pid && PI[pid]);
+  $('#plyEmpty').hidden = has; $('#plyBody').hidden = !has;
+  if (!has) { renderPlyOverview(ms, TN, PI, f, P); return; }
   const pi = PI[pid], tid = pi.team, col = clubColor(tid), o = P[pid] || newAgg();
   const SR = seasonRoles(), role = SR[pid], peerMode = $('#plyPeer').value;
   const posts = playerPosts(ms, pid, TN, tid);
@@ -4478,7 +4520,18 @@ const ROLE_PL = {CB: 'défenseurs centraux', FB: 'latéraux', CM: 'milieux centr
 function renderPhyPlayer(ms, lg, TN, PI) {
   const f = S.f, SR = seasonRoles(), pid = f.player, tid = f.team || (pid && PI[pid] ? PI[pid].team : '');
   const col = tid ? clubColor(tid) : css('--s1'), lc = css('--text-3');
-  $('#phyPHint').hidden = !!pid;
+  $('#phyPHint').hidden = true;
+  $('#ppLead').hidden = !!pid;
+  if (!pid) { const PP = aggPhys(ms).P, rows = Object.entries(PP).filter(([id, o]) => PI[id] && o.time > 0 && (!tid || o.tm === tid)).map(([id, o]) => ({id, tid: o.tm, secs: o.time, o}));
+    const comp = (COMPS.find(c => c[0] === S.comp) || [, ''])[1];
+    $('#ppLeadT').textContent = tid ? `Les leaders physiques de ${TN[tid]}` : `Les leaders physiques de ${comp || 'la compétition'}`;
+    $('#ppLeadSub').textContent = `${ms.length} match(s) · top 5 · valeurs par 90 min, au moins 270 minutes jouées · cliquez sur un joueur pour ouvrir sa fiche`;
+    const p9 = k => o => val(PHY, k, o, 'p90'), R = {rate: true};
+    $('#ppLeadB').innerHTML = leadersHTML([
+      {t: 'Volume', m: [['Distance totale / 90 min', o => p9('dist')(o) / 1000, 2, {...R, unit: ' km'}], ['Mètres par minute', o => val(PHY, 'mpm', o), 1, R], ['Course > 20 km/h / 90 min', p9('hi'), 0, {...R, unit: ' m'}], ['Course > 25 km/h / 90 min', p9('spr'), 0, {...R, unit: ' m'}]]},
+      {t: 'Vitesse', m: [['Sprints / 90 min', p9('nspr'), 1, R], ['Vitesse maximale', o => o.vmax, 1, {...R, unit: ' km/h'}], ['Le plus explosif : mètres pour atteindre 30 km/h', (o, r) => spdOf(ms, r.id).d30, 1, {...R, dir: -1, unit: ' m'}]]}
+    ], rows, PI, false);
+  }
   ['#ppCard', '#ppC1', '#ppC2', '#ppC4'].forEach(s => $(s).hidden = !pid);
   // joueurs de l'équipe
   const TP = tid ? aggPhys(ms).P : {};
@@ -5580,7 +5633,7 @@ function bindUI() {
     refreshAll();
   };
   $('#fReset').onclick = () => { S.f = {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0, 1, 2, 3, 4, 5])}; refreshAll(); };
-  ['#plyPeer', '#plyPassType', '#offMode', '#bmGk', '#defMode', '#duelMin', '#gkCrType', '#gkShotType', '#gkPassType', '#gkTblMode', '#gkMinMin', '#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyTeamMode', '#h2hEvoMetric', '#momOffMode', '#xtPlMode',
+  ['#plyPeer', '#plyOvMode', '#plyPassType', '#offMode', '#bmGk', '#defMode', '#duelMin', '#gkCrType', '#gkShotType', '#gkPassType', '#gkTblMode', '#gkMinMin', '#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyTeamMode', '#h2hEvoMetric', '#momOffMode', '#xtPlMode',
    '#offMetric', '#offTeamMode', '#defMetric', '#defTeamMode', '#dngMode']
     .forEach(s => $(s).onchange = () => scheduleRender());
   document.querySelectorAll('[data-csv]').forEach(b => b.onclick = () => exportCSV(b.dataset.csv));
