@@ -413,7 +413,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-12 09:49 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-12 14:14 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -1063,7 +1063,7 @@ input.j{width:64px}
           <div id="ppZones"></div>
         </div>
         <div class="card c12 phase" id="ppC4">
-          <div class="ph-head"><span class="chap-n">3</span><div><h2>Explosivité : les courses jusqu’à 30 km/h</h2><p id="ppExpSub">Distance et temps pour passer du début de l’accélération à 30 km/h, course par course (tracking).</p></div></div>
+          <div class="ph-head"><span class="chap-n">3</span><div style="flex:1"><h2 id="ppExpT">Explosivité</h2><p id="ppExpSub">Distance et temps pour passer du début de l’accélération au seuil choisi, et vitesse atteinte après 5 à 50 m (tracking).</p></div><div class="ctrl"><select class="spdThrSel" title="Seuil de vitesse pour l’explosivité"><option value="28">Seuil 28 km/h</option><option value="30">Seuil 30 km/h</option></select></div></div>
           <div id="ppExp"></div>
         </div>
         <div class="card c12" id="ppLead" hidden>
@@ -1072,7 +1072,7 @@ input.j{width:64px}
           <div id="ppLeadB"></div>
         </div>
         <div class="card c12" id="ppTeamCard">
-          <div class="card-head"><div><h2 id="ppTeamTitle">Les joueurs de l’équipe</h2><p class="sub" id="ppTeamSub"></p></div><div class="ctrl"><button class="btn" data-csv="tblPpTeam">CSV</button></div></div>
+          <div class="card-head"><div><h2 id="ppTeamTitle">Les joueurs de l’équipe</h2><p class="sub" id="ppTeamSub"></p></div><div class="ctrl"><select id="ppTeamMode"><option value="tot">Total</option><option value="pm">Par match</option><option value="p90" selected>Par 90 min</option></select><select class="spdThrSel" title="Seuil de vitesse pour l’explosivité"><option value="28">Seuil 28 km/h</option><option value="30">Seuil 30 km/h</option></select><button class="btn" data-csv="tblPpTeam">CSV</button></div></div>
           <div class="tbl-wrap" id="tblPpTeam"></div>
         </div>
       </div>
@@ -1485,7 +1485,7 @@ async function importFiles(list) {
 }
 
 /* ---------- Tracking : positions et trajectoire du ballon autour des corners ---------- */
-const TRK_VER = 3, SPD_VER = 1;
+const TRK_VER = 3, SPD_VER = 2;
 const cornerKey = c => c.per + '|' + Math.round(c.gc * 10);
 async function procTracking(m, file) {
   const C = [...((m.ev && m.ev.corners) || []).map(c => ({...c, _k: 'c', _o: c})), ...((m.ev && m.ev.fks) || []).map(c => ({...c, _k: 'f', _o: c}))];
@@ -1496,24 +1496,29 @@ async function procTracking(m, file) {
   const rx = /"period": (\d+), "frameIdx": (\d+), "gameClock": ([\d.]+)/;
   const reader = file.stream().pipeThrough(new TextDecoderStream()).getReader();
   let buf = '', done = false;
-  // Vitesse : pointe de chaque joueur (avec qui avait le ballon à cet instant) et courses jusqu'à 30 km/h
-  // (12,5 images/s, ballon en jeu seulement) : distance et temps depuis le début de l'accélération
-  const SP = {}, HB = {};
+  // Vitesse : pointe de chaque joueur (avec qui avait le ballon à cet instant) et courses d'accélération
+  // (12,5 images/s, ballon en jeu seulement). Une course part de la dernière image sous 10 km/h et s'arrête quand le joueur
+  // ralentit (0,8 m/s sous sa pointe de la course), après 12 s ou 55 m. On garde les courses qui dépassent 24 km/h avec :
+  // distance et temps pour atteindre 28 et 30 km/h, vitesse atteinte à 5, 10, 15, 20, 25 et 50 m.
+  const SP = {}, HB = {}, SL = 10 / 3.6, DS = [5, 10, 15, 20, 25, 50], k1 = v => Math.round(v * 36) / 10, r2 = v => Math.round(v * 100) / 100;
+  const endRun = (s, h) => { const R = h.run; h.run = null; if (!R || R.vm < 24 / 3.6) return;
+    s.r.push([k1(R.v0), R.d28 == null ? null : r1(R.d28), R.t28 == null ? null : r2(R.t28), R.d30 == null ? null : r1(R.d30), R.t30 == null ? null : r2(R.t30), k1(R.vm), ...R.sd.map(v => v == null ? null : k1(v)), R.per, Math.round(R.g0)]); };
   const spdFrame = (per, gc, o) => {
     const live = o.live !== false;
     for (const [side, sd] of [[o.homePlayers, 'home'], [o.awayPlayers, 'away']]) for (const p of side || []) {
       const pid = p.playerId; if (!pid || p.speed == null || !p.xyz) continue;
-      let h = HB[pid]; if (!h) h = HB[pid] = {b: [], arm: true};
-      if (!live || (h.b.length && (h.b[h.b.length - 1][0] !== per || gc - h.b[h.b.length - 1][1] > .5))) { h.b.length = 0; if (!live) continue; }
-      const v = p.speed; h.b.push([per, gc, v, p.xyz[0], p.xyz[1]]); if (h.b.length > 120) h.b.shift();
-      const s = SP[pid] || (SP[pid] = {vm: 0, e: []});
+      const s = SP[pid] || (SP[pid] = {vm: 0, r: []});
+      let h = HB[pid]; if (!h) h = HB[pid] = {lp: null, run: null};
+      if (!live || (h.lp && (h.lp.per !== per || gc - h.lp.gc > .5))) { endRun(s, h); h.lp = null; if (!live) continue; }
+      const v = p.speed, x = p.xyz[0], y = p.xyz[1], step = h.lp ? Math.hypot(x - h.lp.x, y - h.lp.y) : 0; h.lp = {per, gc, x, y};
       if (v > s.vm) { s.vm = v; s.off = o.lastTouch ? (o.lastTouch === sd ? 1 : 0) : null; s.per = per; s.gc = Math.round(gc); }
-      if (v < 6.67) h.arm = true;   // réarmé quand le joueur repasse sous 24 km/h
-      if (h.arm && v >= 8.333 && h.b.length >= 2 && h.b[h.b.length - 2][2] < 8.333) {
-        h.arm = false; const B = h.b; let i = B.length - 2; while (i > 0 && B[i - 1][2] <= B[i][2] + .05) i--;
-        let d = 0; for (let k = i; k < B.length - 1; k++) d += Math.hypot(B[k + 1][3] - B[k][3], B[k + 1][4] - B[k][4]);
-        s.e.push([Math.round(B[i][2] * 36) / 10, Math.round(d * 10) / 10, Math.round((gc - B[i][1]) * 100) / 100, per, Math.round(gc)]);
-      }
+      if (v < SL) { endRun(s, h); h.run = {per, g0: gc, v0: v, d: 0, vm: v, sd: DS.map(() => null), d28: null, t28: null, d30: null, t30: null}; continue; }
+      const R = h.run; if (!R) continue;
+      R.d += step; if (v > R.vm) R.vm = v;
+      DS.forEach((D, i) => { if (R.sd[i] == null && R.d >= D) R.sd[i] = v; });
+      if (R.d28 == null && v >= 28 / 3.6) { R.d28 = R.d; R.t28 = gc - R.g0; }
+      if (R.d30 == null && v >= 30 / 3.6) { R.d30 = R.d; R.t30 = gc - R.g0; }
+      if (v < R.vm - .8 || gc - R.g0 > 12 || R.d > 55) endRun(s, h);
     }
   };
   const take = line => { const mm = rx.exec(line.slice(0, 100)); if (!mm) return; const per = +mm[1], fi = +mm[2], gc = +mm[3];
@@ -1564,7 +1569,7 @@ async function procTracking(m, file) {
     m.trk[c._k][cornerKey(c)] = {s: [r1(b0.x), r1(b0.y)], k: keep(at(F[i0])), r: keep(at(F[i1])), b: path, z: r1(zmax), dt: r1(F[i1].gc - F[i0].gc), nr: near ? [near.a, near.p] : null};
     n++;
   }
-  for (const k in SP) { SP[k].vm = Math.round(SP[k].vm * 36) / 10; }
+  for (const k in SP) { if (HB[k]) endRun(SP[k], HB[k]); SP[k].vm = Math.round(SP[k].vm * 36) / 10; }
   m.spd = {v: SPD_VER, P: SP};
   return n;
 }
@@ -3751,7 +3756,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-12 09:49 UTC';
+const BUILD = '2026-11-12 14:14 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4587,19 +4592,26 @@ function renderPhyTeam(ms, lg, TN, PI) {
 }
 
 /* ---------- Physique : résumé individuel ---------- */
-// Vitesses issues du tracking : pointe (et qui avait le ballon), courses jusqu'à 30 km/h
+// Vitesses issues du tracking : pointe (et qui avait le ballon), courses d'accélération parties sous 10 km/h
 const SLOW0 = 10; // départ « lent » : moins de 10 km/h au début de l'accélération
-function spdOf(list, pid) {
-  let best = null; const E = []; let nm = 0;
+const SPD_DS = [5, 10, 15, 20, 25, 50];
+const spdThr = () => S.spdThr || 28;   // seuil choisi : 28 ou 30 km/h
+function spdOf(list, pid, thr = spdThr()) {
+  let best = null; const E = []; let nm = 0, old = 0;
   for (const m of list) { const s = m.spd && m.spd.P && m.spd.P[pid]; if (!s) continue; nm++;
     if (!best || s.vm > best.vm) best = {vm: s.vm, off: s.off, per: s.per, gc: s.gc, m};
-    for (const e of s.e || []) E.push({m, v0: e[0], d: e[1], t: e[2], per: e[3], gc: e[4]}); }
-  const L = E.filter(e => e.v0 <= SLOW0), med = a => { if (!a.length) return null; const b = a.slice().sort((x, y) => x - y), k = b.length >> 1; return b.length % 2 ? b[k] : (b[k - 1] + b[k]) / 2; };
-  return {best, E, L, nm, d30: med(L.map(e => e.d)), t30: med(L.map(e => e.t)), b30: L.length ? Math.min(...L.map(e => e.d)) : null};
+    if (s.r) for (const e of s.r) { const d = thr === 30 ? e[3] : e[1], t = thr === 30 ? e[4] : e[2]; E.push({m, v0: e[0], d, t, vm: e[5], sd: e.slice(6, 12), per: e[12], gc: e[13]}); }
+    else { old++; if (thr === 30) for (const e of s.e || []) E.push({m, v0: e[0], d: e[1], t: e[2], sd: [], per: e[3], gc: e[4]}); } }
+  const med = a => { if (!a.length) return null; const b = a.slice().sort((x, y) => x - y), k = b.length >> 1; return b.length % 2 ? b[k] : (b[k - 1] + b[k]) / 2; };
+  const L = E.filter(e => e.v0 <= SLOW0 && e.d != null);
+  // vitesse atteinte à 5…50 m : sur les courses qui vont jusqu'au seuil (efforts maximaux)
+  const prof = SPD_DS.map((D, i) => { const v = L.map(e => e.sd[i]).filter(x => x != null); return {D, n: v.length, med: med(v), best: v.length ? Math.max(...v) : null}; });
+  return {best, E: E.filter(e => e.d != null), L, nm, old, thr, prof, d30: med(L.map(e => e.d)), t30: med(L.map(e => e.t)), b30: L.length ? Math.min(...L.map(e => e.d)) : null};
 }
 const minOfGc = (per, gc) => Math.floor(gc / 60) + (per === 2 ? 45 : 0) + 1;
 const ROLE_PL = {CB: 'défenseurs centraux', FB: 'latéraux', CM: 'milieux centraux', WM: 'milieux excentrés', FW: 'attaquants'};
 function renderPhyPlayer(ms, lg, TN, PI) {
+  document.querySelectorAll('.spdThrSel').forEach(x => x.value = String(spdThr()));
   const f = S.f, SR = seasonRoles(), pid = f.player, tid = f.team || (pid && PI[pid] ? PI[pid].team : '');
   const col = tid ? clubColor(tid) : css('--s1'), lc = css('--text-3');
   $('#phyPHint').hidden = true;
@@ -4612,7 +4624,7 @@ function renderPhyPlayer(ms, lg, TN, PI) {
     const p9 = k => o => tot ? val(PHY, k, o) : val(PHY, k, o, 'p90'), R = {rate: true, min: tot ? 0 : 270 * 60}, Q = {rate: true}, sfx = tot ? '' : ' / 90 min';
     $('#ppLeadB').innerHTML = leadersHTML([
       {t: 'Volume', m: [['Distance totale' + sfx, o => p9('dist')(o) / 1000, tot ? 1 : 2, {...R, unit: ' km'}], ['Mètres par minute', o => val(PHY, 'mpm', o), 1, Q], ['Course > 20 km/h' + sfx, p9('hi'), 0, {...R, unit: ' m'}], ['Course > 25 km/h' + sfx, p9('spr'), 0, {...R, unit: ' m'}]]},
-      {t: 'Vitesse', m: [['Sprints' + sfx, p9('nspr'), tot ? 0 : 1, R], ['Vitesse maximale', o => o.vmax, 1, {...Q, unit: ' km/h'}], ['Le plus explosif : mètres pour atteindre 30 km/h', (o, r) => spdOf(ms, r.id).d30, 1, {...Q, dir: -1, unit: ' m'}]]}
+      {t: 'Vitesse', m: [['Sprints' + sfx, p9('nspr'), tot ? 0 : 1, R], ['Vitesse maximale', o => o.vmax, 1, {...Q, unit: ' km/h'}], [`Le plus explosif : mètres pour atteindre ${spdThr()} km/h`, (o, r) => spdOf(ms, r.id).d30, 1, {...Q, dir: -1, unit: ' m'}]]}
     ], rows, PI, false);
   }
   ['#ppCard', '#ppC1', '#ppC2', '#ppC4'].forEach(s => $(s).hidden = !pid);
@@ -4621,11 +4633,13 @@ function renderPhyPlayer(ms, lg, TN, PI) {
   const tpl = Object.entries(TP).filter(([id, o]) => o.tm === tid && PI[id] && o.time >= 600).map(([id, o]) => ({id, name: PI[id].name, role: SR[id] || '', o}));
   $('#ppTeamCard').hidden = !tid;
   $('#ppTeamTitle').textContent = tid ? `Les joueurs de ${TN[tid]}` : '';
-  $('#ppTeamSub').textContent = 'Par 90 minutes · au moins 10 minutes jouées · cliquez sur un joueur pour ouvrir sa fiche';
+  const tm = $('#ppTeamMode').value, tmU = tm === 'tot' ? '' : tm === 'pm' ? ' /match' : ' /90', tv = (k, o) => tm === 'tot' ? val(PHY, k, o) : val(PHY, k, o, tm), TH = spdThr();
+  $('#ppTeamSub').textContent = `${tm === 'tot' ? 'Total sur la période' : tm === 'pm' ? 'Moyenne par match joué' : 'Par 90 minutes'} · au moins 10 minutes jouées · cliquez sur un joueur pour ouvrir sa fiche`;
   renderTable('tblPpTeam', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'role', l: 'Poste', txt: 1, v: r => r.role}, {k: 'mp', l: 'MJ', v: r => r.o.mp}, {k: 'min', l: 'Min', v: r => r.o.time / 60},
-    {k: 'dist', l: 'Distance /90 (km)', d: 2, v: r => val(PHY, 'dist', r.o, 'p90') / 1000}, {k: 'mpm', l: 'm/min', d: 1, v: r => val(PHY, 'mpm', r.o)}, {k: 'hi', l: '> 20 km/h /90 (m)', d: 0, v: r => val(PHY, 'hi', r.o, 'p90')},
-    {k: 'spr', l: '> 25 km/h /90 (m)', d: 0, v: r => val(PHY, 'spr', r.o, 'p90')}, {k: 'nspr', l: 'Sprints /90', d: 1, v: r => val(PHY, 'nspr', r.o, 'p90')},
-    {k: 'vmax', l: 'V. max', d: 1, v: r => r.o.vmax}, {k: 'd30', l: '→ 30 km/h (m)', h: `Distance médiane pour atteindre 30 km/h, courses parties sous ${SLOW0} km/h (tracking)`, d: 1, v: r => spdOf(ms, r.id).d30}],
+    {k: 'dist', l: `Distance${tmU} (km)`, d: tm === 'tot' ? 1 : 2, v: r => tv('dist', r.o) / 1000}, {k: 'mpm', l: 'm/min', d: 1, v: r => val(PHY, 'mpm', r.o)}, {k: 'hi', l: `> 20 km/h${tmU} (m)`, d: 0, v: r => tv('hi', r.o)},
+    {k: 'spr', l: `> 25 km/h${tmU} (m)`, d: 0, v: r => tv('spr', r.o)}, {k: 'nspr', l: `Sprints${tmU}`, d: tm === 'tot' ? 0 : 1, v: r => tv('nspr', r.o)},
+    {k: 'vmax', l: 'V. max', d: 1, v: r => r.o.vmax}, {k: 'd30', l: `→ ${TH} km/h (m)`, h: `Distance médiane pour atteindre ${TH} km/h, courses parties sous ${SLOW0} km/h (tracking)`, d: 1, v: r => spdOf(ms, r.id).d30},
+    {k: 'v10', l: 'V. à 10 m', h: `Vitesse médiane atteinte 10 m après le départ (courses qui vont jusqu’à ${TH} km/h)`, d: 1, v: r => spdOf(ms, r.id).prof[1].med}],
     tpl, {defaultSort: 'dist', hl: r => r.id === pid, onRow: id => setFilter('player', id)});
   if (!pid) return;
   const pRole = SR[pid], rl = pRole && ROLE_L[pRole] ? pRole : null;
@@ -4647,8 +4661,8 @@ function renderPhyPlayer(ms, lg, TN, PI) {
   $('#ppTiles').innerHTML = phyGroups([
     ['Volume', phyTile('Distance', pd / 1000, 'km', 2, 'par 90 min', pr('dist') && {...pr('dist'), avg: pr('dist').avg / 1000}, col) + phyTile('Distance par minute', rate('mpm', F), 'm/min', 1, 'minutes jouées', pr('mpm', rate), col)],
     ['Haute intensité', phyTile('Plus de 20 km/h', ph, 'm', 0, 'par 90 min', pr('hi'), col) + phyTile('Sprint > 25 km/h', p90('spr', F), 'm', 0, 'par 90 min', pr('spr'), col) + phyTile('Sprints', p90('nspr', F), '', 1, 'par 90 min', pr('nspr'), col) + phyTile('Vitesse max', F.vmax, 'km/h', 1, VS.best ? `${VS.best.off === 1 ? 'sur une course offensive' : VS.best.off === 0 ? 'sur une course défensive' : 'sur la période'} · ${oppLabel(VS.best.m, PI[pid].team, TN)}, ${minOfGc(VS.best.per, VS.best.gc)}'` : 'sur la période', pr('vmax', rate), col)],
-    ['Explosivité', VS.nm ? phyTile('Distance pour atteindre 30 km/h', VS.d30, 'm', 1, VS.L.length ? `médiane de ${VS.L.length} course(s) partie(s) sous ${SLOW0} km/h · ${fmt(VS.t30, 1)} s` : `aucune course partie sous ${SLOW0} km/h n’atteint 30 km/h`, d30Rank, col) + phyTile('Courses à 30 km/h', VS.E.length / VS.nm, '', 1, `par match · ${VS.E.length} sur ${VS.nm} match(s) avec tracking`, null, col)
-      : `<div class="dng-t"><span>Explosivité</span><small>Importez le tracking des matchs pour mesurer les courses jusqu’à 30 km/h.</small></div>`]]);
+    ['Explosivité', VS.nm ? phyTile(`Distance pour atteindre ${VS.thr} km/h`, VS.d30, 'm', 1, VS.L.length ? `médiane de ${VS.L.length} course(s) partie(s) sous ${SLOW0} km/h · ${fmt(VS.t30, 1)} s` : `aucune course partie sous ${SLOW0} km/h n’atteint ${VS.thr} km/h`, d30Rank, col) + phyTile(`Courses jusqu’à ${VS.thr} km/h`, VS.L.length / VS.nm, '', 1, `par match · ${VS.L.length} sur ${VS.nm} match(s) avec tracking`, null, col)
+      : `<div class="dng-t"><span>Explosivité</span><small>Importez le tracking des matchs pour mesurer les accélérations.</small></div>`]]);
   // 1. Par match
   const per = ms.filter(m => m.phys).map(m => ({m, o: aggPhys([m]).P[pid]})).filter(x => x.o && x.o.time > 0);
   const labs = per.map(x => oppTick(x.m, x.o.tm, TN)), oppP = per.map(x => otherSide(x.m, x.o.tm));
@@ -4664,13 +4678,23 @@ function renderPhyPlayer(ms, lg, TN, PI) {
     return `<tr><td class="txt"><i class="zdot" style="background:var(${zc})"></i><b>${nmz}</b> <small class="muted">${rng}</small></td><td><b>${fmt(v, 0)}</b> m</td><td>${fmt(a, 0)} m</td><td class="${d != null && Math.abs(d) >= 5 ? (d > 0 ? 'up' : 'dn') : ''}">${d == null ? '—' : (d >= 0 ? '+' : '−') + fmt(Math.abs(d), 0) + ' %'}</td><td>${fmt(p90(tk, F), 1)} min</td><td>${nk ? fmt(p90(nk, F), 1) : '<span class="muted">—</span>'}</td><td>${rk ? `${rk.r}<sup>${rk.r === 1 ? 'er' : 'e'}</sup> / ${rk.of}` : '—'}</td></tr>`; }).join('')}</table>
     <p class="note">Écart avec la moyenne du poste : en vert au moins 5 % au-dessus, en rouge au moins 5 % en dessous.</p>`;
   // 3. Explosivité
-  const ER = VS.E.slice().sort((x, y) => (y.v0 <= SLOW0) - (x.v0 <= SLOW0) || x.d - y.d);
+  const ER = VS.L.slice().sort((x, y) => x.d - y.d);
   const pAvgD = mean(peerD.filter(v => v != null));
+  $('#ppExpT').textContent = `Explosivité : les accélérations jusqu’à ${TH} km/h`;
+  // profil vitesse / distance : joueur, moyenne du poste (médiane de chaque joueur, au moins 3 courses) et rang au poste
+  const peerP = Object.keys(PR).filter(id => rl && SR[id] === rl).map(id => spdOf(lg, id)).filter(x => x.L.length >= 3);
+  const profRows = VS.prof.map((p, i) => { const pv = peerP.map(x => x.prof[i].med).filter(v => v != null), rk = p.med != null && VS.L.length >= 3 ? rankOf(pv, p.med, 1) : null;
+    return `<tr><td class="txt"><b>${p.D} m</b></td><td><b>${p.med == null ? '—' : fmt(p.med, 1) + ' km/h'}</b></td><td>${p.best == null ? '—' : fmt(p.best, 1) + ' km/h'}</td><td>${pv.length ? fmt(mean(pv), 1) + ' km/h' : '—'}</td><td>${rk ? `${ordFr(rk.r)} / ${rk.of}` : '—'}</td><td class="muted">${p.n}</td></tr>`; }).join('');
+  const oldNote = VS.old ? `<p class="note"><b>${VS.old} match(s)</b> ont été importés avant cette version : réimportez leur fichier tracking-produced.jsonl pour avoir le seuil de 28 km/h et la vitesse à 5…50 m.</p>` : '';
   $('#ppExp').innerHTML = !VS.nm ? '<div class="empty">Aucun match avec tracking pour ce joueur : importez les dossiers complets (fichier tracking-produced.jsonl).</div>'
-    : !VS.E.length ? '<div class="empty">Ce joueur n’a pas atteint 30 km/h sur les matchs avec tracking.</div>'
-    : `<div class="pt-row" style="margin-bottom:12px">${phyTile('Distance médiane', VS.d30, 'm', 1, `départ sous ${SLOW0} km/h`, d30Rank, col)}${phyTile('Meilleure course', VS.b30, 'm', 1, `départ sous ${SLOW0} km/h`, null, col)}${phyTile('Temps médian', VS.t30, 's', 1, 'pour atteindre 30 km/h', null, col)}${phyTile(`Moyenne des ${ROLE_PL[rl] || 'joueurs'}`, pAvgD, 'm', 1, `joueurs avec au moins 3 courses`, null, lc)}</div>
-      <table class="gkz ptz"><tr><th class="txt">Match</th><th>Minute</th><th>Vitesse au départ</th><th>Distance jusqu’à 30 km/h</th><th>Temps</th></tr>${ER.map(e => `<tr class="${e.v0 <= SLOW0 ? '' : 'few'}"><td class="txt">${esc(oppLabel(e.m, PI[pid].team, TN))}</td><td>${minOfGc(e.per, e.gc)}'</td><td>${fmt(e.v0, 1)} km/h</td><td><b>${fmt(e.d, 1)} m</b></td><td>${fmt(e.t, 2)} s</td></tr>`).join('')}</table>
-      <p class="note">Le départ est le moment où le joueur commence à accélérer (vitesse la plus basse juste avant la course). Seules les courses parties sous ${SLOW0} km/h comptent pour la distance médiane et le rang : celles lancées d’une vitesse plus haute (grisées) arrivent forcément plus vite à 30 km/h. Rang au poste : 1<sup>er</sup> = la distance la plus courte, donc le plus explosif.</p>`;
+    : !VS.L.length ? `<div class="empty">Ce joueur n’a pas atteint ${TH} km/h en partant de moins de ${SLOW0} km/h sur les matchs avec tracking.</div>${oldNote}`
+    : `<div class="pt-row" style="margin-bottom:12px">${phyTile('Distance médiane', VS.d30, 'm', 1, `pour atteindre ${TH} km/h · départ sous ${SLOW0} km/h`, d30Rank, col)}${phyTile('Meilleure course', VS.b30, 'm', 1, `départ sous ${SLOW0} km/h`, null, col)}${phyTile('Temps médian', VS.t30, 's', 1, `pour atteindre ${TH} km/h`, null, col)}${phyTile(`Moyenne des ${ROLE_PL[rl] || 'joueurs'}`, pAvgD, 'm', 1, `joueurs avec au moins 3 courses`, null, lc)}</div>
+      <h3 style="font-size:14px;margin:6px 0 6px">Vitesse atteinte après…</h3>
+      <table class="gkz ptz"><tr><th class="txt">Distance depuis le départ</th><th>Vitesse médiane</th><th>Meilleure</th><th>Moyenne du poste</th><th>Rang au poste</th><th>Courses</th></tr>${profRows}</table>
+      <p class="note">Sur les courses parties sous ${SLOW0} km/h qui vont jusqu’à ${TH} km/h (les vrais efforts d’accélération). Rang au poste : 1<sup>er</sup> = la vitesse la plus haute à cette distance. À 50 m, seules les courses assez longues comptent.</p>
+      <h3 style="font-size:14px;margin:14px 0 6px">Course par course</h3>
+      <table class="gkz ptz"><tr><th class="txt">Match</th><th>Minute</th><th>Vitesse au départ</th><th>Distance jusqu’à ${TH} km/h</th><th>Temps</th><th>À 10 m</th><th>À 20 m</th><th>Pointe de la course</th></tr>${ER.map(e => `<tr><td class="txt">${esc(oppLabel(e.m, PI[pid].team, TN))}</td><td>${minOfGc(e.per, e.gc)}'</td><td>${fmt(e.v0, 1)} km/h</td><td><b>${fmt(e.d, 1)} m</b></td><td>${fmt(e.t, 2)} s</td><td>${e.sd[1] == null ? '—' : fmt(e.sd[1], 1)}</td><td>${e.sd[3] == null ? '—' : fmt(e.sd[3], 1)}</td><td>${e.vm == null ? '—' : fmt(e.vm, 1) + ' km/h'}</td></tr>`).join('')}</table>
+      <p class="note">Le départ est la dernière image sous ${SLOW0} km/h avant l’accélération ; la course s’arrête quand le joueur ralentit. Rang au poste de la distance : 1<sup>er</sup> = la distance la plus courte, donc le plus explosif.</p>${oldNote}`;
 }
 
 /* ---------- Sous-onglet Face à face ---------- */
@@ -5749,6 +5773,7 @@ function bindUI() {
   document.addEventListener('click', e => { const b = e.target.closest('[data-more]'); if (!b) return; const w = document.getElementById(b.dataset.more + 'Wrap'); if (!w) return; w.hidden = !w.hidden; b.textContent = b.textContent.replace(/^(Voir|Masquer)/, w.hidden ? 'Voir' : 'Masquer'); });
   [['#ckSide', 'side'], ['#ckZoneMode', 'zm'], ['#ckPlMode', 'pl'], ['#spType', 'ty'], ['#fkDir', 'fd']].forEach(([id, k]) => $(id).onclick = e => { const b = e.target.closest('[data-v]'); if (!b || b.disabled) return; S.ck = S.ck || {}; S.ck[k] = b.dataset.v; if (k === 'ty') S.ck.dt = b.dataset.v; scheduleRender(); });
   $('#qcRun').onclick = () => { $('#qcSum').textContent = 'Contrôle en cours…'; setTimeout(renderQuality, 30); };
+  document.querySelectorAll('.spdThrSel').forEach(sel => sel.onchange = () => { S.spdThr = +sel.value; scheduleRender(); });
   $('#dngSide').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; S.ck = S.ck || {}; S.ck.ds = b.dataset.v; scheduleRender(); };
   $('#dngType').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; S.ck = S.ck || {}; S.ck.dt = b.dataset.v; if (b.dataset.v !== 'all') S.ck.ty = b.dataset.v; scheduleRender(); };
   $('#ckF3').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.ck = S.ck || {}; const K3 = S.ck.f3 = S.ck.f3 || {};
@@ -5785,7 +5810,7 @@ function bindUI() {
     refreshAll();
   };
   $('#fReset').onclick = () => { S.f = {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0, 1, 2, 3, 4, 5])}; refreshAll(); };
-  ['#plyPeer', '#plyOvMode', '#xcPop', '#xcMode', '#xcX', '#xcY', '#ptLeadMode', '#ppLeadMode', '#plyPassType', '#offMode', '#bmGk', '#defMode', '#duelMin', '#gkCrType', '#gkShotType', '#gkPassType', '#gkTblMode', '#gkMinMin', '#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyTeamMode', '#h2hEvoMetric', '#momOffMode', '#xtPlMode',
+  ['#plyPeer', '#plyOvMode', '#ppTeamMode', '#xcPop', '#xcMode', '#xcX', '#xcY', '#ptLeadMode', '#ppLeadMode', '#plyPassType', '#offMode', '#bmGk', '#defMode', '#duelMin', '#gkCrType', '#gkShotType', '#gkPassType', '#gkTblMode', '#gkMinMin', '#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyTeamMode', '#h2hEvoMetric', '#momOffMode', '#xtPlMode',
    '#offMetric', '#offTeamMode', '#defMetric', '#defTeamMode', '#dngMode']
     .forEach(s => $(s).onchange = () => scheduleRender());
   document.querySelectorAll('[data-csv]').forEach(b => b.onclick = () => exportCSV(b.dataset.csv));
