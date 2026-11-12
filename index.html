@@ -413,7 +413,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-12 09:35 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-12 09:41 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -741,6 +741,7 @@ input.j{width:64px}
         <div class="card c12" id="cpaDng">
           <div class="card-head"><div><h2>Dangerosité sur CPA</h2><p class="sub" id="dngSub"></p></div>
             <div class="ctrl"><div class="chips" id="dngType"><button class="chip" data-v="all">Tous les CPA</button><button class="chip" data-v="ck">Corners</button><button class="chip" data-v="fk" title="Coups francs indirects dans le camp adverse">CFI</button></div>
+            <div class="chips" id="dngSide" style="margin-left:8px"><button class="chip" data-v="off" title="Ce que l’équipe crée sur ses CPA">Offensifs</button><button class="chip" data-v="def" title="Ce que l’équipe concède sur les CPA adverses">Défensifs</button></div>
             <select id="dngMode"><option value="tot">Total</option><option value="pm">Moyenne par match</option></select><button class="btn" data-csv="tblDng">CSV</button></div></div>
           <div class="dng" id="dngKpis"></div>
           <div class="tbl-wrap" id="tblDng"></div>
@@ -3459,22 +3460,23 @@ function fkSwing(c, t) {
 }
 // Bandeau « Dangerosité sur CPA » : toute la Ligue 1 sur la période (pas seulement les matchs de l'équipe choisie)
 function renderDanger(LMS, TN, f) {
-  const K = S.ck = S.ck || {}; K.dt = K.dt || 'all'; const dt = K.dt, mode = $('#dngMode').value, tid = f.team || (f.player && playerInfo()[f.player] ? playerInfo()[f.player].team : '');
+  const K = S.ck = S.ck || {}; K.dt = K.dt || 'all'; K.ds = K.ds || 'off'; const dt = K.dt, DEF = K.ds === 'def', mode = $('#dngMode').value, tid = f.team || (f.player && playerInfo()[f.player] ? playerInfo()[f.player].team : '');
   document.querySelectorAll('#dngType .chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === dt));
+  document.querySelectorAll('#dngSide .chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === K.ds));
   const lbl = dt === 'all' ? 'CPA' : dt === 'ck' ? 'corner' : 'CFI', lblP = dt === 'all' ? 'CPA' : dt === 'ck' ? 'corners' : 'CFI';
   let rows = [];
   {
     // Tous les CPA = corners + CFI (camp adverse) + coups francs directs + penaltys (les touches ne sont pas comptées)
-    const R = {}; const get = id => R[id] || (R[id] = {id, name: TN[id], mp: 0, n: 0, nck: 0, nfk: 0, ncfd: 0, npen: 0, nsh: 0, sh: 0, xg: 0, g: 0, xgT: 0, na: 0, sha: 0, xga: 0, ga: 0});
+    const R = {}; const get = id => R[id] || (R[id] = {id, name: TN[id], mp: 0, n: 0, nck: 0, nfk: 0, ncfd: 0, npen: 0, nsh: 0, sh: 0, xg: 0, g: 0, xgT: 0, na: 0, nshA: 0, nckA: 0, nfkA: 0, ncfdA: 0, npenA: 0, sha: 0, xga: 0, ga: 0, xgaT: 0});
     const add = (A, D, sh, xg_, g) => { A.sh += sh; A.xg += xg_; A.g += g; D.sha += sh; D.xga += xg_; D.ga += g; };
     for (const m of LMS) { if (!m.ev) continue; get(m.home.id).mp++; get(m.away.id).mp++;
-      for (const x of m.ev.shots) if (f.qs.has(x.q)) get(x.tm).xgT += x.xg;
+      for (const x of m.ev.shots) if (f.qs.has(x.q)) { get(x.tm).xgT += x.xg; get(otherSide(m, x.tm)).xgaT += x.xg; }
       for (const [k, L0] of [['ck', m.ev.corners], ['fk', m.ev.fks]]) { if (dt !== 'all' && dt !== k) continue;
         for (const c of L0 || []) { if (c.mode === undefined || !f.qs.has(c.q)) continue; const A = get(c.tm), D = get(otherSide(m, c.tm));
-          A.n++; A['n' + k]++; D.na++; if (c.nsh) A.nsh++; add(A, D, c.nsh || 0, c.xg || 0, c.g || 0); } }
+          A.n++; A['n' + k]++; D.na++; D['n' + k + 'A']++; if (c.nsh) { A.nsh++; D.nshA++; } add(A, D, c.nsh || 0, c.xg || 0, c.g || 0); } }
       if (dt === 'all') for (const x of m.ev.shots) { if (!f.qs.has(x.q) || (x.pat !== 'cfd' && x.pat !== 'pen')) continue; const A = get(x.tm), D = get(otherSide(m, x.tm));
-        A.n++; A[x.pat === 'pen' ? 'npen' : 'ncfd']++; D.na++; A.nsh++; add(A, D, 1, x.xg, x.g ? 1 : 0); } }
-    rows = Object.values(R).map(o => ({...o, shp: o.n ? o.nsh / o.n * 100 : null, xpc: o.n ? o.xg / o.n : null, share: o.xgT ? o.xg / o.xgT * 100 : null}));
+        A.n++; A[x.pat === 'pen' ? 'npen' : 'ncfd']++; D.na++; D[x.pat === 'pen' ? 'npenA' : 'ncfdA']++; A.nsh++; D.nshA++; add(A, D, 1, x.xg, x.g ? 1 : 0); } }
+    rows = Object.values(R).map(o => ({...o, shp: o.n ? o.nsh / o.n * 100 : null, xpc: o.n ? o.xg / o.n : null, share: o.xgT ? o.xg / o.xgT * 100 : null, shpA: o.na ? o.nshA / o.na * 100 : null, xpcA: o.na ? o.xga / o.na : null, shareA: o.xgaT ? o.xga / o.xgaT * 100 : null}));
   }
   const pm = (r, v) => mode === 'pm' ? (r.mp ? v / r.mp : null) : v;
   // bandeau de l'équipe : rang sur 4 indicateurs clés
@@ -3489,13 +3491,22 @@ function renderDanger(LMS, TN, f) {
     $('#dngSub').innerHTML = `<b style="color:${col}">${esc(TN[tid])}</b> comparé à toute la Ligue 1 sur la période · rang 1<sup>er</sup> = le plus dangereux en attaque, le moins exposé en défense`;
   } else { $('#dngKpis').innerHTML = ''; $('#dngSub').textContent = 'Toute la Ligue 1 sur la période · choisissez une équipe pour voir son rang'; }
   if (dt === 'all') $('#dngSub').innerHTML += ' · <span class="muted">Tous les CPA = corners, CFI dans le camp adverse, coups francs directs et penaltys (touches non comptées) ; tirs et xG dans les 15 s après chaque corner ou CFI</span>';
-  const cols = dt === 'all' ? [
+  const d1 = mode === 'pm' ? 1 : 0, d2 = mode === 'pm' ? 2 : 0, Up = lblP[0].toUpperCase() + lblP.slice(1);
+  const colsDef = dt === 'all' ? [
+      {k: 'mp', l: 'MJ', v: r => r.mp}, {k: 'nckA', l: 'Corners concédés', d: d1, v: r => pm(r, r.nckA)}, {k: 'nfkA', l: 'CFI concédés', h: 'Coups francs indirects adverses dans notre moitié', d: d1, v: r => pm(r, r.nfkA)},
+      {k: 'ncfdA', l: 'CF directs subis', d: d2, v: r => pm(r, r.ncfdA)}, {k: 'npenA', l: 'Penaltys concédés', d: d2, v: r => pm(r, r.npenA)},
+      {k: 'sha', l: 'Tirs concédés', d: d1, v: r => pm(r, r.sha)}, {k: 'xga', l: 'xG concédés', d: 2, v: r => pm(r, r.xga)}, {k: 'shareA', l: 'Part xG concédés CPA %', d: 0, h: 'Part des xG concédés par l’équipe venant de ces CPA', v: r => r.shareA}, {k: 'ga', l: 'Buts encaissés', d: d2, v: r => pm(r, r.ga)}]
+    : [{k: 'mp', l: 'MJ', v: r => r.mp}, {k: 'na', l: `${Up} concédés`, d: d1, v: r => pm(r, r.na)}, {k: 'shpA', l: '% suivis d’un tir adverse', d: 0, v: r => r.shpA}, {k: 'sha', l: 'Tirs concédés', d: d1, v: r => pm(r, r.sha)},
+      {k: 'xga', l: 'xG concédés', d: 2, v: r => pm(r, r.xga)}, {k: 'xpcA', l: `xG concédé / ${lbl}`, d: 3, v: r => r.xpcA}, {k: 'ga', l: 'Buts encaissés', d: d2, v: r => pm(r, r.ga)}];
+  const colsOff = dt === 'all' ? [
       {k: 'mp', l: 'MJ', v: r => r.mp}, {k: 'nck', l: 'Corners', d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.nck)}, {k: 'nfk', l: 'CFI', h: 'Coups francs indirects dans le camp adverse', d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.nfk)}, {k: 'ncfd', l: 'CF directs', h: 'Coups francs tirés directement au but', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.ncfd)}, {k: 'npen', l: 'Penaltys', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.npen)},
       {k: 'sh', l: 'Tirs', d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.sh)}, {k: 'xg', l: 'xG', d: 2, v: r => pm(r, r.xg)}, {k: 'share', l: 'Part xG CPA %', d: 0, h: 'Part des xG de l’équipe venant de ces CPA', v: r => r.share}, {k: 'g', l: 'Buts', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.g)},
-      {k: 'sha', l: 'Tirs concédés', d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.sha)}, {k: 'xga', l: 'xG concédés', d: 2, v: r => pm(r, r.xga)}, {k: 'ga', l: 'Buts encaissés', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.ga)}]
+    ]
     : [{k: 'mp', l: 'MJ', v: r => r.mp}, {k: 'n', l: lblP[0].toUpperCase() + lblP.slice(1), d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.n)}, {k: 'shp', l: '% suivis d’un tir', d: 0, v: r => r.shp}, {k: 'sh', l: 'Tirs', d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.sh)},
-      {k: 'xg', l: 'xG', d: 2, v: r => pm(r, r.xg)}, {k: 'xpc', l: `xG / ${lbl}`, d: 3, v: r => r.xpc}, {k: 'g', l: 'Buts', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.g)},
-      {k: 'na', l: `${lblP[0].toUpperCase() + lblP.slice(1)} concédés`, d: mode === 'pm' ? 1 : 0, v: r => pm(r, r.na)}, {k: 'xga', l: 'xG concédés', d: 2, v: r => pm(r, r.xga)}, {k: 'ga', l: 'Buts encaissés', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.ga)}];
+      {k: 'xg', l: 'xG', d: 2, v: r => pm(r, r.xg)}, {k: 'xpc', l: `xG / ${lbl}`, d: 3, v: r => r.xpc}, {k: 'g', l: 'Buts', d: mode === 'pm' ? 2 : 0, v: r => pm(r, r.g)}];
+  const cols = DEF ? colsDef : colsOff;
+  if (K._ds !== K.ds) { S.sort.tblDng = DEF ? {k: 'xga', asc: true} : {k: 'xg', asc: false}; K._ds = K.ds; }
+  if (S.sort.tblDng && !cols.some(c => c.k === S.sort.tblDng.k)) S.sort.tblDng = DEF ? {k: 'xga', asc: true} : {k: 'xg', asc: false};
   renderTable('tblDng', [{k: 'name', l: 'Équipe', txt: 1, v: r => r.name, html: r => logoHTML(r.id) + esc(r.name)}, ...cols], rows, {defaultSort: 'xg', hl: r => r.id === tid, onRow: id => setFilter('team', id)});
 }
 // pourcentages arrondis dont la somme fait 100 (méthode du plus fort reste)
@@ -3510,7 +3521,8 @@ function renderCorners(ms, TN, PI, f, LMS) {
   document.querySelectorAll('[data-sub="cpa"] .spl').forEach(e => { if (e.dataset.ck == null) e.dataset.ck = e.textContent; e.textContent = FK ? e.dataset.fk : e.dataset.ck; });
   const L = FK ? {one: 'CFI', pl: 'CFI', Pl: 'CFI', le: 'le CFI', du: 'du CFI', ce: 'ce CFI', nos: 'ses CFI', conc: 'CFI concédés', all: 'Tous les CFI du championnat (camp adverse)'}
     : {one: 'corner', pl: 'corners', Pl: 'Corners', le: 'le corner', du: 'du corner', ce: 'ce corner', nos: 'ses corners', conc: 'corners concédés', all: 'Tous les corners du championnat'};
-  document.querySelectorAll('#ckSide .chip').forEach(b => { b.setAttribute('aria-pressed', b.dataset.v === K.side); b.disabled = !tid && b.dataset.v === 'ag'; });
+  document.querySelectorAll('#ckSide .chip').forEach(b => { b.setAttribute('aria-pressed', b.dataset.v === K.side); b.disabled = false; });
+  $('#ckSide').hidden = !tid; // sans équipe : tous les corners du championnat, offensifs et défensifs sont les mêmes
   document.querySelectorAll('#spType .chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === K.ty));
   document.querySelectorAll('#fkDir .chip').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === K.fd));
   $('#fkDir').hidden = !FK;
@@ -3572,7 +3584,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
     + arrow('') + step('1er contact gagné', ST.c1 == null ? '—' : Math.round(ST.c1) + ' %', `par ${tid ? us : 'l’équipe qui tire'} · ${c1.length - c1W} perdus`, rkTag(LG && LG.c1, v => Math.round(v) + ' %'))
     + arrow('') + step('Suivis d’un tir', ST.sh == null ? '—' : Math.round(ST.sh) + ' %', `${nShots} tirs dans les 15 s · ${fmt(ST.xg, 3)} xG / ${L.one}`, rkTag(LG && LG.sh, v => Math.round(v) + ' %'))
     + arrow('') + step('Buts', fmt(ST.g), ST.g ? `1 tous les ${fmt(n / ST.g, 0)} ${L.pl} · ${fmt(xg, 1)} xG au total` : `${fmt(xg, 1)} xG au total`, rkTag(LG && LG.gp, v => fmt(v, 1) + ' % des ' + L.pl), 'last')
-    + `</div><div class="fn-foot">${FK ? `<span><b>${pc(dir0, R0.length)}</b> joués direct (ballon ou 1er contact dans la surface)</span>` : `<span><b>${pc(dir, n)}</b> joués directement · ${n - dir} joués court</span>`}${tid ? `<span class="muted">Rang : 1<sup>er</sup> = ${K.side === 'for' ? 'le plus efficace' : 'le moins exposé'} des ${LG && LG.pm ? LG.pm.of : ''} équipes · vert = tiers du haut, rouge = tiers du bas</span>` : '<span class="muted">Choisissez une équipe pour voir son rang dans le championnat.</span>'}</div>`;
+    + `</div><div class="fn-foot">${FK ? `<span><b>${pc(dir0, R0.length)}</b> joués direct (ballon ou 1er contact dans la surface)</span>` : `<span><b>${pc(dir, n)}</b> joués directement · ${n - dir} joués court</span>`}${tid ? `<span class="muted">Rang : 1<sup>er</sup> = ${K.side === 'for' ? 'le plus efficace' : 'le moins exposé'} des ${LG && LG.pm ? LG.pm.of : ''} équipes · vert = tiers du haut, rouge = tiers du bas</span>` : '<span class="muted">Choisissez une équipe pour voir son rang et séparer ses CPA offensifs et défensifs.</span>'}</div>`;
   // 1. Tireurs
   const TK = {};
   for (const r of R) { const k = r.c.p || '?', o = TK[k] || (TK[k] = {id: k, n: 0, G: 0, C: 0, D: 0, in: 0, out: 0, dr: 0, dir: 0, c1: 0, c1W: 0, sh: 0, xg: 0, g: 0, air: 0, nt: 0, dg: 0, swN: 0});
@@ -3729,7 +3741,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-12 09:35 UTC';
+const BUILD = '2026-11-12 09:41 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -5727,6 +5739,7 @@ function bindUI() {
   document.addEventListener('click', e => { const b = e.target.closest('[data-more]'); if (!b) return; const w = document.getElementById(b.dataset.more + 'Wrap'); if (!w) return; w.hidden = !w.hidden; b.textContent = b.textContent.replace(/^(Voir|Masquer)/, w.hidden ? 'Voir' : 'Masquer'); });
   [['#ckSide', 'side'], ['#ckZoneMode', 'zm'], ['#ckPlMode', 'pl'], ['#spType', 'ty'], ['#fkDir', 'fd']].forEach(([id, k]) => $(id).onclick = e => { const b = e.target.closest('[data-v]'); if (!b || b.disabled) return; S.ck = S.ck || {}; S.ck[k] = b.dataset.v; if (k === 'ty') S.ck.dt = b.dataset.v; scheduleRender(); });
   $('#qcRun').onclick = () => { $('#qcSum').textContent = 'Contrôle en cours…'; setTimeout(renderQuality, 30); };
+  $('#dngSide').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; S.ck = S.ck || {}; S.ck.ds = b.dataset.v; scheduleRender(); };
   $('#dngType').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; S.ck = S.ck || {}; S.ck.dt = b.dataset.v; if (b.dataset.v !== 'all') S.ck.ty = b.dataset.v; scheduleRender(); };
   $('#ckF3').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.ck = S.ck || {}; const K3 = S.ck.f3 = S.ck.f3 || {};
     if (b.dataset.g === 'reset') S.ck.f3 = {}; else { const grp = b.parentElement.dataset.g; if (!grp || !b.dataset.v) return; K3[grp] = b.dataset.v; } scheduleRender(); };
