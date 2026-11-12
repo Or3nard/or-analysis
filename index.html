@@ -186,7 +186,7 @@ details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}
 .lvls{display:inline-flex;background:var(--surface-2);border-radius:10px;padding:3px;margin:0 0 10px;gap:2px}.lvls button{border:0;background:transparent;padding:7px 18px;border-radius:8px;font-weight:700;font-size:13.5px;color:var(--text-2);cursor:pointer}.lvls button[aria-selected=true]{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .ply-head{display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:14px 18px}.ply-head .pn{font-size:22px;font-weight:800}.ply-head .pm{color:var(--text-2);font-size:13px}.ply-head .tlogo{height:34px}.ply-stats{display:flex;gap:18px;margin-left:auto;flex-wrap:wrap}.ply-stats div{text-align:center}.ply-stats b{display:block;font-size:20px}.ply-stats span{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
 .empty-card{padding:28px;text-align:center}
-.lb-g{margin-top:6px}.lb-g+.lb-g{margin-top:18px;padding-top:14px;border-top:1px solid var(--grid)}.lb-g>h3{font-size:15px;margin:0 0 10px}.lb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px 22px}.lb-grid h4{font-size:13px;margin:0 0 6px;color:var(--text-2);font-weight:600}.lb-grid .t5[data-lbpid],.lb-grid .t5[data-lbtid]{cursor:pointer;border-radius:6px}.lb-grid .t5[data-lbpid]:hover,.lb-grid .t5[data-lbtid]:hover{background:var(--hover,rgba(127,127,127,.08))}.empty-card p{color:var(--text-2)}
+.lb-team{display:flex;align-items:center;gap:8px}.lb-logo{width:30px;height:30px;object-fit:contain;flex:none}.lb-team b{font-weight:600}.lb-g{margin-top:6px}.lb-g+.lb-g{margin-top:18px;padding-top:14px;border-top:1px solid var(--grid)}.lb-g>h3{font-size:15px;margin:0 0 10px}.lb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px 22px}.lb-grid h4{font-size:13px;margin:0 0 6px;color:var(--text-2);font-weight:600}.lb-grid .t5[data-lbpid],.lb-grid .t5[data-lbtid]{cursor:pointer;border-radius:6px}.lb-grid .t5[data-lbpid]:hover,.lb-grid .t5[data-lbtid]:hover{background:var(--hover,rgba(127,127,127,.08))}.empty-card p{color:var(--text-2)}
 .shf [data-sh]{cursor:pointer;user-select:none;border-radius:6px;padding:1px 5px;transition:opacity .15s}.shf [data-sh]:hover{background:var(--surface-2)}
 .shh-g .sh-g,.shh-ot .sh-ot,.shh-off .sh-off{display:none}
 .cage .cz-g,.cage .cz-ot{display:none}.shh-g .cage .cz-all,.shh-ot .cage .cz-all{display:none}.shh-ot .cage .cz-g{display:inline}.shh-g .cage .cz-ot{display:inline}.shh-g.shh-ot .cage .cz-g,.shh-g.shh-ot .cage .cz-ot{display:none}
@@ -412,7 +412,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-12 08:34 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-12 08:36 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3704,7 +3704,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-12 08:34 UTC';
+const BUILD = '2026-11-12 08:36 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -3741,7 +3741,7 @@ function leadersHTML(groups, rows, PI, p90, minSecs = 270 * 60) {
     const mx = Math.max(...L.map(x => x.v)), mn = Math.min(...L.map(x => x.v));
     const w = v => dir > 0 ? v / (mx || 1) * 100 : (mx > mn ? 35 + (mx - v) / (mx - mn) * 65 : 100);
     const nm = r => r.name || PI[r.id].name, sb = r => r.sub != null ? r.sub : `${C[r.tid] || ''} · ${fmt(Math.round(r.secs / 60))} min`;
-    return `<div><h4>${esc(l)}${p90 && !o.rate ? ' <small class="muted">/ 90 min</small>' : ''}</h4><div class="top5">${L.map(x => `<div class="t5" ${x.r.team ? 'data-lbtid' : 'data-lbpid'}="${esc(x.r.id)}" title="${x.r.team ? 'Choisir' : 'Ouvrir la fiche de'} ${esc(nm(x.r))}"><span class="t5n">${esc(nm(x.r))}<small>${esc(sb(x.r))}</small></span><i><b style="width:${w(x.v)}%;background:${clubColor(x.r.tid)}"></b></i><em>${fmt(x.v, d)}${o.unit || ''}</em></div>`).join('')}</div></div>`;
+    return `<div><h4>${esc(l)}${p90 && !o.rate ? ' <small class="muted">/ 90 min</small>' : ''}</h4><div class="top5">${L.map(x => `<div class="t5" ${x.r.team ? 'data-lbtid' : 'data-lbpid'}="${esc(x.r.id)}" title="${x.r.team ? 'Choisir' : 'Ouvrir la fiche de'} ${esc(nm(x.r))}"><span class="t5n">${x.r.team ? `<span class="lb-team">${logoData(x.r.id) ? `<img class="lb-logo" src="${logoData(x.r.id)}" alt="${esc(nm(x.r))}">` : ''}<b>${esc(C[x.r.id] || nm(x.r))}</b></span>` : esc(nm(x.r))}<small>${esc(sb(x.r))}</small></span><i><b style="width:${w(x.v)}%;background:${clubColor(x.r.tid)}"></b></i><em>${fmt(x.v, d)}${o.unit || ''}</em></div>`).join('')}</div></div>`;
   };
   return groups.map(g => `<div class="lb-g"><h3>${esc(g.t)}</h3><div class="lb-grid">${g.m.map(one).join('')}</div></div>`).join('');
 }
