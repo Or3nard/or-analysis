@@ -413,7 +413,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-12 14:14 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-13 08:32 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -1485,7 +1485,7 @@ async function importFiles(list) {
 }
 
 /* ---------- Tracking : positions et trajectoire du ballon autour des corners ---------- */
-const TRK_VER = 3, SPD_VER = 2;
+const TRK_VER = 3, SPD_VER = 3;
 const cornerKey = c => c.per + '|' + Math.round(c.gc * 10);
 async function procTracking(m, file) {
   const C = [...((m.ev && m.ev.corners) || []).map(c => ({...c, _k: 'c', _o: c})), ...((m.ev && m.ev.fks) || []).map(c => ({...c, _k: 'f', _o: c}))];
@@ -1497,10 +1497,10 @@ async function procTracking(m, file) {
   const reader = file.stream().pipeThrough(new TextDecoderStream()).getReader();
   let buf = '', done = false;
   // Vitesse : pointe de chaque joueur (avec qui avait le ballon à cet instant) et courses d'accélération
-  // (12,5 images/s, ballon en jeu seulement). Une course part de la dernière image sous 10 km/h et s'arrête quand le joueur
+  // (12,5 images/s, ballon en jeu seulement). Une course part de la dernière image sous 5 km/h (départ quasi arrêté) et s'arrête quand le joueur
   // ralentit (0,8 m/s sous sa pointe de la course), après 12 s ou 55 m. On garde les courses qui dépassent 24 km/h avec :
   // distance et temps pour atteindre 28 et 30 km/h, vitesse atteinte à 5, 10, 15, 20, 25 et 50 m.
-  const SP = {}, HB = {}, SL = 10 / 3.6, DS = [5, 10, 15, 20, 25, 50], k1 = v => Math.round(v * 36) / 10, r2 = v => Math.round(v * 100) / 100;
+  const SP = {}, HB = {}, SL = 5 / 3.6, DS = [5, 10, 15, 20, 25, 50], k1 = v => Math.round(v * 36) / 10, r2 = v => Math.round(v * 100) / 100;
   const endRun = (s, h) => { const R = h.run; h.run = null; if (!R || R.vm < 24 / 3.6) return;
     s.r.push([k1(R.v0), R.d28 == null ? null : r1(R.d28), R.t28 == null ? null : r2(R.t28), R.d30 == null ? null : r1(R.d30), R.t30 == null ? null : r2(R.t30), k1(R.vm), ...R.sd.map(v => v == null ? null : k1(v)), R.per, Math.round(R.g0)]); };
   const spdFrame = (per, gc, o) => {
@@ -3756,7 +3756,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-12 14:14 UTC';
+const BUILD = '2026-11-13 08:32 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4592,15 +4592,15 @@ function renderPhyTeam(ms, lg, TN, PI) {
 }
 
 /* ---------- Physique : résumé individuel ---------- */
-// Vitesses issues du tracking : pointe (et qui avait le ballon), courses d'accélération parties sous 10 km/h
-const SLOW0 = 10; // départ « lent » : moins de 10 km/h au début de l'accélération
+// Vitesses issues du tracking : pointe (et qui avait le ballon), courses d'accélération parties sous 5 km/h
+const SLOW0 = 5; // départ quasi arrêté : moins de 5 km/h au début de l'accélération
 const SPD_DS = [5, 10, 15, 20, 25, 50];
 const spdThr = () => S.spdThr || 28;   // seuil choisi : 28 ou 30 km/h
 function spdOf(list, pid, thr = spdThr()) {
   let best = null; const E = []; let nm = 0, old = 0;
   for (const m of list) { const s = m.spd && m.spd.P && m.spd.P[pid]; if (!s) continue; nm++;
     if (!best || s.vm > best.vm) best = {vm: s.vm, off: s.off, per: s.per, gc: s.gc, m};
-    if (s.r) for (const e of s.r) { const d = thr === 30 ? e[3] : e[1], t = thr === 30 ? e[4] : e[2]; E.push({m, v0: e[0], d, t, vm: e[5], sd: e.slice(6, 12), per: e[12], gc: e[13]}); }
+    if (s.r && m.spd.v === SPD_VER) for (const e of s.r) { const d = thr === 30 ? e[3] : e[1], t = thr === 30 ? e[4] : e[2]; E.push({m, v0: e[0], d, t, vm: e[5], sd: e.slice(6, 12), per: e[12], gc: e[13]}); }
     else { old++; if (thr === 30) for (const e of s.e || []) E.push({m, v0: e[0], d: e[1], t: e[2], sd: [], per: e[3], gc: e[4]}); } }
   const med = a => { if (!a.length) return null; const b = a.slice().sort((x, y) => x - y), k = b.length >> 1; return b.length % 2 ? b[k] : (b[k - 1] + b[k]) / 2; };
   const L = E.filter(e => e.v0 <= SLOW0 && e.d != null);
