@@ -48,7 +48,8 @@ nav.tabs{display:flex;gap:4px}
 nav.tabs button{border:0;background:transparent;color:var(--text-2);padding:7px 14px;border-radius:8px;font:inherit;font-weight:550;cursor:pointer}
 nav.tabs button[aria-selected="true"]{background:var(--accent-soft);color:var(--accent)}
 .theme-btn{margin-left:auto;border:1px solid var(--border);background:var(--surface);color:var(--text-2);border-radius:8px;padding:6px 10px;cursor:pointer;font:inherit}
-.filters{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;position:sticky;top:57px;z-index:15}
+#topBars{position:sticky;top:57px;z-index:15}#navRow{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 20px 0;display:flex;align-items:flex-end;gap:22px;flex-wrap:wrap}#navRow[hidden]{display:none}#lvlRow{padding-bottom:8px}#lvlRow .lvls{margin:0}#subRow .subtabs{border-bottom:0;margin:0}#subRow .subtabs button{padding:10px 14px 11px}
+.filters{background:var(--surface-2);border-bottom:1px solid var(--border);padding:8px 20px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}.filters label{font-size:10.5px}#filters select{padding-top:5px;padding-bottom:5px;max-width:185px}#filters #fTeam{max-width:170px}#filters #fJ0,#filters #fJ1{max-width:70px}.filters #fQ .chip{padding:4px 9px;font-size:12px}#fReset{padding:5px 10px;font-size:12.5px}
 .filters label{display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
 select,input[type=number]{font:inherit;font-size:13.5px;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:5px 8px;min-width:0}
 .filters select{max-width:240px}
@@ -183,7 +184,7 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .top5{display:flex;flex-direction:column;gap:8px;margin-top:8px}.t5{display:grid;grid-template-columns:minmax(0,1.3fr) 1fr 74px;gap:10px;align-items:center;font-size:12.5px}.t5n{display:flex;flex-direction:column;min-width:0}.t5n small{color:var(--text-3);font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.t5 i{display:block;height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden}.t5 i b{display:block;height:100%}.t5 em{font-style:normal;font-weight:700;text-align:right}
 details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}#offDet>summary,#defDet>summary{cursor:default;pointer-events:none;list-style:none}#offDet>summary::-webkit-details-marker,#defDet>summary::-webkit-details-marker{display:none}
 .cr-blk{margin-top:18px;padding-top:14px;border-top:1px solid var(--grid)}.cr-h{font-size:15px;margin:0 0 8px}.crend{display:grid;gap:8px}
-.lvls[hidden]{display:none}#lvlRow{flex-basis:100%}#lvlRow .lvls{margin:0}.lvls{display:inline-flex;background:var(--surface-2);border-radius:10px;padding:3px;margin:0 0 10px;gap:2px}.lvls button{border:0;background:transparent;padding:7px 18px;border-radius:8px;font-weight:700;font-size:13.5px;color:var(--text-2);cursor:pointer}.lvls button[aria-selected=true]{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.lvls[hidden],.subtabs[hidden]{display:none!important}.lvls{display:inline-flex;background:var(--surface-2);border-radius:10px;padding:3px;margin:0 0 10px;gap:2px}.lvls button{border:0;background:transparent;padding:7px 18px;border-radius:8px;font-weight:700;font-size:13.5px;color:var(--text-2);cursor:pointer}.lvls button[aria-selected=true]{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .ply-head{display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:14px 18px}.ply-head .pn{font-size:22px;font-weight:800}.ply-head .pm{color:var(--text-2);font-size:13px}.ply-head .tlogo{height:34px}.ply-stats{display:flex;gap:18px;margin-left:auto;flex-wrap:wrap}.ply-stats div{text-align:center}.ply-stats b{display:block;font-size:20px}.ply-stats span{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
 .empty-card{padding:28px;text-align:center}details.cpc{margin-top:14px}details.cpc>summary{cursor:pointer;font-weight:600;font-size:14px;padding:6px 0}
 .xc-ctl{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}.xc-ctl .lbl{display:flex;flex-direction:column;gap:3px;font-size:11px;margin:0}.xc-box{height:620px}.xc-tbls{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:14px}.xc-tbls .tbl-wrap{max-height:520px;overflow:auto}.xc-tbls table td.rk0{width:44px;color:var(--text-3)}.xc-tbls tr.hl td{font-weight:700;background:var(--hover,rgba(127,127,127,.08))}@media(max-width:760px){.xc-tbls{grid-template-columns:1fr}.xc-box{height:460px}}
@@ -260,7 +261,7 @@ details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}
   @page{size:A4 landscape;margin:9mm}
   html,body{background:#fff!important}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  header,.filters,.subtabs,.card-head .ctrl,.btn,.hint,#tip,.auth,.h2h-ctrl .chips,#h2hSwap{display:none!important}
+  header,#topBars,.filters,.subtabs,.card-head .ctrl,.btn,.hint,#tip,.auth,.h2h-ctrl .chips,#h2hSwap{display:none!important}
   .h2h-ctrl{display:none!important}
   main{padding:0!important;max-width:none!important}
   #printHead{display:block;border-bottom:2px solid #2a78d6;padding:0 0 6px;margin:0 0 10px}
@@ -413,7 +414,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-13 09:38 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-13 09:50 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -461,8 +462,9 @@ input.j{width:64px}
   </div>
 </div>
 
+<div id="topBars">
+<div id="navRow" hidden><div id="lvlRow"></div><div id="subRow"></div></div>
 <div class="filters" id="filters" hidden>
-  <div id="lvlRow"></div>
   <label>Équipe<select id="fTeam"></select></label>
   <label>Journée de<select id="fJ0"></select></label>
   <label>à<select id="fJ1"></select></label>
@@ -470,6 +472,7 @@ input.j{width:64px}
   <label>Joueur<select id="fPlayer"></select></label>
   <label>Quarts d'heure<div class="chips" id="fQ"></div></label>
   <button class="btn" id="fReset">Réinitialiser</button>
+</div>
 </div>
 
 <main>
@@ -2052,11 +2055,14 @@ function evPlayers(m) {
   return s;
 }
 // Collectif / Individuel : affichés en tête de la barre de filtres (au-dessus d'Équipe, Journée…), celui de l'onglet actif
+// Barre de navigation (Collectif / Individuel + sous-onglets) au-dessus de la barre de filtres
 function placeLvls() {
-  const row = $('#lvlRow'); if (!row) return;
+  const row = $('#lvlRow'), sub = $('#subRow'); if (!row) return;
   document.querySelectorAll('.panel .lvls').forEach(el => row.appendChild(el));
-  let any = false; row.querySelectorAll('.lvls').forEach(el => { const on = el.dataset.for === S.tab; el.hidden = !on; any = any || on; });
-  row.hidden = !any;
+  document.querySelectorAll('.panel .subtabs').forEach(el => sub.appendChild(el));
+  row.querySelectorAll('.lvls').forEach(el => el.hidden = el.dataset.for !== S.tab);
+  sub.querySelectorAll('.subtabs').forEach(el => el.hidden = el.dataset.for !== S.tab);
+  $('#navRow').hidden = !['tac', 'phy'].includes(S.tab);
 }
 function refreshFilters() {
   placeLvls();
@@ -3765,7 +3771,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-13 09:38 UTC';
+const BUILD = '2026-11-13 09:50 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
