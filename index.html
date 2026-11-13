@@ -414,7 +414,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-13 09:56 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-13 10:28 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -2059,7 +2059,7 @@ function evPlayers(m) {
 function placeLvls() {
   const row = $('#lvlRow'), sub = $('#subRow'); if (!row) return;
   document.querySelectorAll('.panel .lvls').forEach(el => row.appendChild(el));
-  document.querySelectorAll('.panel .subtabs').forEach(el => sub.appendChild(el));
+  document.querySelectorAll('.panel .subtabs').forEach(el => { el._home = el.parentElement; sub.appendChild(el); });
   row.querySelectorAll('.lvls').forEach(el => el.hidden = el.dataset.for !== S.tab);
   sub.querySelectorAll('.subtabs').forEach(el => el.hidden = el.dataset.for !== S.tab);
   $('#navRow').hidden = !['tac', 'phy'].includes(S.tab);
@@ -3771,7 +3771,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-13 09:56 UTC';
+const BUILD = '2026-11-13 10:28 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4992,7 +4992,7 @@ function applySubtabs() {
     if (!curB || curB.hidden) S.sub[tab] = [...nav.querySelectorAll('button[data-sub]')].find(b => !b.hidden).dataset.sub;
     const cur = S.sub[tab];
     nav.querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', b.dataset.sub === cur));
-    nav.parentElement.querySelectorAll(':scope > .subpanel').forEach(p => p.classList.toggle('active', p.dataset.sub === cur));
+    (nav._home || nav.parentElement).querySelectorAll(':scope > .subpanel').forEach(p => p.classList.toggle('active', p.dataset.sub === cur));
   });
 }
 function setLevel(tab, lv) {
