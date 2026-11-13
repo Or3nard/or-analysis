@@ -414,7 +414,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-13 10:28 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-13 19:25 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3771,7 +3771,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-13 10:28 UTC';
+const BUILD = '2026-11-13 19:25 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4450,7 +4450,8 @@ function qualityChecks(list) {
         if (s.sh !== T[t].sh || !near(s.xg, T[t].xg, .01) || s.pass !== T[t].pass) add('warn', m, 'Quarts d’heure', `${teamNames()[t]} : la somme des 6 quarts d’heure (${s.sh} tirs, ${fmt(s.xg, 2)} xG, ${s.pass} passes) ne recolle pas avec le match entier (${T[t].sh}, ${fmt(T[t].xg, 2)}, ${T[t].pass})`); }
       // 3. somme des joueurs = équipe
       for (const t of ids) { if (!T[t]) continue; const s = {sh: 0, xg: 0, pass: 0};
-        for (const [pid, o] of Object.entries(P)) if ((playerInfo()[pid] || {}).team === t || (m.players[pid] || {}).team === t) { s.sh += o.sh; s.xg += o.xg; s.pass += o.pass; }
+        for (const [pid, o] of Object.entries(P)) if (((m.players[pid] || {}).team || (playerInfo()[pid] || {}).team) === t) { // équipe du joueur dans ce match (transfert possible en cours de saison)
+         s.sh += o.sh; s.xg += o.xg; s.pass += o.pass; }
         if (s.sh > T[t].sh || s.pass > T[t].pass) add('err', m, 'Joueurs / équipe', `${teamNames()[t]} : les joueurs totalisent plus que l’équipe (${s.sh} tirs pour ${T[t].sh}, ${s.pass} passes pour ${T[t].pass})`);
         else if (T[t].sh - s.sh > 1 || T[t].pass - s.pass > T[t].pass * .02) add('warn', m, 'Joueurs / équipe', `${teamNames()[t]} : ${T[t].sh - s.sh} tir(s) et ${T[t].pass - s.pass} passe(s) sans joueur identifié`); }
       // 4. valeurs plausibles
@@ -4464,8 +4465,10 @@ function qualityChecks(list) {
       // 5 bis. un gardien dans les buts pendant tout le match
       if (m.ev.gkT) for (const t of ids) { const L = (m.ev.gkT[t] || []).slice().sort((x, y) => x[1] - y[1]), end = 45 + ((m.periods || []).find(p => p.n === 2) || {dur: 2940}).dur / 60; // échelle minAbs
         if (!L.length) { add('warn', m, 'Gardien', `${teamNames()[t]} : aucun gardien identifié dans la composition`); continue; }
-        let cov = 0, gap = L[0][1]; L.forEach((x, i) => { cov += Math.min(x[2], end) - x[1]; if (i) gap = Math.max(gap, x[1] - L[i - 1][2]); });
-        if (gap > 2 || end - cov > 3) add('warn', m, 'Gardien', `${teamNames()[t]} : pas de gardien identifié pendant ${fmt(Math.max(gap, end - cov), 0)} min`);
+        let cov = 0, gap = L[0][1], gi = 0; L.forEach((x, i) => { cov += Math.min(x[2], end) - x[1]; if (i && x[1] - L[i - 1][2] > gap) { gap = x[1] - L[i - 1][2]; gi = i; } });
+        const redGk = gi && m.ev.opta.some(e => e.t === 17 && e.card === 'r' && e.p === L[gi - 1][0]);
+        if (redGk && gap > 2 && end - cov <= gap + 1) add('info', m, 'Gardien', `${teamNames()[t]} : gardien exclu (${(playerInfo()[L[gi - 1][0]] || {}).name || '?'}), ${fmt(gap, 0)} min avant l’entrée du gardien remplaçant`);
+        else if (gap > 2 || end - cov > 3) add('warn', m, 'Gardien', `${teamNames()[t]} : pas de gardien identifié pendant ${fmt(Math.max(gap, end - cov), 0)} min`);
         if (L.length > 1) add('info', m, 'Gardien', `${teamNames()[t]} : changement de gardien en cours de match (${L.map(x => `${(playerInfo()[x[0]] || {}).name || '?'} ${fmt(x[1], 0)}'-${fmt(x[2], 0)}'`).join(', ')})`); }
       // 6. composition
       for (const t of ids) { const byNum = {}; for (const [id, pl] of Object.entries(m.players)) if (pl.team === t && pl.pos) byNum[pl.num || id] = pl; // doublons de metadata : un par numéro
@@ -4481,7 +4484,7 @@ function qualityChecks(list) {
       for (const [pid, o] of Object.entries(PH.P)) { const nm2 = (playerInfo()[pid] || m.players[pid] || {}).name || pid.slice(0, 6);
         if (o.vmax > 37.5) add('warn', m, 'Physique', `${nm2} : vitesse max de ${fmt(o.vmax, 1)} km/h, à vérifier`);
         if (dur && o.time > dur + 120) add('warn', m, 'Physique', `${nm2} : ${fmt(o.time / 60, 0)} min jouées pour un match de ${fmt(dur / 60, 0)} min`);
-        if (o.time > 600 && o.dist / (o.time / 60) > 160) add('warn', m, 'Physique', `${nm2} : ${fmt(o.dist / (o.time / 60), 0)} m/min, à vérifier`); }
+        if (o.time > 600 && o.dist / (o.time / 60) > (o.time < 1800 ? 175 : 160)) add('warn', m, 'Physique', `${nm2} : ${fmt(o.dist / (o.time / 60), 0)} m/min, à vérifier`); }
     } else add('info', m, 'Fichiers', 'pas de données physiques');
     if (m.ev && !m.trk) add('info', m, 'Fichiers', 'pas de tracking : positions sur corners / CFI et vitesses indisponibles');
   }
