@@ -185,7 +185,7 @@ details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}
 .cr-blk{margin-top:18px;padding-top:14px;border-top:1px solid var(--grid)}.cr-h{font-size:15px;margin:0 0 8px}.crend{display:grid;gap:8px}
 .lvls{display:inline-flex;background:var(--surface-2);border-radius:10px;padding:3px;margin:0 0 10px;gap:2px}.lvls button{border:0;background:transparent;padding:7px 18px;border-radius:8px;font-weight:700;font-size:13.5px;color:var(--text-2);cursor:pointer}.lvls button[aria-selected=true]{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .ply-head{display:flex;gap:18px;align-items:center;flex-wrap:wrap;padding:14px 18px}.ply-head .pn{font-size:22px;font-weight:800}.ply-head .pm{color:var(--text-2);font-size:13px}.ply-head .tlogo{height:34px}.ply-stats{display:flex;gap:18px;margin-left:auto;flex-wrap:wrap}.ply-stats div{text-align:center}.ply-stats b{display:block;font-size:20px}.ply-stats span{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
-.empty-card{padding:28px;text-align:center}
+.empty-card{padding:28px;text-align:center}details.cpc{margin-top:14px}details.cpc>summary{cursor:pointer;font-weight:600;font-size:14px;padding:6px 0}
 .xc-ctl{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}.xc-ctl .lbl{display:flex;flex-direction:column;gap:3px;font-size:11px;margin:0}.xc-box{height:620px}.xc-tbls{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:14px}.xc-tbls .tbl-wrap{max-height:520px;overflow:auto}.xc-tbls table td.rk0{width:44px;color:var(--text-3)}.xc-tbls tr.hl td{font-weight:700;background:var(--hover,rgba(127,127,127,.08))}@media(max-width:760px){.xc-tbls{grid-template-columns:1fr}.xc-box{height:460px}}
 .lb-team{display:flex;align-items:center;gap:8px}.lb-logo{width:30px;height:30px;object-fit:contain;flex:none}.lb-team b{font-weight:600}.lb-g{margin-top:6px}.lb-g+.lb-g{margin-top:18px;padding-top:14px;border-top:1px solid var(--grid)}.lb-g>h3{font-size:15px;margin:0 0 10px}.lb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px 22px}.lb-grid h4{font-size:13px;margin:0 0 6px;color:var(--text-2);font-weight:600}.lb-grid .t5[data-lbpid],.lb-grid .t5[data-lbtid]{cursor:pointer;border-radius:6px}.lb-grid .t5[data-lbpid]:hover,.lb-grid .t5[data-lbtid]:hover{background:var(--hover,rgba(127,127,127,.08))}.empty-card p{color:var(--text-2)}
 .shf [data-sh]{cursor:pointer;user-select:none;border-radius:6px;padding:1px 5px;transition:opacity .15s}.shf [data-sh]:hover{background:var(--surface-2)}
@@ -413,7 +413,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-13 09:00 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-13 09:12 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3332,7 +3332,7 @@ function renderTactical() {
       const dMin = +$('#duelMin').value || 0;
       const dRows = Object.entries(P).filter(([id, o]) => PI[id] && (!tid || PI[id].team === tid) && TAC.duelD.f(o) >= dMin && TAC.duelD.f(o) > 0).map(([id, o]) => ({id, tid: PI[id].team, name: PI[id].name, team: TN[PI[id].team] || '', o}));
       $('#duelTblSub').textContent = `${dRows.length} joueurs · ≥ ${dMin} duels${tid ? ' · ' + TN[tid] : ''} · cliquez sur un joueur pour le sélectionner`;
-      if (!S.sort.tblDuels) S.sort.tblDuels = {k: 'duel', asc: false};
+      if (!S.sort.tblDuels) S.sort.tblDuels = {k: 'min', asc: false};
       renderTable('tblDuels', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'team', l: 'Équipe', txt: 1, v: r => r.team, html: r => logoHTML(r.tid) + esc(r.team)},
         {k: 'min', l: 'Min', v: r => Math.round(r.o.secs / 60)}, {k: 'duel', l: 'Duels déf.', v: r => TAC.duelD.f(r.o)}, {k: 'duelW', l: 'Gagnés', v: r => TAC.duelDW.f(r.o)},
         {k: 'duelPct', l: '% gagnés', d: 1, v: r => TAC.duelDPct.f(r.o)}, {k: 'd90', l: 'Duels déf. /90', d: 1, v: r => r.o.secs ? TAC.duelD.f(r.o) / r.o.secs * 5400 : null},
@@ -3408,9 +3408,9 @@ function renderTactical() {
   }
   if (sub === 'pcls') {
     const plCols = ['mp', 'min', 'gf', 'ast', 'xg', 'xgot', 'xgotmxg', 'gmx', 'sh', 'sot', 'pass', 'passPct', 'xpd', 'lb', 'byp', 'prog', 'kp', 'f3', 'box', 'cross', 'carryProg', 'drbOk', 'recov', 'recovH', 'int', 'tkW', 'aerW', 'duelDPct', 'aerDPct', 'lost', 'foul', 'fouled', 'yc', 'saves'];
-    renderTable('tblTacPlayers', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'team', l: 'Équipe', txt: 1, v: r => r.team, html: r => logoHTML(r.tid) + esc(r.team)}, {k: 'pos', l: 'Poste', txt: 1, v: r => r.pos},
+    renderTable('tblTacPlayers', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'team', l: 'Équipe', txt: 1, v: r => r.team, html: r => logoHTML(r.tid) + esc(r.team)}, {k: 'pos', l: 'Poste', txt: 1, v: r => r.pos}, {k: 'min', l: 'Min', d: 0, v: r => r.o.secs / 60},
       ...plCols.map(k => ({k, l: TAC[k].l, h: TAC[k].h, d: dec(TAC, k, pmP), v: r => val(TAC, k, r.o, pmP)}))],
-      plRows, {defaultSort: 'xg', hl: r => r.id === f.player, onRow: id => setFilter('player', id)});
+      plRows, {defaultSort: 'min', hl: r => r.id === f.player, onRow: id => setFilter('player', id)});
     rankPlayers('chTacRank', '#tacRankSub', $('#tacMetric').value, TAC, plRows, pmP, minMin, f.player);
   }
 }
@@ -3756,7 +3756,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-13 09:00 UTC';
+const BUILD = '2026-11-13 09:12 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4119,7 +4119,7 @@ function renderGK(TN, PI, f) {
     {k: 'sw', l: 'Sorties hors surface', ...P(x => x.sw, mode === 'p90' ? 2 : 0, 1)},
     {k: 'pas', l: 'Passes', ...P(x => x.pas, mode === 'p90' ? 1 : 0, 1)}, {k: 'pasPct', l: '% passes', ...P(gkVal.pasPct, 1)},
     {k: 'lgShare', l: '% longues', ...P(gkVal.lgShare, 0)}, {k: 'lgPct', l: '% longues réussies', ...P(gkVal.lgPct, 0)}, {k: 'avgLen', l: 'Long. moy. (m)', ...P(gkVal.avgLen, 1)}],
-    rows, {defaultSort: 'gp', hl: r => r.id === sel, onRow: id => { S.gkSel = id; scheduleRender(); }});
+    rows, {defaultSort: 'min', hl: r => r.id === sel, onRow: id => { S.gkSel = id; scheduleRender(); }});
   $('#gkTblSub').textContent = `${rows.length} gardiens · ≥ ${minMin} min · ${mode === 'p90' ? 'volumes par 90 min' : 'totaux'} · cliquez sur un gardien pour l’afficher`;
   const top = rows.map(r => ({id: r.id, tid: r.tid, name: r.name, sub: r.team, v: gkVal.gp90(r.o)})).filter(x => x.v != null).sort((a, b) => b.v - a.v);
   $('#gkRankSub').textContent = `${top.length} gardiens · ≥ ${minMin} min`;
@@ -4645,7 +4645,7 @@ function renderPhyPlayer(ms, lg, TN, PI) {
     {k: 'vmax', l: 'V. max', d: 1, v: r => r.o.vmax}, {k: 'd30', l: `→ ${TH} km/h (m)`, h: `Distance médiane pour atteindre ${TH} km/h, courses parties sous ${SLOW0} km/h (tracking)`, d: 1, v: r => { const x = spdOf(ms, r.id); return x.ok ? x.d30 : null; }},
     {k: 'nacc', l: 'Courses', h: `Accélérations parties sous ${SLOW0} km/h et allant jusqu’à ${TH} km/h ; distance et vitesse à 10 m affichées à partir de ${SPD_MIN} courses`, d: 0, v: r => spdOf(ms, r.id).L.length},
     {k: 'v10', l: 'V. à 10 m', h: `Vitesse médiane atteinte 10 m après le départ (courses qui vont jusqu’à ${TH} km/h)`, d: 1, v: r => { const x = spdOf(ms, r.id); return x.ok ? x.prof[1].med : null; }}],
-    tpl, {defaultSort: 'dist', hl: r => r.id === pid, onRow: id => setFilter('player', id)});
+    tpl, {defaultSort: 'min', hl: r => r.id === pid, onRow: id => setFilter('player', id)});
   if (!pid) return;
   const pRole = SR[pid], rl = pRole && ROLE_L[pRole] ? pRole : null;
   const minMin = rl ? (S.roleMin[rl] ?? ROLE_MIN[rl]) : 60;
@@ -4698,9 +4698,10 @@ function renderPhyPlayer(ms, lg, TN, PI) {
       <h3 style="font-size:14px;margin:6px 0 6px">Vitesse atteinte après…</h3>
       <table class="gkz ptz"><tr><th class="txt">Distance depuis le départ</th><th>Vitesse médiane</th><th>Meilleure</th><th>Moyenne du poste</th><th>Rang au poste</th><th>Courses</th></tr>${profRows}</table>
       <p class="note">Sur les courses parties sous ${SLOW0} km/h qui vont jusqu’à ${TH} km/h (les vrais efforts d’accélération). Rang au poste : 1<sup>er</sup> = la vitesse la plus haute à cette distance. À 50 m, seules les courses assez longues comptent.</p>
-      <h3 style="font-size:14px;margin:14px 0 6px">Course par course</h3>
+${fewNote}${badNote}${oldNote}
+      <details class="cpc"${S.cpcOpen ? ' open' : ''} ontoggle="S.cpcOpen = this.open"><summary>Course par course (${ER.length})</summary>
       <table class="gkz ptz"><tr><th class="txt">Match</th><th>Minute</th><th>Vitesse au départ</th><th>Distance jusqu’à ${TH} km/h</th><th>Temps</th><th>À 10 m</th><th>À 20 m</th><th>Pointe de la course</th></tr>${ER.map(e => `<tr><td class="txt">${esc(oppLabel(e.m, PI[pid].team, TN))}</td><td>${minOfGc(e.per, e.gc)}'</td><td>${fmt(e.v0, 1)} km/h</td><td><b>${fmt(e.d, 1)} m</b></td><td>${fmt(e.t, 2)} s</td><td>${e.sd[1] == null ? '—' : fmt(e.sd[1], 1)}</td><td>${e.sd[3] == null ? '—' : fmt(e.sd[3], 1)}</td><td>${e.vm == null ? '—' : fmt(e.vm, 1) + ' km/h'}</td></tr>`).join('')}</table>
-      <p class="note">Le départ est la dernière image sous ${SLOW0} km/h avant l’accélération ; la course s’arrête quand le joueur ralentit. Rang au poste de la distance : 1<sup>er</sup> = la distance la plus courte, donc le plus explosif.</p>${fewNote}${badNote}${oldNote}`;
+      <p class="note">Le départ est la dernière image sous ${SLOW0} km/h avant l’accélération ; la course s’arrête quand le joueur ralentit. Rang au poste de la distance : 1<sup>er</sup> = la distance la plus courte, donc le plus explosif.</p></details>`;
 }
 
 /* ---------- Sous-onglet Face à face ---------- */
@@ -4856,9 +4857,9 @@ function renderPhyRank(ms, TN, PI, lg) {
   const plRows = Object.entries(P).filter(([id, o]) => PI[id] && (!f.team || PI[id].team === f.team) && o.time / 60 >= minMin && o.time > 0)
     .map(([id, o]) => ({id, tid: o.tm || PI[id].team, name: PI[id].name, team: TN[o.tm || PI[id].team] || '', pos: SR[id] && SR[id] !== 'GK' ? SR[id] : (SR[id] === 'GK' ? 'GB' : ''), o}));
   const cols = ['mp', 'min', 'dist', 'mpm', 'walk', 'jog', 'lsr', 'hsr', 'spr', 'hi', 'hiPct', 'nhsr', 'nspr', 'vmax', 'dIP', 'dOP', 'hIP', 'hOP'];
-  renderTable('tblPhyPlayers', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'team', l: 'Équipe', txt: 1, v: r => r.team, html: r => logoHTML(r.tid) + esc(r.team)}, {k: 'pos', l: 'Poste', txt: 1, v: r => r.pos, h: 'CB défenseur central · FB latéral · CM milieu central · WM milieu excentré · FW attaquant'},
+  renderTable('tblPhyPlayers', [{k: 'name', l: 'Joueur', txt: 1, v: r => r.name}, {k: 'team', l: 'Équipe', txt: 1, v: r => r.team, html: r => logoHTML(r.tid) + esc(r.team)}, {k: 'pos', l: 'Poste', txt: 1, v: r => r.pos, h: 'CB défenseur central · FB latéral · CM milieu central · WM milieu excentré · FW attaquant'}, {k: 'min', l: 'Min', d: 0, v: r => r.o.time / 60},
     ...cols.map(k => ({k, l: PHY[k].l, h: PHY[k].h, d: dec(PHY, k, pm), v: r => val(PHY, k, r.o, pm)}))],
-    plRows, {defaultSort: 'dist', hl: r => r.id === f.player, onRow: id => setFilter('player', id)});
+    plRows, {defaultSort: 'min', hl: r => r.id === f.player, onRow: id => setFilter('player', id)});
 
   const mk = $('#phyMetric').value;
   const top = plRows.map(r => ({id: r.id, tid: r.tid, name: r.name, sub: r.team, v: val(PHY, mk, r.o, pm)})).filter(x => x.v != null).sort((a, b) => b.v - a.v).slice(0, 15);
