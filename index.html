@@ -168,6 +168,11 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .scn .sv small,.scn .sm{font-size:11.5px;color:var(--text-3)}.vnd{display:flex;height:14px;border-radius:5px;overflow:hidden;background:var(--grid);margin:6px 0 4px}.vnd i{display:block;cursor:help}.vnd i+i{border-left:2px solid var(--surface-2)}.vnd .V{background:#2e9e5b}.vnd .N{background:#c9a227}.vnd .D{background:#d0453f}
 .sys2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:700px){.sys2,.scn{grid-template-columns:1fr}}.sys2 table td:first-child{white-space:nowrap}
 .resl .rs{font-size:11px;color:var(--text-3);white-space:nowrap}
+.style-grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:24px}@media(max-width:980px){.style-grid{grid-template-columns:1fr}}
+.rk.neu{background:var(--surface);color:var(--text-2);border:1px solid var(--border)}.style-v{font-size:19px;font-weight:800;margin:0 0 12px}.stg{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,2fr) 60px;gap:12px;align-items:center;margin:6px 0}.stg-l b{display:block;font-size:13px}.stg-l small{font-size:11px;color:var(--text-3)}
+.stg-b{height:12px;border-radius:6px;background:var(--grid);overflow:hidden}.stg-b i{display:block;height:100%;border-radius:6px}.stg em{font-style:normal;font-weight:800;font-size:16px;text-align:right}.stg em small{font-size:10px;color:var(--text-3);font-weight:600}
+.sty-h{font-size:14px;margin:16px 0 6px}.sty-row{display:grid;grid-template-columns:120px minmax(0,1fr);gap:10px;align-items:center;margin:4px 0;font-size:12.5px}.sty-bar{display:flex;height:22px;border-radius:6px;overflow:hidden;background:var(--grid)}
+.sty-bar i{display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;font-style:normal;cursor:help}.sty-bar i+i{border-left:2px solid var(--surface)}.sty-leg{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;margin-top:6px}.sty-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}.sty-leg small{color:var(--text-3)}
 .formrow{display:flex;gap:4px;margin:2px 0 12px;flex-wrap:wrap}.fm{display:inline-flex;width:24px;height:24px;border-radius:5px;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff;background:#c9a227}.fm.V{background:#2e9e5b}.fm.D{background:#d0453f}
 .resl{list-style:none;margin:12px 0 0;padding:0;font-size:12.5px;max-height:360px;overflow:auto}.resl .rn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.resl .rl{display:inline-flex;width:22px}.resl li{display:grid;grid-template-columns:24px 34px 22px minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid var(--grid)}.resl .fm{width:20px;height:20px;font-size:10.5px}.resl .tlogo{height:18px}
 .kpi .v .kpu{font-size:12px;font-weight:600;color:var(--text-3);margin-left:4px}
@@ -420,7 +425,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-16 08:31 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-16 08:47 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -561,6 +566,10 @@ input.j{width:64px}
           <div class="ctrl"><select id="offMode"><option value="pm">Par match</option><option value="tot">Total</option></select></div></div>
           <div class="syn" id="synCols"></div>
           <p class="syn-read" id="synRead"></p>
+        </div>
+        <div class="card c12" id="styleCard">
+          <div class="card-head"><div><h2>Style de jeu offensif</h2><p class="sub" id="styleSub"></p></div></div>
+          <div class="style-grid"><div id="styleL"></div><div><div class="chart-box" style="height:380px"><canvas id="chStyle"></canvas></div><p class="note">Chaque équipe selon ses deux notes · lignes pointillées = 50 (milieu du championnat) · en haut à droite : construit et accélère ; en bas à droite : construit, peu de transitions ; en haut à gauche : jeu de transition.</p></div></div>
         </div>
         <div class="card c12 ph" id="ph1">
           <div class="ph-head"><span class="chap-n">1</span><div><h2>Construction basse</h2><p>Est-ce que l’équipe sort proprement le ballon de derrière ?</p></div><span class="ph-verdict" id="phV1"></span></div>
@@ -2100,7 +2109,7 @@ const TAC_FIELDS = ['mp', 'secs', 'gf', 'ga', 'xg', 'xga', 'xgot', 'xgota', 'gfo
   'cross', 'crossOk', 'carry', 'carryD', 'carryProg', 'rec', 'intc', 'possN', 'possT', 'possTot', 'possXg', 'vp', 'vc', 'tk', 'tkW', 'int', 'recov', 'clr',
   'aer', 'aerW', 'foul', 'fouled', 'drb', 'drbOk', 'lost', 'yc', 'rc', 'saves', 'blk', 'opp60', 'defAct', 'corners',
   'recovH', 'shCtr', 'xgCtr', 'shCpa', 'xgCpa', 'gfCpa', 'gaCpa', 'shaCpa', 'xgaCpa', 'pen', 'penG', 'cpaPoss', 'cpaXgP', 'cpaXgaP', 'cornD', 'cornAtt', 'cornShort', 'cornIn', 'cornOut', 'mV2',
-  'gd', 'gdW', 'lbA', 'f3A', 'boxA', 'progA', 'passA', 'own60', 'defActA', 'lostLow', 'bpass', 'bpassOk', 'blong', 'blongOk', 'bout', 'carryF3', 'possD', 'possD2', 'possD3', 'recX', 'recN', 'chal', 'aerD', 'aerDW', 'crO', 'crOk', 'crSh', 'crA', 'crAok', 'crASh'];
+  'gd', 'gdW', 'lbA', 'f3A', 'boxA', 'progA', 'passA', 'own60', 'defActA', 'lostLow', 'bpass', 'bpassOk', 'blong', 'blongOk', 'bout', 'carryF3', 'possD', 'possD2', 'possD3', 'recX', 'recN', 'xg_pl', 'xg_tr', 'xg_di', 'xg_sp', 'n_pl', 'n_tr', 'n_di', 'n_sp', 'npSum', 'npN', 'chal', 'aerD', 'aerDW', 'crO', 'crOk', 'crSh', 'crA', 'crAok', 'crASh'];
 const newAgg = () => { const o = {starts: {}, cpaT: {}, cpaTa: {}, byQ: [0, 1, 2, 3, 4, 5].map(() => ({xg: 0, xga: 0, gf: 0, ga: 0, sh: 0, lb: 0, pass: 0, possT: 0, possTot: 0}))}; TAC_FIELDS.forEach(k => o[k] = 0); return o; };
 
 /* Cache des agrégations : changer d'onglet ou de sous-onglet ne recalcule rien
@@ -2179,6 +2188,8 @@ function aggTacticalRaw(ms, qsOverride) {
       if (!e.ct && t(e.tm).byQ[e.q]) { t(e.tm).byQ[e.q].possT += e.dur; t(H).byQ[e.q].possTot += e.dur; t(A).byQ[e.q].possTot += e.dur; }
       if (!qs.has(e.q)) continue;
       const o = t(e.tm); o.possN++; o.possXg += e.xg; o.vp += e.vp; o.vc += e.vc; o.starts[e.st] = (o.starts[e.st] || 0) + 1;
+      // style : attaque placée (6 passes et plus), transition (après une récupération, 15 s maximum), jeu direct (le reste), CPA (corner, coup franc, penalty)
+      { const cl = STYLE_SP[e.st] ? 'sp' : (ST_GRP[e.st] === 'rec' && e.dur <= 15) ? 'tr' : (e.np >= 6 ? 'pl' : 'di'); o['xg_' + cl] += e.xg; o['n_' + cl]++; if (e.np != null) { o.npSum += e.np; o.npN++; } }
       if (e.z0 === 0) { o.possD++; if (e.z1 >= 1) o.possD2++; if (e.z1 === 2) o.possD3++; }
       if (!e.ct) { o.possT += e.dur; t(H).possTot += e.dur; t(A).possTot += e.dur; }
     }
@@ -2323,6 +2334,10 @@ const TAC = {
   cornAttAvg: {l: 'Joueurs dans la surface / corner', t: 'ratio', d: 1, f: o => o.cornD ? o.cornAtt / o.cornD : null},
   cornShortPct: {l: '% corners joués courts', t: 'ratio', d: 1, f: o => o.cornD ? o.cornShort / o.cornD * 100 : null},
   cornInPct: {l: '% corners rentrants', t: 'ratio', d: 1, f: o => (o.cornIn + o.cornOut) ? o.cornIn / (o.cornIn + o.cornOut) * 100 : null},
+  npPoss: {l: 'Passes par possession', t: 'ratio', d: 1, f: o => o.npN ? o.npSum / o.npN : null},
+  xgPlPct: {l: '% xG en attaque placée', t: 'ratio', d: 0, f: o => { const s = o.xg_pl + o.xg_tr + o.xg_di + o.xg_sp; return s ? o.xg_pl / s * 100 : null; }},
+  xgTrPct: {l: '% xG en transition', t: 'ratio', d: 0, f: o => { const s = o.xg_pl + o.xg_tr + o.xg_di + o.xg_sp; return s ? o.xg_tr / s * 100 : null; }},
+  xg_pl: {l: 'xG en attaque placée', t: 'add', d: 2}, xg_tr: {l: 'xG en transition', t: 'add', d: 2}, xg_di: {l: 'xG en jeu direct', t: 'add', d: 2}, xg_sp: {l: 'xG sur CPA (possessions)', t: 'add', d: 2},
   vert: {l: 'Verticalité', t: 'ratio', d: 1, f: o => o.possN ? (o.vp + o.vc) / o.possN : null, h: 'Progression verticale moyenne par possession (passes + conduites)'}
 };
 const PHY = {
@@ -3164,6 +3179,7 @@ function renderTactical() {
   }
 
   if (sub === 'off') {
+    renderStyle(f, tmFocus, TN);
     const PMODE = $('#offMode').value === 'pm', nM = Math.max(1, (isPl ? F && F.mp : (tmFocus && T[tmFocus] ? T[tmFocus].mp : ms.filter(m => m.ev).length)) || 1);
     const cnt = v => PMODE ? fmt(v / nM, 1) : fmt(v);
     phaseUI('', [
@@ -3796,7 +3812,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-16 08:31 UTC';
+const BUILD = '2026-11-16 08:47 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4853,10 +4869,53 @@ function medLines(mx, my, fx, fy) {
     ctx.save(); ctx.lineWidth = 1.2; ctx.setLineDash([5, 4]);
     ctx.strokeStyle = '#3b6fd8'; ctx.beginPath(); ctx.moveTo(px, a.top); ctx.lineTo(px, a.bottom); ctx.stroke();
     ctx.strokeStyle = '#8a4fd8'; ctx.beginPath(); ctx.moveTo(a.left, py); ctx.lineTo(a.right, py); ctx.stroke(); ctx.setLineDash([]);
-    tag('Méd. ' + fx(mx), px, a.bottom - 12, '#3b6fd8', 'c'); tag('Méd. ' + fy(my), a.left + 4, py, '#8a4fd8', 'l'); ctx.restore();
+    if (fx(mx) !== '') tag('Méd. ' + fx(mx), px, a.bottom - 12, '#3b6fd8', 'c'); if (fy(my) !== '') tag('Méd. ' + fy(my), a.left + 4, py, '#8a4fd8', 'l'); ctx.restore();
   }};
 }
 const XC_IMG = {};
+/* ---------- Style de jeu offensif : construction ou transition, et d'où vient le danger ---------- */
+const STYLE_SP = {corner_kick: 1, free_kick: 1, penalty: 1};
+const STY_O = [['pl', 'Attaque placée', 'Possessions de 6 passes ou plus', '#3b6fd8', 'de l’attaque placée'], ['tr', 'Transition', 'Après une récupération, 15 s maximum', '#e0842b', 'de la transition'], ['di', 'Jeu direct', 'Moins de 6 passes, hors récupération rapide', '#8a8f98', 'du jeu direct'], ['sp', 'Coups de pied arrêtés', 'Corners, coups francs et penaltys', '#7a4fd0', 'des coups de pied arrêtés']];
+function styleScores(T, ids) {
+  // percentile (0 = dernier, 100 = premier) de chaque équipe sur chaque indicateur, puis moyenne par pôle
+  const val = (o, k) => k in o ? o[k] : (TAC[k] && TAC[k].f ? TAC[k].f(o) : null);
+  const P = {cons: ['possPct', 'npPoss', 'passPct', 'xgPlPct'], tran: ['vert', 'xgTrPct', 'recovHpm', 'shCtrpm']};
+  const pv = k => { const L = ids.map(t => [t, k.endsWith('pm') ? (val(T[t], k.slice(0, -2)) / T[t].mp) : val(T[t], k)]).filter(x => x[1] != null && isFinite(x[1])).sort((a, b) => a[1] - b[1]); const R = {}; L.forEach(([t], i) => R[t] = L.length > 1 ? i / (L.length - 1) * 100 : 50); return R; };
+  const out = {}; for (const pole of ['cons', 'tran']) { const M = P[pole].map(pv); for (const t of ids) { const v = M.map(R => R[t]).filter(x => x != null); (out[t] = out[t] || {})[pole] = v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; } }
+  return out;
+}
+const styleLabel = (c, t) => c == null || t == null ? '' : c >= 60 && t >= 60 ? 'Équipe complète : elle construit et elle accélère' : c >= 60 ? 'Équipe de construction' : t >= 60 ? 'Équipe de transition' : c < 40 && t < 40 ? 'Peu de maîtrise et peu de transitions' : c >= t + 15 ? 'Plutôt construction' : t >= c + 15 ? 'Plutôt transition' : 'Profil équilibré';
+function renderStyle(f, tid, TN) {
+  const lg = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1));
+  const T = aggTactical(lg, f.qs).T, ids = Object.keys(T).filter(t => T[t].mp && T[t].possN), SC = styleScores(T, ids), C = teamCodes();
+  const me = tid && T[tid] ? T[tid] : null, sc = tid ? SC[tid] : null;
+  const gauge = (l, v, col, help) => `<div class="stg"><div class="stg-l"><b>${l}</b><small>${help}</small></div><div class="stg-b"><i style="width:${v == null ? 0 : v}%;background:${col}"></i></div><em>${v == null ? '—' : Math.round(v)}<small>/100</small></em></div>`;
+  // part du danger (xG) par origine, équipe vs moyenne du championnat
+  const share = o => { const tot = STY_O.reduce((a, [k]) => a + (o['xg_' + k] || 0), 0); return STY_O.map(([k]) => tot ? (o['xg_' + k] || 0) / tot * 100 : 0); };
+  const lgS = STY_O.map((_, i) => mean(ids.map(t => share(T[t])[i])));
+  const bar = (S, lab) => `<div class="sty-row"><span>${lab}</span><div class="sty-bar">${STY_O.map(([k, l], i) => S[i] > 0 ? `<i style="width:${S[i]}%;background:${STY_O[i][3]}" data-tip="${esc(`${l} : ${fmt(S[i], 0)} % des xG`)}">${S[i] >= 9 ? fmt(S[i], 0) + ' %' : ''}</i>` : '').join('')}</div></div>`;
+  let left;
+  if (!me) left = `<p class="style-v">Choisissez une équipe pour voir son style de jeu.</p><p class="note">Le graphique place chaque équipe du championnat selon deux notes sur 100 : <b>construction</b> (possession, passes par possession, % de passes, part des xG en attaque placée) et <b>transition</b> (verticalité, part des xG en transition, récupérations dans le camp adverse, tirs en contre). 50 = au milieu du championnat.</p>`;
+  else {
+    const col = clubColor(tid), S = share(me);
+    const top = STY_O.map((x, i) => [x, S[i]]).sort((a, b) => b[1] - a[1])[0];
+    left = `<p class="style-v">${esc(styleLabel(sc.cons, sc.tran))}</p>`
+      + gauge('Construction', sc.cons, '#3b6fd8', 'possession, passes par possession, % de passes, xG en attaque placée') + gauge('Transition', sc.tran, '#e0842b', 'verticalité, xG en transition, récupérations hautes, tirs en contre')
+      + `<h3 class="sty-h">Comment elle construit</h3><div class="ph-kpis">${kpiRowHTML([['Possession', 'possPct', 1, '%', 1], ['Passes par possession', 'npPoss', 1, '', 1], ['Verticalité', 'vert', 1, '', 1], ['Jeu long (tiers déf.)', 'blongPct', 1, '%', 1]], f, tid, false, me.mp)}</div>`
+      + `<h3 class="sty-h">Comment elle est dangereuse</h3><p class="sub" style="margin:0 0 6px">D’où viennent ses xG : surtout <b>${esc(top[0][4])}</b> (${fmt(top[1], 0)} %)</p>${bar(S, C[tid] || TN[tid])}${bar(lgS, 'Moy. championnat')}`
+      + `<div class="sty-leg">${STY_O.map(([, l, h, c]) => `<span><i style="background:${c}"></i>${l} <small>${h}</small></span>`).join('')}</div>`
+      + `<div class="ph-kpis" style="margin-top:10px">${kpiRowHTML([['xG en attaque placée', 'xg_pl', 1, 'pm'], ['xG en transition', 'xg_tr', 1, 'pm'], ['xG en jeu direct', 'xg_di', 1, 'pm'], ['xG sur CPA', 'xg_sp', 1, 'pm']], f, tid, false, me.mp)}</div>`;
+  }
+  $('#styleL').innerHTML = left;
+  // nuage : toutes les équipes
+  const sz = 26, icon = t => { const d = logoData(t); if (!d) return null; const k = t + '@' + sz; let im = XC_IMG[k]; if (!im) { im = new Image(sz, sz); im.onload = () => scheduleRender(); im.src = d; XC_IMG[k] = im; } return im.complete && im.naturalWidth ? im : null; };
+  const pts = ids.filter(t => SC[t].cons != null && SC[t].tran != null).map(t => ({x: SC[t].cons, y: SC[t].tran, lab: C[t] || TN[t], full: TN[t], tid: t, hl: t === tid, dim: !!tid && t !== tid, img: icon(t)}));
+  chart('chStyle', {type: 'scatter', data: {datasets: [{data: pts, pointStyle: pts.map(p => p.img || 'circle'), pointRadius: pts.map(p => p.img ? (p.hl ? 17 : 13) : 7), backgroundColor: pts.map(p => color4(clubColor(p.tid), p.dim ? .3 : 1))}]},
+    options: {animation: false, layout: {padding: {top: 18, right: 14}}, plugins: {legend: {display: false}, tooltip: {displayColors: false, callbacks: {title: it => it[0].raw.full, label: c => [`Construction : ${Math.round(c.raw.x)}/100`, `Transition : ${Math.round(c.raw.y)}/100`, styleLabel(c.raw.x, c.raw.y)]}}},
+      scales: {x: {min: -6, max: 106, ticks: {stepSize: 25, callback: v => v % 25 === 0 && v >= 0 && v <= 100 ? v : ''}, title: {display: true, text: 'Construction →'}, grid: {color: css('--grid')}}, y: {min: -6, max: 106, ticks: {stepSize: 25, callback: v => v % 25 === 0 && v >= 0 && v <= 100 ? v : ''}, title: {display: true, text: 'Transition →'}, grid: {color: css('--grid')}}}},
+    plugins: [medLines(50, 50, () => '', () => ''), nameAbove]});
+  $('#styleSub').textContent = `${ids.length} équipes · notes sur 100 (50 = milieu du championnat) · ${lg.filter(m => m.ev).length} match(s)`;
+}
 function renderCross(lg, TN, PI) {
   const f = S.f, SR = seasonRoles(), pop = $('#xcPop').value;
   if (!$('#xcX').options.length) { const o = XC_K.map(k => `<option value="${k}">${XC_L[k]}</option>`).join(''); $('#xcX').innerHTML = o; $('#xcY').innerHTML = o; $('#xcX').value = 'dist'; $('#xcY').value = 'spr'; }
@@ -5239,7 +5298,7 @@ function crossList(ms, qs, keep) {
 function kpiRowHTML(defs, f, tF, TOT, mp) {
   const LG = leagueRanks(f); mp = mp || 1;
   const cT = tF ? clubColor(tF) : css('--text-3');
-  return defs.map(([l, k, dir, u]) => { const r = {l, k, dir, u, ...LG.get(k, dir, u, tF)};
+  return defs.map(([l, k, dir, u, neutral]) => { const r = {l, k, dir, u, ...LG.get(k, dir, u, tF)}; if (neutral) r.q = 'neu';
     const fv = v => v == null ? '—' : u === '%' ? fmt(v, 1) + ' %' : fmt(v, 1), isPm = u === 'pm', tot = TOT && tF && isPm;
     const shown = tot ? (r.v == null ? null : r.v * mp) : (tF ? r.v : r.avg), unit = isPm ? (tot ? ' <small>au total</small>' : ' <small>/ match</small>') : '';
     const cmp = tot ? `soit ${fv(r.v)} / match · moy. ${fv(r.avg)} · meilleur ${fv(r.best)}` : `moy. ${fv(r.avg)} · meilleur ${fv(r.best)}`;
