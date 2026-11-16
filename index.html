@@ -162,8 +162,14 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .kpis-card{padding:0;background:transparent;border:0;box-shadow:none}
 .kg{margin-bottom:12px}.kg h3{font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);margin:4px 0 6px;font-weight:700}.keyfig .kg .rtiles{grid-template-columns:repeat(4,1fr)}@media (max-width:900px){.keyfig .kg .rtiles{grid-template-columns:repeat(2,1fr)}}
 .rk{font-style:normal;font-weight:800;padding:1px 6px;border-radius:9px;color:#fff;background:#5a8fd6}.rk.top{background:#2e9e5b}.rk.low{background:#d0453f}
+.res-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:26px}@media(max-width:980px){.res-grid{grid-template-columns:1fr}}
+.res-grid h3{font-size:14px;margin:0 0 4px}.res-grid .sub{margin:0 0 10px}.scn{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:18px}
+.scn>div{background:var(--surface-2);border-radius:10px;padding:10px 12px}.scn .sl{font-size:12.5px;font-weight:700}.scn .sv{display:flex;align-items:baseline;gap:8px;margin:4px 0}.scn .sv b{font-size:22px}
+.scn .sv small,.scn .sm{font-size:11.5px;color:var(--text-3)}.vnd{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--grid);margin:6px 0 4px}.vnd i{display:block}.vnd .V{background:#2e9e5b}.vnd .N{background:#c9a227}.vnd .D{background:#d0453f}
+.sys2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:700px){.sys2,.scn{grid-template-columns:1fr}}.sys2 table td:first-child{white-space:nowrap}
+.resl .rs{font-size:11px;color:var(--text-3);white-space:nowrap}
 .formrow{display:flex;gap:4px;margin:2px 0 12px;flex-wrap:wrap}.fm{display:inline-flex;width:24px;height:24px;border-radius:5px;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff;background:#c9a227}.fm.V{background:#2e9e5b}.fm.D{background:#d0453f}
-.resl{list-style:none;margin:12px 0 0;padding:0;font-size:12.5px;max-height:360px;overflow:auto}.resl .rn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.resl .rl{display:inline-flex;width:22px}.resl li{display:grid;grid-template-columns:24px 34px 22px minmax(0,1fr) auto;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid var(--grid)}.resl .fm{width:20px;height:20px;font-size:10.5px}.resl .tlogo{height:18px}
+.resl{list-style:none;margin:12px 0 0;padding:0;font-size:12.5px;max-height:360px;overflow:auto}.resl .rn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.resl .rl{display:inline-flex;width:22px}.resl li{display:grid;grid-template-columns:24px 34px 22px minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid var(--grid)}.resl .fm{width:20px;height:20px;font-size:10.5px}.resl .tlogo{height:18px}
 .kpi .v .kpu{font-size:12px;font-weight:600;color:var(--text-3);margin-left:4px}
 .tbl-wrap.ktbl{max-height:none}.ktbl table{font-size:13px}.ktbl td,.ktbl th{padding:6px 10px}.ktbl tr.kgrp td{background:var(--surface-2);font-weight:800;font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-2);text-align:left;padding-top:9px}
 .ktbl td.kd.up{color:#2e9e5b;font-weight:700}.ktbl td.kd.down{color:#d0453f;font-weight:700}.ktbl .kb{white-space:nowrap;color:var(--text-2)}.ktbl .kb .tlogo{height:16px;vertical-align:-3px;margin-right:5px}.ktbl .kb b{color:var(--text);margin-left:4px}
@@ -414,7 +420,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-13 19:25 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-16 08:26 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -543,15 +549,12 @@ input.j{width:64px}
 
     <!-- Résumé -->
     <div class="subpanel" data-sub="res">
-      <div class="card keyfig"><div class="card-head"><div><h2>Le résumé en chiffres</h2><p class="sub" id="keyFigSub"></p></div></div><div id="keyFig"></div></div>
+      <div class="card res-card"><div class="card-head"><div><h2>Résultats</h2><p class="sub" id="formSub"></p></div></div><div id="resForm"></div></div>
+      <div class="card keyfig" style="margin-top:14px"><div class="card-head"><div><h2>Le résumé en chiffres</h2><p class="sub" id="keyFigSub"></p></div></div><div id="keyFig"></div></div>
       <div class="grid" style="margin-top:14px">
-        <div class="card c7">
+        <div class="card c12">
           <div class="card-head"><div><h2>Classement</h2><p class="sub" id="stdSub"></p></div></div>
           <div class="tbl-wrap" id="tblStand"></div>
-        </div>
-        <div class="card c5">
-          <div class="card-head"><div><h2>Résultats</h2><p class="sub" id="formSub"></p></div></div>
-          <div id="resForm"></div>
         </div>
       </div>
     </div>
@@ -3153,9 +3156,32 @@ function renderTactical() {
       const A = tally(R), Hm = tally(R.filter(x => x.h)), Ex = tally(R.filter(x => !x.h));
       const line = (l, t) => `<tr><td class="txt">${l}</td><td>${t.mj}</td><td><b>${t.pts}</b></td><td>${t.v}-${t.n}-${t.d}</td><td>${t.bp}-${t.bc}</td><td>${t.mj ? fmt(t.pts / t.mj, 2) : '—'}</td></tr>`;
       $('#formSub').textContent = `${TN[tmFocus]} · ${R.length} match(s)`;
-      $('#resForm').innerHTML = `<div class="formrow">${R.slice(-10).map(x => `<span class="fm ${x.r}" data-tip="${esc(`J${x.m.j} · ${x.h ? 'dom.' : 'ext.'} vs ${TN[x.opp] || ''} · ${x.gf}-${x.ga}`)}">${x.r}</span>`).join('')}</div>`
+      // scénario du match à partir de l'ordre des buts (ouvre le score, encaisse le premier, revient, se fait rejoindre)
+      const scen = (m, tid) => { const G = (m.ev ? m.ev.goals : []).slice().sort((a, b) => a.per - b.per || a.mi - b.mi); let d = 0, first = null, trail = false, lead = false, back = false, caught = false;
+        for (const g of G) { d += g.tm === tid ? 1 : -1; if (!first) first = g.tm === tid ? 'f' : 'a'; if (d < 0) trail = true; if (d > 0) lead = true; if (d === 0 && trail && g.tm === tid) back = true; if (d === 0 && lead && g.tm !== tid) caught = true; }
+        return {first, back, caught, nog: !G.length}; };
+      const resOf = (m, tid) => { const h = m.home.id === tid, gf = h ? m.score[0] : m.score[1], ga = h ? m.score[1] : m.score[0]; return gf > ga ? 'V' : gf < ga ? 'D' : 'N'; };
+      const SC = [['f', 'Ouvre le score', s => s.first === 'f'], ['a', 'Encaisse le premier but', s => s.first === 'a'], ['b', 'Revient au score', s => s.back], ['c', 'Se fait rejoindre', s => s.caught]];
+      // moyenne du championnat (points par match dans chaque scénario, toutes équipes)
+      const LGs = SC.map(() => ({n: 0, p: 0}));
+      const lgM = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1));
+      for (const m of lgM) if (m.ev && m.score) for (const t of [m.home.id, m.away.id]) { const sc = scen(m, t), r = resOf(m, t); SC.forEach((c, k) => { if (c[2](sc)) { LGs[k].n++; LGs[k].p += r === 'V' ? 3 : r === 'N' ? 1 : 0; } }); }
+      R.forEach(x => { x.sc = scen(x.m, tmFocus); const F1 = x.m.ev && x.m.ev.form; x.sys = F1 && F1[tmFocus] && F1[tmFocus][0] ? F1[tmFocus][0][0] : null; x.osys = F1 && F1[x.opp] && F1[x.opp][0] ? F1[x.opp][0][0] : null; });
+      const vnd = rs => { const t = tally(rs); return t.mj ? `<div class="vnd">${['V', 'N', 'D'].map(k => `<i class="${k}" style="width:${t[k.toLowerCase()] / t.mj * 100}%"></i>`).join('')}</div>` : '<div class="vnd"></div>'; };
+      const tile = (c, k) => { const rs = R.filter(x => c[2](x.sc)), t = tally(rs), lg = LGs[k], tip = rs.map(x => `J${x.m.j} ${x.h ? 'vs' : 'à'} ${TN[x.opp] || ''} · ${x.gf}-${x.ga} (${x.r})`).join('\n');
+        return `<div ${tip ? `data-tip="${esc(tip)}"` : ''}><div class="sl">${c[1]}</div><div class="sv"><b>${t.mj ? fmt(t.pts / t.mj, 2) : '—'}</b><small>pts / match · ${t.mj} match(s)</small></div>${vnd(rs)}<div class="sm">${t.v} V · ${t.n} N · ${t.d} D${lg.n ? ` · moy. championnat ${fmt(lg.p / lg.n, 2)}` : ''}</div></div>`; };
+      const sysT = (key, head) => { const G = {}; for (const x of R) { const k = x[key]; if (k == null) continue; (G[k] = G[k] || []).push(x); }
+        const rows = Object.entries(G).sort((a, b) => b[1].length - a[1].length);
+        if (!rows.length) return `<p class="rnote">Pas de données de système.</p>`;
+        return `<table class="gkz"><tr><th class="txt">${head}</th><th>MJ</th><th>V-N-D</th><th>Buts</th><th>Pts / m.</th></tr>${rows.map(([k, rs]) => { const t = tally(rs); return `<tr data-tip="${esc(rs.map(x => `J${x.m.j} ${x.h ? 'vs' : 'à'} ${TN[x.opp] || ''} · ${x.gf}-${x.ga}`).join('\n'))}"><td class="txt"><b>${esc(formName(+k))}</b></td><td>${t.mj}</td><td>${t.v}-${t.n}-${t.d}</td><td>${t.bp}-${t.bc}</td><td><b>${fmt(t.pts / t.mj, 2)}</b></td></tr>`; }).join('')}</table>`; };
+      const nog = R.filter(x => x.sc.nog).length;
+      $('#resForm').innerHTML = `<div class="res-grid"><div>`
+        + `<div class="formrow">${R.slice(-10).map(x => `<span class="fm ${x.r}" data-tip="${esc(`J${x.m.j} · ${x.h ? 'dom.' : 'ext.'} vs ${TN[x.opp] || ''} · ${x.gf}-${x.ga}`)}">${x.r}</span>`).join('')}</div>`
         + `<table class="gkz"><tr><th class="txt"></th><th>MJ</th><th>Pts</th><th>V-N-D</th><th>Buts</th><th>Pts / match</th></tr>${line('Total', A)}${line('Domicile', Hm)}${line('Extérieur', Ex)}</table>`
-        + `<ul class="resl">${R.slice().reverse().map(x => `<li><span class="fm ${x.r}">${x.r}</span><span class="muted">J${x.m.j}</span><span class="rl">${logoHTML(x.opp)}</span><span class="rn">${esc(TN[x.opp] || '')} <small class="muted">${x.h ? 'dom.' : 'ext.'}</small></span><b>${x.gf}-${x.ga}</b></li>`).join('')}</ul>`;
+        + `<ul class="resl">${R.slice().reverse().map(x => `<li><span class="fm ${x.r}">${x.r}</span><span class="muted">J${x.m.j}</span><span class="rl">${logoHTML(x.opp)}</span><span class="rn">${esc(TN[x.opp] || '')} <small class="muted">${x.h ? 'dom.' : 'ext.'}</small></span><span class="rs" title="Système de départ de l’équipe vs celui de l’adversaire">${x.sys ? esc(formName(x.sys)) : ''}${x.sys && x.osys ? ' vs ' : ''}${x.osys ? esc(formName(x.osys)) : ''}</span><b>${x.gf}-${x.ga}</b></li>`).join('')}</ul>`
+        + `</div><div><h3>Selon le scénario du match</h3><p class="sub">Résultat final selon le déroulé du score · survolez une case pour voir les matchs</p><div class="scn">${SC.map(tile).join('')}</div>`
+        + (nog ? `<p class="rnote" style="margin:-8px 0 14px">${nog} match(s) sans but (0-0), hors scénarios.</p>` : '')
+        + `<h3>Selon les systèmes</h3><p class="sub">Système de départ (composition Opta) · survolez une ligne pour voir les matchs</p><div class="sys2"><div>${sysT('sys', 'Avec son système')}</div><div>${sysT('osys', 'Face au système adverse')}</div></div></div></div>`;
     }
   }
 
@@ -3771,7 +3797,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-13 19:25 UTC';
+const BUILD = '2026-11-16 08:26 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
