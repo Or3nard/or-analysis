@@ -165,7 +165,7 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .res-grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:26px}@media(max-width:980px){.res-grid{grid-template-columns:1fr}}
 .res-grid h3{font-size:14px;margin:0 0 4px}.res-grid .sub{margin:0 0 10px}.scn{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:18px}
 .scn>div{background:var(--surface-2);border-radius:10px;padding:10px 12px}.scn .sl{font-size:12.5px;font-weight:700}.scn .sv{display:flex;align-items:baseline;gap:8px;margin:4px 0}.scn .sv b{font-size:22px}
-.scn .sv small,.scn .sm{font-size:11.5px;color:var(--text-3)}.vnd{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--grid);margin:6px 0 4px}.vnd i{display:block}.vnd .V{background:#2e9e5b}.vnd .N{background:#c9a227}.vnd .D{background:#d0453f}
+.scn .sv small,.scn .sm{font-size:11.5px;color:var(--text-3)}.vnd{display:flex;height:14px;border-radius:5px;overflow:hidden;background:var(--grid);margin:6px 0 4px}.vnd i{display:block;cursor:help}.vnd i+i{border-left:2px solid var(--surface-2)}.vnd .V{background:#2e9e5b}.vnd .N{background:#c9a227}.vnd .D{background:#d0453f}
 .sys2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:700px){.sys2,.scn{grid-template-columns:1fr}}.sys2 table td:first-child{white-space:nowrap}
 .resl .rs{font-size:11px;color:var(--text-3);white-space:nowrap}
 .formrow{display:flex;gap:4px;margin:2px 0 12px;flex-wrap:wrap}.fm{display:inline-flex;width:24px;height:24px;border-radius:5px;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff;background:#c9a227}.fm.V{background:#2e9e5b}.fm.D{background:#d0453f}
@@ -420,7 +420,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-16 08:26 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-16 08:31 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -551,12 +551,6 @@ input.j{width:64px}
     <div class="subpanel" data-sub="res">
       <div class="card res-card"><div class="card-head"><div><h2>Résultats</h2><p class="sub" id="formSub"></p></div></div><div id="resForm"></div></div>
       <div class="card keyfig" style="margin-top:14px"><div class="card-head"><div><h2>Le résumé en chiffres</h2><p class="sub" id="keyFigSub"></p></div></div><div id="keyFig"></div></div>
-      <div class="grid" style="margin-top:14px">
-        <div class="card c12">
-          <div class="card-head"><div><h2>Classement</h2><p class="sub" id="stdSub"></p></div></div>
-          <div class="tbl-wrap" id="tblStand"></div>
-        </div>
-      </div>
     </div>
 
     <!-- Offensif -->
@@ -861,6 +855,10 @@ input.j{width:64px}
     <!-- Classements -->
     <div class="subpanel" data-sub="cls">
       <div class="grid">
+        <div class="card c12">
+          <div class="card-head"><div><h2>Classement</h2><p class="sub" id="stdSub"></p></div></div>
+          <div class="tbl-wrap" id="tblStand"></div>
+        </div>
         <div class="card c7">
           <div class="card-head"><div><h2>xG produits vs xG concédés</h2><p class="sub">Par match · lignes pointillées = moyennes</p></div></div>
           <div class="chart-box tall"><canvas id="chXgScatter"></canvas></div>
@@ -3126,27 +3124,6 @@ function renderTactical() {
 
   if (sub === 'res') {
     renderKeyFigures(TN, PI);
-    const allQ = f.qs.size === 6, stand = {};
-    const stdMs = matchesByBaseFilters(true).filter(m => !f.match || m.id === f.match);
-    for (const m of stdMs) {
-      let gh, ga;
-      if (allQ) [gh, ga] = m.score;
-      else if (m.ev) { gh = 0; ga = 0; for (const g of m.ev.goals) if (f.qs.has(g.q)) { if (g.tm === m.home.id) gh++; else ga++; } }
-      else continue;
-      for (const [id, gf, gc] of [[m.home.id, gh, ga], [m.away.id, ga, gh]]) {
-        const st = stand[id] || (stand[id] = {id, name: TN[id], mj: 0, v: 0, n: 0, d: 0, bp: 0, bc: 0});
-        st.mj++; st.bp += gf; st.bc += gc; if (gf > gc) st.v++; else if (gf === gc) st.n++; else st.d++;
-      }
-    }
-    const standRows = Object.values(stand).map(x => ({...x, pts: x.v * 3 + x.n, diff: x.bp - x.bc}));
-    standRows.forEach(x => x._sortKey = x.pts * 1e6 + (x.diff + 500) * 1e3 + x.bp);
-    $('#stdSub').textContent = allQ ? 'Sur les scores finaux des matchs chargés (filtres journée/match)' : 'Points recalculés uniquement sur les buts des quarts d’heure sélectionnés';
-    if (!S.sort.tblStand) S.sort.tblStand = {k: '_s', asc: false};
-    renderTable('tblStand', [
-      {k: 'name', l: 'Équipe', txt: 1, v: r => r.name, html: r => logoHTML(r.id) + esc(r.name)}, {k: '_s', l: 'Pts', v: r => r._sortKey, disp: r => r.pts},
-      {k: 'mj', l: 'MJ', v: r => r.mj}, {k: 'v', l: 'V', v: r => r.v}, {k: 'n', l: 'N', v: r => r.n}, {k: 'd', l: 'D', v: r => r.d},
-      {k: 'bp', l: 'BP', v: r => r.bp}, {k: 'bc', l: 'BC', v: r => r.bc}, {k: 'diff', l: 'Diff', v: r => r.diff}
-    ], standRows, {hl: r => r.id === f.team, onRow: id => setFilter('team', id)});
     // Résultats de l'équipe
     if (!tmFocus) { needFocus('#resForm', '#formSub', 'Sélectionnez une équipe pour voir ses résultats.'); }
     else {
@@ -3167,7 +3144,8 @@ function renderTactical() {
       const lgM = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1));
       for (const m of lgM) if (m.ev && m.score) for (const t of [m.home.id, m.away.id]) { const sc = scen(m, t), r = resOf(m, t); SC.forEach((c, k) => { if (c[2](sc)) { LGs[k].n++; LGs[k].p += r === 'V' ? 3 : r === 'N' ? 1 : 0; } }); }
       R.forEach(x => { x.sc = scen(x.m, tmFocus); const F1 = x.m.ev && x.m.ev.form; x.sys = F1 && F1[tmFocus] && F1[tmFocus][0] ? F1[tmFocus][0][0] : null; x.osys = F1 && F1[x.opp] && F1[x.opp][0] ? F1[x.opp][0][0] : null; });
-      const vnd = rs => { const t = tally(rs); return t.mj ? `<div class="vnd">${['V', 'N', 'D'].map(k => `<i class="${k}" style="width:${t[k.toLowerCase()] / t.mj * 100}%"></i>`).join('')}</div>` : '<div class="vnd"></div>'; };
+      const RL = {V: 'Victoire', N: 'Nul', D: 'Défaite'};
+      const vnd = rs => { const t = tally(rs); return t.mj ? `<div class="vnd">${['V', 'N', 'D'].map(k => { const L = rs.filter(x => x.r === k); return L.length ? `<i class="${k}" style="width:${L.length / t.mj * 100}%" data-tip="${esc(`${RL[k]}${L.length > 1 ? 's' : ''} (${L.length})\n` + L.map(x => `J${x.m.j} ${x.h ? 'vs' : 'à'} ${TN[x.opp] || ''} · ${x.gf}-${x.ga}`).join('\n'))}"></i>` : ''; }).join('')}</div>` : '<div class="vnd"></div>'; };
       const tile = (c, k) => { const rs = R.filter(x => c[2](x.sc)), t = tally(rs), lg = LGs[k], tip = rs.map(x => `J${x.m.j} ${x.h ? 'vs' : 'à'} ${TN[x.opp] || ''} · ${x.gf}-${x.ga} (${x.r})`).join('\n');
         return `<div ${tip ? `data-tip="${esc(tip)}"` : ''}><div class="sl">${c[1]}</div><div class="sv"><b>${t.mj ? fmt(t.pts / t.mj, 2) : '—'}</b><small>pts / match · ${t.mj} match(s)</small></div>${vnd(rs)}<div class="sm">${t.v} V · ${t.n} N · ${t.d} D${lg.n ? ` · moy. championnat ${fmt(lg.p / lg.n, 2)}` : ''}</div></div>`; };
       const sysT = (key, head) => { const G = {}; for (const x of R) { const k = x[key]; if (k == null) continue; (G[k] = G[k] || []).push(x); }
@@ -3388,6 +3366,27 @@ function renderTactical() {
 
   if (sub === 'cls') {
     // Vue d'ensemble du championnat (déplacée depuis le Résumé)
+    const allQ = f.qs.size === 6, stand = {};
+    const stdMs = matchesByBaseFilters(true).filter(m => !f.match || m.id === f.match);
+    for (const m of stdMs) {
+      let gh, ga;
+      if (allQ) [gh, ga] = m.score;
+      else if (m.ev) { gh = 0; ga = 0; for (const g of m.ev.goals) if (f.qs.has(g.q)) { if (g.tm === m.home.id) gh++; else ga++; } }
+      else continue;
+      for (const [id, gf, gc] of [[m.home.id, gh, ga], [m.away.id, ga, gh]]) {
+        const st = stand[id] || (stand[id] = {id, name: TN[id], mj: 0, v: 0, n: 0, d: 0, bp: 0, bc: 0});
+        st.mj++; st.bp += gf; st.bc += gc; if (gf > gc) st.v++; else if (gf === gc) st.n++; else st.d++;
+      }
+    }
+    const standRows = Object.values(stand).map(x => ({...x, pts: x.v * 3 + x.n, diff: x.bp - x.bc}));
+    standRows.forEach(x => x._sortKey = x.pts * 1e6 + (x.diff + 500) * 1e3 + x.bp);
+    $('#stdSub').textContent = allQ ? 'Sur les scores finaux des matchs chargés (filtres journée/match)' : 'Points recalculés uniquement sur les buts des quarts d’heure sélectionnés';
+    if (!S.sort.tblStand) S.sort.tblStand = {k: '_s', asc: false};
+    renderTable('tblStand', [
+      {k: 'name', l: 'Équipe', txt: 1, v: r => r.name, html: r => logoHTML(r.id) + esc(r.name)}, {k: '_s', l: 'Pts', v: r => r._sortKey, disp: r => r.pts},
+      {k: 'mj', l: 'MJ', v: r => r.mj}, {k: 'v', l: 'V', v: r => r.v}, {k: 'n', l: 'N', v: r => r.n}, {k: 'd', l: 'D', v: r => r.d},
+      {k: 'bp', l: 'BP', v: r => r.bp}, {k: 'bc', l: 'BC', v: r => r.bc}, {k: 'diff', l: 'Diff', v: r => r.diff}
+    ], standRows, {hl: r => r.id === f.team, onRow: id => setFilter('team', id)});
     const LT = aggTactical(CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1)), f.qs).T;
     const pts = Object.entries(LT).filter(([, o]) => o.mp).map(([id, o]) => ({x: o.xg / o.mp, y: o.xga / o.mp, lab: TN[id], id}));
     pts.forEach(p => { p.img = logoImg(p.id, p.id === f.team ? 34 : 26); if (p.img) p.off = p.id === f.team ? 24 : 16; if (p.id === f.team) { p.hl = 1; p.hlc = clubColor(p.id, s2); p.off = 27; } });
@@ -3797,7 +3796,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-16 08:26 UTC';
+const BUILD = '2026-11-16 08:31 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
