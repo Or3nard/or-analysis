@@ -168,7 +168,7 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .scn .sv small,.scn .sm{font-size:11.5px;color:var(--text-3)}.vnd{display:flex;height:14px;border-radius:5px;overflow:hidden;background:var(--grid);margin:6px 0 4px}.vnd i{display:block;cursor:help}.vnd i+i{border-left:2px solid var(--surface-2)}.vnd .V{background:#2e9e5b}.vnd .N{background:#c9a227}.vnd .D{background:#d0453f}
 .sys2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:700px){.sys2,.scn{grid-template-columns:1fr}}.sys2 table td:first-child{white-space:nowrap}
 .resl .rs{font-size:11px;color:var(--text-3);white-space:nowrap}
-.style-grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:24px}@media(max-width:980px){.style-grid{grid-template-columns:1fr}}
+.bu-t td{vertical-align:middle}.bu-t td small{font-size:10.5px}.bu-t td.pos{color:#2e9e5b;font-weight:700}.bu-t td.neg{color:#d0453f;font-weight:700}.style-grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:24px}@media(max-width:980px){.style-grid{grid-template-columns:1fr}}
 .rk.neu{background:var(--surface);color:var(--text-2);border:1px solid var(--border)}.style-v{font-size:19px;font-weight:800;margin:0 0 12px}.stg{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,2fr) 60px;gap:12px;align-items:center;margin:6px 0}.stg-l b{display:block;font-size:13px}.stg-l small{font-size:11px;color:var(--text-3)}
 .stg-b{height:12px;border-radius:6px;background:var(--grid);overflow:hidden}.stg-b i{display:block;height:100%;border-radius:6px}.stg em{font-style:normal;font-weight:800;font-size:16px;text-align:right}.stg em small{font-size:10px;color:var(--text-3);font-weight:600}
 .sty-h{font-size:14px;margin:16px 0 6px}.sty-eff{margin-top:8px}.sty-eff td.neu{color:var(--text);font-weight:700}.sty-card-note .pos,.note span.pos{color:#2e9e5b;font-weight:700}.note span.neg{color:#d0453f;font-weight:700}.sty-eff tr.sty-tot td{border-top:2px solid var(--border)}.sty-eff td.pos{color:#2e9e5b;font-weight:700}.sty-eff td.neg{color:#d0453f;font-weight:700}.sty-dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px}.sty-row{display:grid;grid-template-columns:120px minmax(0,1fr);gap:10px;align-items:center;margin:4px 0;font-size:12.5px}.sty-bar{display:flex;height:22px;border-radius:6px;overflow:hidden;background:var(--grid)}
@@ -425,7 +425,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-16 10:21 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-16 11:06 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -567,6 +567,10 @@ input.j{width:64px}
           <div class="syn" id="synCols"></div>
           <p class="syn-read" id="synRead"></p>
         </div>
+        <div class="card c12" id="buOffCard">
+          <div class="card-head"><div><h2>Sorties de balle</h2><p class="sub">Combien de joueurs l’équipe met en première ligne pour relancer, et ce que ça donne (tracking)</p></div></div>
+          <div id="buOff"></div>
+        </div>
         <div class="card c12" id="styleCard">
           <div class="card-head"><div><h2>Style de jeu offensif</h2><p class="sub" id="styleSub"></p></div></div>
           <div class="style-grid"><div id="styleL"></div><div><div class="chart-box" style="height:380px"><canvas id="chStyle"></canvas></div><p class="note">Chaque équipe selon ses deux notes · lignes pointillées = 50 (milieu du championnat) · en haut à droite : construit et accélère ; en bas à droite : construit, peu de transitions ; en haut à gauche : jeu de transition.</p></div></div>
@@ -663,6 +667,10 @@ input.j{width:64px}
           <div class="ctrl"><select id="defMode"><option value="pm">Par match</option><option value="tot">Total</option></select></div></div>
           <div class="syn syn4" id="dsynCols"></div>
           <p class="syn-read" id="dsynRead"></p>
+        </div>
+        <div class="card c12" id="buDefCard">
+          <div class="card-head"><div><h2>Pressing selon la sortie de balle adverse</h2><p class="sub" id="buDefSub">Combien de joueurs l’adversaire met en première ligne, et ce que donne le pressing (tracking)</p></div></div>
+          <div id="buDef"></div>
         </div>
         <div class="card c12" id="dstyleCard">
           <div class="card-head"><div><h2>Style de jeu défensif</h2><p class="sub" id="dstyleSub"></p></div></div>
@@ -1490,7 +1498,7 @@ async function importFiles(list) {
     if (!m) { try { const head = await it.file.slice(0, 400).text(); const wc = +((head.match(/"wallClock": (\d+)/) || [])[1]); m = Object.values(S.matches).find(x => x.periods && x.periods[0] && x.periods[0].wc === wc); } catch (e) {} }
     if (!m || !m.ev) { log(`• ${it.name} : tracking sans match correspondant (importez le dossier complet du match)`); continue; }
     const nC = (m.ev.corners || []).length + (m.ev.fks || []).length;
-    if (m.trk && m.trk.size === it.size && m.trk.v === TRK_VER && m.trk.n === nC && m.spd && m.spd.v === SPD_VER) continue;
+    if (m.trk && m.trk.size === it.size && m.trk.v === TRK_VER && m.trk.n === nC && m.spd && m.spd.v === SPD_VER && m.bus && m.bus.v === BU_VER && m.bus.n === ((m.ev && m.ev.bu) || []).length) continue;
     try { log(`… ${m.home.name} – ${m.away.name} : lecture du tracking (corners, coups francs, vitesses)`); const n = await procTracking(m, it.file); m.trk.size = it.size; touched.add(m.id); log(`✓ ${m.home.name} – ${m.away.name} : positions sur ${n} corner(s) / coup(s) franc(s)`); }
     catch (e) { console.warn(e); log(`✗ ${it.name} : lecture du tracking impossible`); }
   }
@@ -1503,7 +1511,7 @@ async function importFiles(list) {
 }
 
 /* ---------- Tracking : positions et trajectoire du ballon autour des corners ---------- */
-const TRK_VER = 3, SPD_VER = 3;
+const TRK_VER = 3, SPD_VER = 3, BU_VER = 2;
 const cornerKey = c => c.per + '|' + Math.round(c.gc * 10);
 async function procTracking(m, file) {
   const C = [...((m.ev && m.ev.corners) || []).map(c => ({...c, _k: 'c', _o: c})), ...((m.ev && m.ev.fks) || []).map(c => ({...c, _k: 'f', _o: c}))];
@@ -1539,13 +1547,33 @@ async function procTracking(m, file) {
       if (v < R.vm - .8 || gc - R.g0 > 12 || R.d > 55) endRun(s, h);
     }
   };
+  // Structure de chaque relance adverse (8 premières secondes, ballon dans le tiers défensif de l'équipe qui relance) :
+  // nombre de joueurs de champ dans la première ligne (au plus 7 m devant le joueur de champ le plus reculé, à moins de 33 m de leur but)
+  // et nombre de joueurs adverses engagés dans ses 35 derniers mètres.
+  const BU = ((m.ev && m.ev.bu) || []).map((b, i) => ({i, tm: b[0], per: b[1], a: b[2], b: Math.min(b[3], b[2] + 8), N: [], P: []}));
+  const LL = m.L, WW = m.W, nxD = x => (x + LL / 2) / LL * 105;
+  const buFrame = (per, gc, o) => {
+    if (o.live === false || !o.ball || !o.ball.xyz) return;
+    for (const w of BU) { if (w.per !== per || gc < w.a || gc > w.b) continue;
+      const pr = m.periods.find(p => p.n === per) || {}, attHome = w.tm === m.home.id, sgn = (attHome === (pr.hap !== false)) ? 1 : -1;
+      if (nxD(sgn * o.ball.xyz[0]) > 40) continue;
+      const A = (attHome ? o.homePlayers : o.awayPlayers) || [], D = (attHome ? o.awayPlayers : o.homePlayers) || [];
+      const dep = A.filter(p => p.xyz).map(p => nxD(sgn * p.xyz[0])).sort((a, b) => a - b); if (dep.length < 8) continue;
+      const out = dep.slice(1), N = out.filter(d => d - out[0] <= 7 && d < 33).length;
+      w.N.push(Math.min(N, 5)); w.P.push(D.filter(p => p.xyz && nxD(sgn * p.xyz[0]) < 35).length);
+    }
+  };
   const take = line => { const mm = rx.exec(line.slice(0, 100)); if (!mm) return; const per = +mm[1], fi = +mm[2], gc = +mm[3];
     let o = null;
+    if (fi % 2 === 0 && BU.some(w => w.per === per && gc >= w.a && gc <= w.b)) { o = JSON.parse(line); buFrame(per, gc, o); }
     for (const w of W) if (w.per === per && gc >= w.a && gc <= w.b) { o = o || JSON.parse(line); w.fr.push({gc, b: o.ball && o.ball.xyz, h: o.homePlayers, w: o.awayPlayers}); }
     if (fi % 2 === 0 && (per === 1 || per === 2)) spdFrame(per, gc, o || JSON.parse(line)); };
   while (!done) { const r = await reader.read(); done = r.done; if (r.value) buf += r.value; let k;
     while ((k = buf.indexOf('\n')) >= 0) { take(buf.slice(0, k)); buf = buf.slice(k + 1); } }
   if (buf) take(buf);
+  { const mode = a => { const c = {}; a.forEach(v => c[v] = (c[v] || 0) + 1); return +Object.entries(c).sort((x, y) => y[1] - x[1] || x[0] - y[0])[0][0]; };
+    const med = a => { const b = a.slice().sort((x, y) => x - y); return b[b.length >> 1]; };
+    m.bus = {v: BU_VER, n: BU.length, L: BU.map(w => w.N.length >= 4 ? [mode(w.N), med(w.P)] : null)}; }
   const L = m.L, Wd = m.W, nx = x => r1((x + L / 2) / L * 105), ny = y => r1((Wd / 2 - y) / Wd * 68);
   let n = 0;
   for (const w of W) {
@@ -1621,7 +1649,7 @@ function baseFromMeta(meta, md) {
 }
 
 /* ---------- Insight : événements Opta + marquages tracking ---------- */
-const EV_VER = 16; // version du traitement des événements (à incrémenter si procInsight change)
+const EV_VER = 17; // version du traitement des événements (à incrémenter si procInsight change)
 const OPTA_KEEP = new Set([1, 3, 4, 7, 8, 10, 11, 12, 17, 41, 44, 45, 49, 50, 52, 53, 59, 61, 74]);
 function procInsight(m, rows) {
   const L = m.L, W = m.W;
@@ -1756,6 +1784,13 @@ function procInsight(m, rows) {
       const c = sh.mi * 60, po = ev.poss.find(x => x.tm === sh.tm && x._per === sh.per && x._s != null && x._s - 1 <= c && c <= (x._e ?? x._s) + 3);
       sh.cl = sh.pen ? 'pen' : po ? possCls(po) : null;
     }
+    // Relances depuis son tiers défensif (hors CPA) et ce qu'elles deviennent : [équipe, période, début, fin, issue, passes]
+    { const PS = ev.poss.filter(x => x._s != null && x._per).sort((a, b) => a._per - b._per || a._s - b._s); ev.bu = [];
+      PS.forEach((po, i) => { if (po.ct || po.z0 !== 0 || STYLE_SP[po.st]) return;
+        const nx = PS.slice(i + 1).find(x => x.tm !== po.tm && x._per === po._per);
+        const hi = nx && ST_GRP[nx.st] === 'rec' && nx.z0 === 2 && nx._s - (po._e ?? po._s) < 4;
+        const out = hi ? 'rec' : (po.np || 0) <= 2 && po.z1 >= 1 ? 'long' : po.z1 === 2 ? 'f3' : po.z1 === 1 ? 'mid' : 'stop';
+        ev.bu.push([po.tm, po._per, r1(po._s), r1(po._e ?? po._s), out, po.np || 0]); }); }
     for (const po of ev.poss) { delete po._s; delete po._e; delete po._per; }
   }
   // Corners : exécution, trajectoire, premier et second contact, issue (événements Opta)
@@ -3195,6 +3230,7 @@ function renderTactical() {
 
   if (sub === 'off') {
     renderStyle(f, tmFocus, TN);
+    { const lgM = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1)); $('#buOff').innerHTML = tmFocus ? buHTML(ms, lgM, tmFocus, 'off', f, TN) : '<p class="rnote">Choisissez une équipe pour voir ses sorties de balle.</p>'; }
     const PMODE = $('#offMode').value === 'pm', nM = Math.max(1, (isPl ? F && F.mp : (tmFocus && T[tmFocus] ? T[tmFocus].mp : ms.filter(m => m.ev).length)) || 1);
     const cnt = v => PMODE ? fmt(v / nM, 1) : fmt(v);
     phaseUI('', [
@@ -3287,6 +3323,7 @@ function renderTactical() {
 
   if (sub === 'def') {
     renderDefStyle(f, tmFocus, TN);
+    { const lgM = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1)); $('#buDef').innerHTML = tmFocus ? buHTML(ms, lgM, tmFocus, 'def', f, TN) : '<p class="rnote">Choisissez une équipe pour voir comment elle presse selon la sortie de balle adverse.</p>'; }
     const tid = tmFocus, PMODE = $('#defMode').value === 'pm';
     const nM = Math.max(1, (isPl ? F && F.mp : (tid && T[tid] ? T[tid].mp : ms.filter(m => m.ev).length)) || 1), cnt = v => PMODE ? fmt(v / nM, 1) : fmt(v);
     phaseUI('d', [
@@ -3828,7 +3865,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-16 10:21 UTC';
+const BUILD = '2026-11-16 11:06 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4924,6 +4961,36 @@ function concedeBlock(me, tid, lg, f, TN) {
     + (() => { const xT = GO.reduce((a, [k]) => a + (me['xSA_' + k] || 0), 0), gNo = tot - n('og'), d = gNo - xT; return `<tr class="sty-tot"><td class="txt"><b>Total</b></td><td><b>${tot}</b></td><td><b>${fmt(xT, 1)}</b></td><td class="${d < -.5 ? 'pos' : d > .5 ? 'neg' : ''}"><b>${d >= 0 ? '+' : ''}${fmt(d, 1)}</b></td>${effCell(gNo, xT, n('og') ? ' (hors CSC)' : '')}</tr>`; })();
   return `<h3 class="sty-h">Comment elle encaisse</h3>${bar}<table class="gkz sty-eff"><tr><th class="txt">Origine</th><th>Buts encaissés</th><th>xG concédés</th><th>Écart</th><th title="Buts encaissés par rapport aux xG concédés sur les mêmes tirs : −20 % = 20 % de buts en moins que prévu (gardien, défense en dernier recours ou maladresse adverse)">Écart en %</th></tr>${rows}</table>`
     + `<p class="note">Ici, <span class="pos">en vert</span> l’équipe encaisse <b>moins</b> que ce que les occasions adverses laissaient attendre (bon gardien, défense en dernier recours ou maladresse adverse) ; <span class="neg">en rouge</span> elle encaisse plus que prévu. Entre −5 % et +5 %, en noir : à peu près ce qui était attendu. Survolez pour voir les buts.</p>`;
+}
+/* ---------- Sorties de balle (structure de la relance, tracking) ---------- */
+const BU_SH = [[2, 'Sortie à 2', 'deux joueurs (ou moins) en première ligne'], [3, 'Sortie à 3', 'trois joueurs en première ligne'], [4, 'Sortie à 4', 'quatre joueurs en première ligne'], [5, 'Sortie à 5 ou plus', 'cinq joueurs ou plus en première ligne']];
+const BU_OUT = [['rec', 'Récupération haute', '#2e9e5b'], ['long', 'Jeu long forcé', '#c9a227'], ['stop', 'Ressortie bloquée', '#8a8f98'], ['mid', 'Passe le milieu', '#6f9be8'], ['f3', 'Atteint le dernier tiers', '#2a56b8']];
+// role 'def' : les relances des adversaires de tid ; 'off' : les relances de tid ; sans tid : toutes
+function buList(ms, tid, role, qs) {
+  const L = [];
+  for (const m of ms) { const B = m.ev && m.ev.bu, Z = m.bus && m.bus.v === BU_VER && m.bus.n === (B || []).length ? m.bus.L : null; if (!B || !Z) continue;
+    B.forEach((b, i) => { const z = Z[i]; if (!z) return; const tm = b[0];
+      if (tid && (role === 'def' ? (tm === tid || (m.home.id !== tid && m.away.id !== tid)) : tm !== tid)) return;
+      const q = Math.min(5, Math.floor(((b[1] === 2 ? 45 * 60 : 0) + b[2]) / 900)); if (qs && !qs.has(q)) return;
+      L.push({m, tm, sh: Math.max(2, z[0]), pr: z[1], out: b[4]}); }); }
+  return L;
+}
+function buHTML(ms, lgM, tid, role, f, TN) {
+  const L = buList(ms, tid, role, f.qs), LG = buList(lgM, null, role, f.qs);
+  if (!L.length) return `<p class="rnote">${ms.some(m => m.ev && m.ev.bu) ? 'Pas encore de structure de relance : réimportez les fichiers tracking-produced.jsonl (avec insight.jsonl) de ces matchs.' : 'Réimportez les fichiers insight.jsonl puis tracking-produced.jsonl de ces matchs pour analyser les sorties de balle.'}</p>`;
+  const pct = (A, k) => A.length ? A.filter(x => x.out === k).length / A.length * 100 : null;
+  const pass = A => A.length ? A.filter(x => x.out === 'mid' || x.out === 'f3').length / A.length * 100 : null;
+  const head = role === 'def' ? 'Sortie adverse' : 'Sa sortie de balle';
+  const goodRec = role === 'def'; // en défense, récupérer haut = bien ; en attaque, passer le milieu = bien
+  const cmp = (v, a, good) => v == null || a == null ? '' : Math.abs(v - a) < 5 ? '' : (v > a) === good ? 'pos' : 'neg';
+  const rows = BU_SH.map(([k, l, h]) => { const A = L.filter(x => x.sh === k), G = LG.filter(x => x.sh === k); if (!A.length) return '';
+    const rec = pct(A, 'rec'), recL = pct(G, 'rec'), ps = pass(A), psL = pass(G), lg = pct(A, 'long'), lgL = pct(G, 'long');
+    const bar = `<div class="sty-bar" style="height:16px">${BU_OUT.map(([o, ol, c]) => { const v = pct(A, o); return v ? `<i style="width:${v}%;background:${c}" data-tip="${esc(`${ol} : ${fmt(v, 0)} % (${A.filter(x => x.out === o).length})`)}"></i>` : ''; }).join('')}</div>`;
+    return `<tr><td class="txt"><b>${l}</b><br><small class="muted">${h}</small></td><td>${A.length}<br><small class="muted">${fmt(A.length / L.length * 100, 0)} %</small></td><td>${fmt(mean(A.map(x => x.pr)), 1)}<br><small class="muted">moy. ${fmt(mean(G.map(x => x.pr)), 1)}</small></td>`
+      + `<td class="${cmp(rec, recL, goodRec)}">${fmt(rec, 0)} %<br><small class="muted">moy. ${fmt(recL, 0)} %</small></td><td>${fmt(lg, 0)} %<br><small class="muted">moy. ${fmt(lgL, 0)} %</small></td><td class="${cmp(ps, psL, !goodRec)}">${fmt(ps, 0)} %<br><small class="muted">moy. ${fmt(psL, 0)} %</small></td><td style="min-width:150px">${bar}</td></tr>`; }).join('');
+  return `<table class="gkz bu-t"><tr><th class="txt">${head}</th><th>Relances</th><th>${role === 'def' ? 'Joueurs au pressing' : 'Adversaires au pressing'}</th><th>Récupération haute</th><th>Jeu long</th><th>Passe le milieu</th><th>Issue</th></tr>${rows}</table>`
+    + `<div class="sty-leg">${BU_OUT.map(([, l, c]) => `<span><i style="background:${c}"></i>${l}</span>`).join('')}</div>`
+    + `<p class="note">${L.length} relances depuis le tiers défensif (hors CPA) analysées avec le tracking. <b>Première ligne</b> : joueurs de champ de l’équipe qui relance situés au plus 7 m devant le plus reculé d’entre eux (et à moins de 33 m de leur but), sur les 8 premières secondes. <b>Joueurs au pressing</b> : joueurs de l’équipe qui défend dans les 35 derniers mètres adverses. <b>Récupération haute</b> : ballon récupéré dans le tiers adverse dans les 4 s qui suivent. <b>Jeu long</b> : 2 passes ou moins pour sortir du tiers. Moy. = moyenne du championnat pour ce type de sortie ; ${role === 'def' ? 'vert = l’équipe fait mieux que la moyenne (récupère plus, laisse moins passer)' : 'vert = l’équipe ressort mieux que la moyenne'}.</p>`;
 }
 function renderDefStyle(f, tid, TN) {
   const lg = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1));
