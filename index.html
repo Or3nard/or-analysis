@@ -425,7 +425,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-16 10:05 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-16 10:21 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -663,6 +663,10 @@ input.j{width:64px}
           <div class="ctrl"><select id="defMode"><option value="pm">Par match</option><option value="tot">Total</option></select></div></div>
           <div class="syn syn4" id="dsynCols"></div>
           <p class="syn-read" id="dsynRead"></p>
+        </div>
+        <div class="card c12" id="dstyleCard">
+          <div class="card-head"><div><h2>Style de jeu défensif</h2><p class="sub" id="dstyleSub"></p></div></div>
+          <div class="style-grid"><div id="dstyleL"></div><div><div class="chart-box" style="height:380px"><canvas id="chDefStyle"></canvas></div><p class="note">Chaque équipe selon ses deux notes · lignes pointillées = 50 · en haut à droite : presse haut et concède peu ; en haut à gauche : bloc bas solide ; en bas à droite : presse haut mais se fait transpercer.</p></div></div>
         </div>
         <div class="card c12 ph" id="dph1">
           <div class="ph-head"><span class="chap-n">1</span><div><h2>Pressing et récupération</h2><p>Est-ce que l’équipe récupère le ballon haut et souvent ?</p></div><span class="ph-verdict" id="dphV1"></span></div>
@@ -2118,7 +2122,7 @@ const TAC_FIELDS = ['mp', 'secs', 'gf', 'ga', 'xg', 'xga', 'xgot', 'xgota', 'gfo
   'cross', 'crossOk', 'carry', 'carryD', 'carryProg', 'rec', 'intc', 'possN', 'possT', 'possTot', 'possXg', 'vp', 'vc', 'tk', 'tkW', 'int', 'recov', 'clr',
   'aer', 'aerW', 'foul', 'fouled', 'drb', 'drbOk', 'lost', 'yc', 'rc', 'saves', 'blk', 'opp60', 'defAct', 'corners',
   'recovH', 'shCtr', 'xgCtr', 'shCpa', 'xgCpa', 'gfCpa', 'gaCpa', 'shaCpa', 'xgaCpa', 'pen', 'penG', 'cpaPoss', 'cpaXgP', 'cpaXgaP', 'cornD', 'cornAtt', 'cornShort', 'cornIn', 'cornOut', 'mV2',
-  'gd', 'gdW', 'lbA', 'f3A', 'boxA', 'progA', 'passA', 'own60', 'defActA', 'lostLow', 'bpass', 'bpassOk', 'blong', 'blongOk', 'bout', 'carryF3', 'possD', 'possD2', 'possD3', 'recX', 'recN', 'xg_pl', 'xg_tr', 'xg_di', 'xg_sp', 'gS_pl', 'gS_tr', 'gS_di', 'gS_sp', 'gS_pen', 'gS_nc', 'gS_og', 'xS_pl', 'xS_tr', 'xS_di', 'xS_sp', 'xS_pen', 'xS_nc', 'clN', 'clOld', 'clApx', 'n_pl', 'n_tr', 'n_di', 'n_sp', 'npSum', 'npN', 'chal', 'aerD', 'aerDW', 'crO', 'crOk', 'crSh', 'crA', 'crAok', 'crASh'];
+  'gd', 'gdW', 'lbA', 'f3A', 'boxA', 'progA', 'passA', 'own60', 'defActA', 'lostLow', 'bpass', 'bpassOk', 'blong', 'blongOk', 'bout', 'carryF3', 'possD', 'possD2', 'possD3', 'recX', 'recN', 'xg_pl', 'xg_tr', 'xg_di', 'xg_sp', 'xga_pl', 'xga_tr', 'xga_di', 'xga_sp', 'gSA_pl', 'gSA_tr', 'gSA_di', 'gSA_sp', 'gSA_pen', 'gSA_nc', 'gSA_og', 'xSA_pl', 'xSA_tr', 'xSA_di', 'xSA_sp', 'xSA_pen', 'xSA_nc', 'gS_pl', 'gS_tr', 'gS_di', 'gS_sp', 'gS_pen', 'gS_nc', 'gS_og', 'xS_pl', 'xS_tr', 'xS_di', 'xS_sp', 'xS_pen', 'xS_nc', 'clN', 'clOld', 'clApx', 'n_pl', 'n_tr', 'n_di', 'n_sp', 'npSum', 'npN', 'chal', 'aerD', 'aerDW', 'crO', 'crOk', 'crSh', 'crA', 'crAok', 'crASh'];
 const newAgg = () => { const o = {starts: {}, cpaT: {}, cpaTa: {}, byQ: [0, 1, 2, 3, 4, 5].map(() => ({xg: 0, xga: 0, gf: 0, ga: 0, sh: 0, lb: 0, pass: 0, possT: 0, possTot: 0}))}; TAC_FIELDS.forEach(k => o[k] = 0); return o; };
 
 /* Cache des agrégations : changer d'onglet ou de sous-onglet ne recalcule rien
@@ -2198,7 +2202,7 @@ function aggTacticalRaw(ms, qsOverride) {
       if (!qs.has(e.q)) continue;
       const o = t(e.tm); o.possN++; o.possXg += e.xg; o.vp += e.vp; o.vc += e.vc; o.starts[e.st] = (o.starts[e.st] || 0) + 1;
       // style : attaque placée (6 passes et plus), transition (après une récupération, 15 s maximum), jeu direct (le reste), CPA (corner, coup franc, penalty)
-      { const cl = STYLE_SP[e.st] ? 'sp' : (ST_GRP[e.st] === 'rec' && e.dur <= 15) ? 'tr' : (e.np >= 6 ? 'pl' : 'di'); o['xg_' + cl] += e.xg; o['n_' + cl]++; if (e.np != null) { o.npSum += e.np; o.npN++; } }
+      { const cl = STYLE_SP[e.st] ? 'sp' : (ST_GRP[e.st] === 'rec' && e.dur <= 15) ? 'tr' : (e.np >= 6 ? 'pl' : 'di'); o['xg_' + cl] += e.xg; o['n_' + cl]++; t(opp(e.tm))['xga_' + cl] += e.xg; if (e.np != null) { o.npSum += e.np; o.npN++; } }
       if (e.z0 === 0) { o.possD++; if (e.z1 >= 1) o.possD2++; if (e.z1 === 2) o.possD3++; }
       if (!e.ct) { o.possT += e.dur; t(H).possTot += e.dur; t(A).possTot += e.dur; }
     }
@@ -2219,9 +2223,9 @@ function aggTacticalRaw(ms, qsOverride) {
       if (s.pat === 'ctr') for (const o of tgt) if (o) { o.shCtr++; o.xgCtr += s.xg; }
       if (['cor', 'cfd', 'cfi', 'tou', 'pen'].includes(s.pat)) { for (const o of tgt) if (o) { o.shCpa++; o.xgCpa += s.xg; if (s.g) o.gfCpa++; } d.shaCpa++; d.xgaCpa += s.xg; if (s.g) d.gaCpa++; }
       if (s.pat === 'pen') for (const o of tgt) if (o) { o.pen++; if (s.g) o.penG++; }
-      const sc = shotCls(s); for (const o of tgt) if (o) { o['xS_' + sc] += s.xg; if (s.g) o['gS_' + sc]++; if (s.cl) o.clN++; else if (E.v < 15) o.clOld++; else o.clApx++; }
+      const sc = shotCls(s); d['xSA_' + sc] += s.xg; if (s.g) d['gSA_' + sc]++; for (const o of tgt) if (o) { o['xS_' + sc] += s.xg; if (s.g) o['gS_' + sc]++; if (s.cl) o.clN++; else if (E.v < 15) o.clOld++; else o.clApx++; }
     }
-    for (const g of E.goals) if (g.og && ok(g) && qs.has(g.q)) t(g.tm).gS_og++;
+    for (const g of E.goals) if (g.og && ok(g) && qs.has(g.q)) { t(g.tm).gS_og++; t(opp(g.tm)).gSA_og++; }
     const shK = {}; for (const s of E.shots) if (s.per) (shK[s.tm + '|' + s.per] = shK[s.tm + '|' + s.per] || []).push(s.mi);
     const SPC = spCrossSet(m), AD = aerDefSet(m);
     for (const e of E.opta) { if (!ok(e)) continue;
@@ -3282,6 +3286,7 @@ function renderTactical() {
   }
 
   if (sub === 'def') {
+    renderDefStyle(f, tmFocus, TN);
     const tid = tmFocus, PMODE = $('#defMode').value === 'pm';
     const nM = Math.max(1, (isPl ? F && F.mp : (tid && T[tid] ? T[tid].mp : ms.filter(m => m.ev).length)) || 1), cnt = v => PMODE ? fmt(v / nM, 1) : fmt(v);
     phaseUI('d', [
@@ -3823,7 +3828,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-16 10:05 UTC';
+const BUILD = '2026-11-16 10:21 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4890,6 +4895,66 @@ const possCls = po => STYLE_SP[po.st] ? 'sp' : (ST_GRP[po.st] === 'rec' && po.du
 // origine d'un tir : celle de sa possession (fichiers importés depuis la v15), sinon approchée par le schéma Opta
 const shotCls = s => s.cl || (s.pen || s.pat === 'pen' ? 'pen' : ['cor', 'cfd', 'cfi'].includes(s.pat) ? 'sp' : s.pat === 'ctr' ? 'tr' : 'nc');
 const STY_O = [['pl', 'Attaque placée', 'Possessions de 6 passes ou plus', '#3b6fd8', 'de l’attaque placée'], ['tr', 'Transition', 'Après une récupération, 15 s maximum', '#e0842b', 'de la transition'], ['di', 'Jeu direct', 'Moins de 6 passes, hors récupération rapide', '#8a8f98', 'du jeu direct'], ['sp', 'Coups de pied arrêtés', 'Corners, coups francs et penaltys', '#7a4fd0', 'des coups de pied arrêtés']];
+function poleScores(T, ids, P) {
+  const val = (o, k) => k in o ? o[k] : (TAC[k] && TAC[k].f ? TAC[k].f(o) : null);
+  const pv = (k, dir) => { const L = ids.map(t => [t, k.endsWith('pm') ? (val(T[t], k.slice(0, -2)) / T[t].mp) : val(T[t], k)]).filter(x => x[1] != null && isFinite(x[1])).sort((a, b) => dir * (a[1] - b[1])); const R = {}; L.forEach(([t], i) => R[t] = L.length > 1 ? i / (L.length - 1) * 100 : 50); return R; };
+  const out = {}; for (const [pole, ks] of Object.entries(P)) { const M = ks.map(([k, dir]) => pv(k, dir)); for (const t of ids) { const v = M.map(R => R[t]).filter(x => x != null); (out[t] = out[t] || {})[pole] = v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; } }
+  return out;
+}
+const DEF_POLES = {press: [['ppda', -1], ['recH', 1], ['recovHpm', 1]], solid: [['xgapm', -1], ['xgsha', -1], ['boxApm', -1], ['shapm', -1]]};
+const defLabel = (p, s) => p == null || s == null ? '' : p >= 60 && s >= 60 ? 'Pressing haut et solide' : p >= 60 && s < 40 ? 'Presse haut mais concède des occasions' : p < 40 && s >= 60 ? 'Bloc bas et solide' : p < 40 && s < 40 ? 'Bloc bas et perméable' : p >= s + 15 ? 'Plutôt pressing' : s >= p + 15 ? 'Plutôt solide en place' : 'Profil équilibré';
+// Défensif : comment l'équipe défend, et ce qu'elle concède
+function concedeBlock(me, tid, lg, f, TN) {
+  const PI = playerInfo(), C = teamCodes();
+  const GO = [...STY_O.map(([k, l, , c]) => [k, k === 'sp' ? 'CPA hors penalty' : l, c]), ['pen', 'Penaltys', '#b58ad6'], ['og', 'Contre son camp', '#b9bec6'], ['nc', 'Non classés', '#d9dce0']];
+  const L = {}; for (const m of lg) if (m.ev && (m.home.id === tid || m.away.id === tid)) {
+    const oid = otherSide(m, tid), opp = C[oid] || '';
+    for (const s of m.ev.shots) if (s.g && s.tm === oid && f.qs.has(s.q)) (L[shotCls(s)] = L[shotCls(s)] || []).push(`J${m.j} vs ${opp} · ${s.per === 2 ? Math.floor(s.mi) + 46 : Math.floor(s.mi) + 1}' · ${(PI[s.p] || {}).name || '?'}`);
+    for (const g of m.ev.goals) if (g.og && g.tm === oid && f.qs.has(g.q)) (L.og = L.og || []).push(`J${m.j} vs ${opp} · ${g.min + 1}' · contre son camp`);
+  }
+  const n = k => me['gSA_' + k] || 0, tot = GO.reduce((a, [k]) => a + n(k), 0);
+  if (!tot) return `<h3 class="sty-h">Comment elle encaisse</h3><p class="rnote">Aucun but encaissé sur la période.</p>`;
+  const bar = `<div class="sty-row"><span>Buts encaissés (${tot})</span><div class="sty-bar">${GO.filter(([k]) => n(k)).map(([k, l, c]) => `<i style="width:${n(k) / tot * 100}%;background:${c}" data-tip="${esc(`${l} : ${n(k)} but(s)\n` + (L[k] || []).join('\n'))}">${n(k)}</i>`).join('')}</div></div>`;
+  // pour une défense : moins de buts que prévu = bien (vert)
+  const tip = (g, x) => x ? `${g} but(s) encaissé(s) pour ${fmt(x, 1)} xG concédés : ${g / x <= 1 ? `${fmt((1 - g / x) * 100, 0)} % de buts en moins` : `${fmt((g / x - 1) * 100, 0)} % de buts en plus`} que ce que les occasions adverses laissaient attendre` : '';
+  const effCell = (g, x, extra = '') => { if (!x) return '<td class="muted">—</td>'; const p = (g / x - 1) * 100; return `<td class="${p < -5 ? 'pos' : p > 5 ? 'neg' : 'neu'}" title="${esc(tip(g, x) + extra)}">${p > 0 ? '+' : p < 0 ? '−' : ''}${fmt(Math.abs(p), 0)} %</td>`; };
+  const rows = GO.filter(([k]) => k !== 'og' && (n(k) || me['xSA_' + k] > .05)).map(([k, l, c]) => { const g = n(k), x = me['xSA_' + k] || 0, d = g - x;
+    return `<tr data-tip="${esc((L[k] || []).join('\n') || 'Aucun but encaissé')}"><td class="txt"><i class="sty-dot" style="background:${c}"></i>${l}</td><td><b>${g}</b></td><td>${fmt(x, 1)}</td><td class="${d < -.5 ? 'pos' : d > .5 ? 'neg' : ''}">${d >= 0 ? '+' : ''}${fmt(d, 1)}</td>${effCell(g, x)}</tr>`; }).join('')
+    + (n('og') ? `<tr data-tip="${esc((L.og || []).join('\n'))}"><td class="txt"><i class="sty-dot" style="background:#b9bec6"></i>Contre son camp</td><td><b>${n('og')}</b></td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td></tr>` : '')
+    + (() => { const xT = GO.reduce((a, [k]) => a + (me['xSA_' + k] || 0), 0), gNo = tot - n('og'), d = gNo - xT; return `<tr class="sty-tot"><td class="txt"><b>Total</b></td><td><b>${tot}</b></td><td><b>${fmt(xT, 1)}</b></td><td class="${d < -.5 ? 'pos' : d > .5 ? 'neg' : ''}"><b>${d >= 0 ? '+' : ''}${fmt(d, 1)}</b></td>${effCell(gNo, xT, n('og') ? ' (hors CSC)' : '')}</tr>`; })();
+  return `<h3 class="sty-h">Comment elle encaisse</h3>${bar}<table class="gkz sty-eff"><tr><th class="txt">Origine</th><th>Buts encaissés</th><th>xG concédés</th><th>Écart</th><th title="Buts encaissés par rapport aux xG concédés sur les mêmes tirs : −20 % = 20 % de buts en moins que prévu (gardien, défense en dernier recours ou maladresse adverse)">Écart en %</th></tr>${rows}</table>`
+    + `<p class="note">Ici, <span class="pos">en vert</span> l’équipe encaisse <b>moins</b> que ce que les occasions adverses laissaient attendre (bon gardien, défense en dernier recours ou maladresse adverse) ; <span class="neg">en rouge</span> elle encaisse plus que prévu. Entre −5 % et +5 %, en noir : à peu près ce qui était attendu. Survolez pour voir les buts.</p>`;
+}
+function renderDefStyle(f, tid, TN) {
+  const lg = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1));
+  const T = aggTactical(lg, f.qs).T, ids = Object.keys(T).filter(t => T[t].mp && T[t].possN), SC = poleScores(T, ids, DEF_POLES), C = teamCodes();
+  const me = tid && T[tid] ? T[tid] : null, sc = tid ? SC[tid] : null;
+  const gauge = (l, v, col, help) => `<div class="stg"><div class="stg-l"><b>${l}</b><small>${help}</small></div><div class="stg-b"><i style="width:${v == null ? 0 : v}%;background:${col}"></i></div><em>${v == null ? '—' : Math.round(v)}<small>/100</small></em></div>`;
+  const share = o => { const tot = STY_O.reduce((a, [k]) => a + (o['xga_' + k] || 0), 0); return STY_O.map(([k]) => tot ? (o['xga_' + k] || 0) / tot * 100 : 0); };
+  const lgS = STY_O.map((_, i) => mean(ids.map(t => share(T[t])[i])));
+  const bar = (S, lab) => `<div class="sty-row"><span>${lab}</span><div class="sty-bar">${STY_O.map(([k, l], i) => S[i] > 0 ? `<i style="width:${S[i]}%;background:${STY_O[i][3]}" data-tip="${esc(`${l} : ${fmt(S[i], 0)} % des xG concédés`)}">${S[i] >= 9 ? fmt(S[i], 0) + ' %' : ''}</i>` : '').join('')}</div></div>`;
+  let left;
+  if (!me) left = `<p class="style-v">Choisissez une équipe pour voir son style défensif.</p><p class="note">Le graphique place chaque équipe selon deux notes sur 100 : <b>pressing</b> (PPDA, hauteur des récupérations, récupérations dans le camp adverse) et <b>solidité</b> (peu de xG concédés, peu de tirs concédés, des tirs adverses de faible qualité, peu d’entrées adverses dans la surface). 50 = au milieu du championnat.</p>`;
+  else {
+    const S = share(me), top = STY_O.map((x, i) => [x, S[i], lgS[i]]).sort((a, b) => (b[1] - b[2]) - (a[1] - a[2]))[0];
+    left = `<p class="style-v">${esc(defLabel(sc.press, sc.solid))}</p>`
+      + gauge('Pressing', sc.press, '#e0842b', 'PPDA, hauteur des récupérations, récupérations dans le camp adverse') + gauge('Solidité', sc.solid, '#2e9e5b', 'xG concédés, tirs concédés, xG par tir concédé, entrées adverses dans la surface')
+      + `<h3 class="sty-h">Comment elle défend</h3><div class="ph-kpis">${kpiRowHTML([['PPDA (bas = pressing intense)', 'ppda', -1, '', 1], ['Hauteur des récupérations (m)', 'recH', 1, '', 1], ['Récupérations dans le camp adverse', 'recovH', 1, 'pm', 1], ['Duels défensifs gagnés', 'duelDPct', 1, '%']], f, tid, false, me.mp)}</div>`
+      + `<h3 class="sty-h">Comment on la met en danger</h3><p class="sub" style="margin:0 0 6px">D’où viennent les xG concédés${top[1] - top[2] > 3 ? ` · point faible : <b>${({pl: 'en attaque placée', tr: 'en transition', di: 'sur le jeu direct', sp: 'sur coups de pied arrêtés'})[top[0][0]]}</b> (${fmt(top[1], 0)} % de ses xG concédés, contre ${fmt(top[2], 0)} % en moyenne)` : ''}</p>${bar(S, C[tid] || TN[tid])}${bar(lgS, 'Moy. championnat')}`
+      + `<div class="sty-leg">${STY_O.map(([, l, h, c]) => `<span><i style="background:${c}"></i>${l} <small>${h.replace('une récupération', 'une récupération adverse')}</small></span>`).join('')}</div>`
+      + concedeBlock(me, tid, lg, f, TN)
+      + `<div class="ph-kpis" style="margin-top:10px">${kpiRowHTML([['xG concédés en attaque placée', 'xga_pl', -1, 'pm'], ['xG concédés en transition', 'xga_tr', -1, 'pm'], ['xG concédés en jeu direct', 'xga_di', -1, 'pm'], ['xG concédés sur CPA', 'xga_sp', -1, 'pm']], f, tid, false, me.mp)}</div>`;
+  }
+  $('#dstyleL').innerHTML = left;
+  const sz = 26, icon = t => { const d = logoData(t); if (!d) return null; const k = t + '@' + sz; let im = XC_IMG[k]; if (!im) { im = new Image(sz, sz); im.onload = () => scheduleRender(); im.src = d; XC_IMG[k] = im; } return im.complete && im.naturalWidth ? im : null; };
+  const pts = ids.filter(t => SC[t].press != null && SC[t].solid != null).map(t => ({x: SC[t].press, y: SC[t].solid, lab: C[t] || TN[t], full: TN[t], tid: t, hl: t === tid, dim: !!tid && t !== tid, img: icon(t)}));
+  const tk = {stepSize: 25, callback: v => v % 25 === 0 && v >= 0 && v <= 100 ? v : ''};
+  chart('chDefStyle', {type: 'scatter', data: {datasets: [{data: pts, pointStyle: pts.map(p => p.img || 'circle'), pointRadius: pts.map(p => p.img ? (p.hl ? 17 : 13) : 7), backgroundColor: pts.map(p => color4(clubColor(p.tid), p.dim ? .3 : 1))}]},
+    options: {animation: false, layout: {padding: {top: 18, right: 14}}, plugins: {legend: {display: false}, tooltip: {displayColors: false, callbacks: {title: it => it[0].raw.full, label: c => [`Pressing : ${Math.round(c.raw.x)}/100`, `Solidité : ${Math.round(c.raw.y)}/100`, defLabel(c.raw.x, c.raw.y)]}}},
+      scales: {x: {min: -6, max: 106, ticks: tk, title: {display: true, text: 'Pressing →'}, grid: {color: css('--grid')}}, y: {min: -6, max: 106, ticks: tk, title: {display: true, text: 'Solidité →'}, grid: {color: css('--grid')}}}},
+    plugins: [medLines(50, 50, () => '', () => ''), nameAbove]});
+  $('#dstyleSub').textContent = `${ids.length} équipes · notes sur 100 (50 = milieu du championnat) · ${lg.filter(m => m.ev).length} match(s)`;
+}
 function styleScores(T, ids) {
   // percentile (0 = dernier, 100 = premier) de chaque équipe sur chaque indicateur, puis moyenne par pôle
   const val = (o, k) => k in o ? o[k] : (TAC[k] && TAC[k].f ? TAC[k].f(o) : null);
