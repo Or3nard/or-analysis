@@ -171,7 +171,7 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .style-grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:24px}@media(max-width:980px){.style-grid{grid-template-columns:1fr}}
 .rk.neu{background:var(--surface);color:var(--text-2);border:1px solid var(--border)}.style-v{font-size:19px;font-weight:800;margin:0 0 12px}.stg{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,2fr) 60px;gap:12px;align-items:center;margin:6px 0}.stg-l b{display:block;font-size:13px}.stg-l small{font-size:11px;color:var(--text-3)}
 .stg-b{height:12px;border-radius:6px;background:var(--grid);overflow:hidden}.stg-b i{display:block;height:100%;border-radius:6px}.stg em{font-style:normal;font-weight:800;font-size:16px;text-align:right}.stg em small{font-size:10px;color:var(--text-3);font-weight:600}
-.sty-h{font-size:14px;margin:16px 0 6px}.sty-eff{margin-top:8px}.sty-eff td.pos{color:#2e9e5b;font-weight:700}.sty-eff td.neg{color:#d0453f;font-weight:700}.sty-dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px}.sty-row{display:grid;grid-template-columns:120px minmax(0,1fr);gap:10px;align-items:center;margin:4px 0;font-size:12.5px}.sty-bar{display:flex;height:22px;border-radius:6px;overflow:hidden;background:var(--grid)}
+.sty-h{font-size:14px;margin:16px 0 6px}.sty-eff{margin-top:8px}.sty-eff tr.sty-tot td{border-top:2px solid var(--border)}.sty-eff td.pos{color:#2e9e5b;font-weight:700}.sty-eff td.neg{color:#d0453f;font-weight:700}.sty-dot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px}.sty-row{display:grid;grid-template-columns:120px minmax(0,1fr);gap:10px;align-items:center;margin:4px 0;font-size:12.5px}.sty-bar{display:flex;height:22px;border-radius:6px;overflow:hidden;background:var(--grid)}
 .sty-bar i{display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;font-style:normal;cursor:help}.sty-bar i+i{border-left:2px solid var(--surface)}.sty-leg{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;margin-top:6px}.sty-leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}.sty-leg small{color:var(--text-3)}
 .formrow{display:flex;gap:4px;margin:2px 0 12px;flex-wrap:wrap}.fm{display:inline-flex;width:24px;height:24px;border-radius:5px;align-items:center;justify-content:center;font-weight:800;font-size:12px;color:#fff;background:#c9a227}.fm.V{background:#2e9e5b}.fm.D{background:#d0453f}
 .resl{list-style:none;margin:12px 0 0;padding:0;font-size:12.5px;max-height:360px;overflow:auto}.resl .rn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.resl .rl{display:inline-flex;width:22px}.resl li{display:grid;grid-template-columns:24px 34px 22px minmax(0,1fr) auto auto;gap:8px;align-items:center;padding:4px 0;border-bottom:1px solid var(--grid)}.resl .fm{width:20px;height:20px;font-size:10.5px}.resl .tlogo{height:18px}
@@ -425,7 +425,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-16 09:34 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-16 09:51 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3823,7 +3823,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-16 09:34 UTC';
+const BUILD = '2026-11-16 09:51 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4911,13 +4911,16 @@ function goalsBlock(me, tid, lg, f, TN) {
   const n = k => k === 'og' ? me.gS_og : me['gS_' + k] || 0, tot = GO.reduce((a, [k]) => a + n(k), 0);
   if (!tot) return `<h3 class="sty-h">Comment elle marque</h3><p class="rnote">Aucun but sur la période.</p>`;
   const bar = `<div class="sty-row"><span>Buts (${tot})</span><div class="sty-bar">${GO.filter(([k]) => n(k)).map(([k, l, c]) => `<i style="width:${n(k) / tot * 100}%;background:${c}" data-tip="${esc(`${l} : ${n(k)} but(s)\n` + (L[k] || []).join('\n'))}">${n(k)}</i>`).join('')}</div></div>`;
-  const rows = GO.filter(([k]) => k !== 'og' && k !== 'nc' && (n(k) || me['xS_' + k] > .05)).map(([k, l, c]) => { const g = n(k), x = me['xS_' + k] || 0, d = g - x;
-    return `<tr data-tip="${esc((L[k] || []).join('\n') || 'Aucun but')}"><td class="txt"><i class="sty-dot" style="background:${c}"></i>${l}</td><td><b>${g}</b></td><td>${fmt(x, 1)}</td><td class="${d > .5 ? 'pos' : d < -.5 ? 'neg' : ''}">${d >= 0 ? '+' : ''}${fmt(d, 1)}</td><td class="muted">${x ? fmt(g / x * 100, 0) + ' %' : '—'}</td></tr>`; }).join('');
+  const effTip = (g, x) => x ? `${g} but(s) pour ${fmt(x, 1)} xG : ${g / x >= 1 ? `${fmt((g / x - 1) * 100, 0)} % de buts en plus` : `${fmt((1 - g / x) * 100, 0)} % de buts en moins`} que ce que ses occasions laissaient attendre` : '';
+  const rows = GO.filter(([k]) => k !== 'og' && (n(k) || me['xS_' + k] > .05)).map(([k, l, c]) => { const g = n(k), x = me['xS_' + k] || 0, d = g - x;
+    return `<tr data-tip="${esc((L[k] || []).join('\n') || 'Aucun but')}"><td class="txt"><i class="sty-dot" style="background:${c}"></i>${l}</td><td><b>${g}</b></td><td>${fmt(x, 1)}</td><td class="${d > .5 ? 'pos' : d < -.5 ? 'neg' : ''}">${d >= 0 ? '+' : ''}${fmt(d, 1)}</td><td class="muted" ${x ? `title="${esc(effTip(g, x))}"` : ''}>${x ? fmt(g / x * 100, 0) + ' %' : '—'}</td></tr>`; }).join('')
+    + (n('og') ? `<tr data-tip="${esc((L.og || []).join('\n'))}"><td class="txt"><i class="sty-dot" style="background:#b9bec6"></i>Contre son camp (adversaire)</td><td><b>${n('og')}</b></td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td></tr>` : '')
+    + (() => { const xT = GO.reduce((a, [k]) => a + (me['xS_' + k] || 0), 0), gT = tot, gNo = tot - n('og'), d = gNo - xT; return `<tr class="sty-tot"><td class="txt"><b>Total</b></td><td><b>${gT}</b></td><td><b>${fmt(xT, 1)}</b></td><td class="${d > .5 ? 'pos' : d < -.5 ? 'neg' : ''}"><b>${d >= 0 ? '+' : ''}${fmt(d, 1)}</b></td><td class="muted" title="${esc(effTip(gNo, xT) + (n('og') ? ' (hors CSC)' : ''))}">${xT ? fmt(gNo / xT * 100, 0) + ' %' : '—'}</td></tr>`; })();
   const apx = me.clApx ? `<p class="note">${me.clApx} tir(s) sans possession Second Spectrum correspondante : origine déduite du schéma Opta (contre-attaque, CPA, sinon non classé).</p>` : '';
   const old = me.clOld && !me.clN ? `<p class="note">Origine des buts approchée (fichiers importés avant cette version) : réimportez les fichiers insight.jsonl pour la classer exactement comme les xG.</p>` : me.clOld ? `<p class="note">${me.clOld} tir(s) de matchs importés avant cette version : réimportez leurs fichiers insight.jsonl pour un classement exact.</p>` : '';
   return `<h3 class="sty-h">Comment elle marque</h3>${bar}`
-    + `<table class="gkz sty-eff"><tr><th class="txt">Origine</th><th>Buts</th><th>xG des tirs</th><th>Écart</th><th>Buts / xG</th></tr>${rows}</table>`
-    + `<p class="note">Écart en vert : elle marque plus que ses occasions ne le laissent attendre ; en rouge : elle gâche. Sur quelques matchs, un seul but fait beaucoup varier l’écart. Survolez pour voir les buts.</p>${old}${apx}`;
+    + `<table class="gkz sty-eff"><tr><th class="txt">Origine</th><th>Buts</th><th>xG des tirs</th><th>Écart</th><th title="Buts marqués rapportés aux xG des mêmes tirs : 100 % = elle marque autant que prévu, 128 % = 28 % de buts en plus, 44 % = moins de la moitié des buts attendus">Efficacité</th></tr>${rows}</table>`
+    + `<p class="note"><b>Efficacité</b> = buts ÷ xG des mêmes tirs : 100 % = elle marque autant que la qualité de ses occasions le laisse attendre, 128 % = 28 % de buts en plus, 44 % = moins de la moitié des buts attendus. Écart en vert : elle marque plus que prévu ; en rouge : elle gâche. Les CSC ne comptent ni dans les xG ni dans l’efficacité. Sur quelques matchs, un seul but fait beaucoup varier l’écart. Survolez pour voir les buts.</p>${old}${apx}`;
 }
 function renderStyle(f, tid, TN) {
   const lg = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1));
