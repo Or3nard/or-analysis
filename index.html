@@ -168,6 +168,7 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .scn .sv small,.scn .sm{font-size:11.5px;color:var(--text-3)}.vnd{display:flex;height:14px;border-radius:5px;overflow:hidden;background:var(--grid);margin:6px 0 4px}.vnd i{display:block;cursor:help}.vnd i+i{border-left:2px solid var(--surface-2)}.vnd .V{background:#2e9e5b}.vnd .N{background:#c9a227}.vnd .D{background:#d0453f}
 .sys2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:700px){.sys2,.scn{grid-template-columns:1fr}}.sys2 table td:first-child{white-space:nowrap}
 .resl .rs{font-size:11px;color:var(--text-3);white-space:nowrap}
+.loss-pats{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:8px}.loss-pat{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12.5px}.loss-pat .sty-dot{margin-top:4px;flex:none}.loss-pat small{display:block;color:var(--text-2);margin-top:3px;line-height:1.45}.loss-pat .pos{color:#2e9e5b;font-weight:700}.loss-pat .neg{color:#d0453f;font-weight:700}.loss-z td{text-align:center}.loss-z th{text-align:center}.loss-leg span[data-lossc]{cursor:pointer;user-select:none}.loss-leg span.off{opacity:.35;text-decoration:line-through}.loss-map g.off{display:none}
 .bu-t td{vertical-align:middle}.bu-t td small{font-size:10.5px}.bu-t td.pos{color:#2e9e5b;font-weight:700}.bu-t td.neg{color:#d0453f;font-weight:700}.style-grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:24px}@media(max-width:980px){.style-grid{grid-template-columns:1fr}}
 .rk.neu{background:var(--surface);color:var(--text-2);border:1px solid var(--border)}.style-v{font-size:19px;font-weight:800;margin:0 0 12px}.stg{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,2fr) 60px;gap:12px;align-items:center;margin:6px 0}.stg-l b{display:block;font-size:13px}.stg-l small{font-size:11px;color:var(--text-3)}
 .stg-b{height:12px;border-radius:6px;background:var(--grid);overflow:hidden}.stg-b i{display:block;height:100%;border-radius:6px}.stg em{font-style:normal;font-weight:800;font-size:16px;text-align:right}.stg em small{font-size:10px;color:var(--text-3);font-weight:600}
@@ -425,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-16 11:06 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-17 08:16 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -567,9 +568,9 @@ input.j{width:64px}
           <div class="syn" id="synCols"></div>
           <p class="syn-read" id="synRead"></p>
         </div>
-        <div class="card c12" id="buOffCard">
-          <div class="card-head"><div><h2>Sorties de balle</h2><p class="sub">Combien de joueurs l’équipe met en première ligne pour relancer, et ce que ça donne (tracking)</p></div></div>
-          <div id="buOff"></div>
+        <div class="card c12" id="lossOffCard">
+          <div class="card-head"><div><h2>Pertes de balle dans son camp</h2><p class="sub">Comment l’équipe perd le ballon dans sa moitié de terrain, ce que ça lui coûte et les pertes qui se répètent</p></div></div>
+          <div id="lossOff"></div>
         </div>
         <div class="card c12" id="styleCard">
           <div class="card-head"><div><h2>Style de jeu offensif</h2><p class="sub" id="styleSub"></p></div></div>
@@ -668,9 +669,9 @@ input.j{width:64px}
           <div class="syn syn4" id="dsynCols"></div>
           <p class="syn-read" id="dsynRead"></p>
         </div>
-        <div class="card c12" id="buDefCard">
-          <div class="card-head"><div><h2>Pressing selon la sortie de balle adverse</h2><p class="sub" id="buDefSub">Combien de joueurs l’adversaire met en première ligne, et ce que donne le pressing (tracking)</p></div></div>
-          <div id="buDef"></div>
+        <div class="card c12" id="lossDefCard">
+          <div class="card-head"><div><h2>Pertes provoquées dans le camp adverse</h2><p class="sub">Comment les adversaires perdent le ballon dans leur moitié face à l’équipe, et ce qu’elle en fait</p></div></div>
+          <div id="lossDef"></div>
         </div>
         <div class="card c12" id="dstyleCard">
           <div class="card-head"><div><h2>Style de jeu défensif</h2><p class="sub" id="dstyleSub"></p></div></div>
@@ -1649,7 +1650,7 @@ function baseFromMeta(meta, md) {
 }
 
 /* ---------- Insight : événements Opta + marquages tracking ---------- */
-const EV_VER = 17; // version du traitement des événements (à incrémenter si procInsight change)
+const EV_VER = 18; // version du traitement des événements (à incrémenter si procInsight change)
 const OPTA_KEEP = new Set([1, 3, 4, 7, 8, 10, 11, 12, 17, 41, 44, 45, 49, 50, 52, 53, 59, 61, 74]);
 function procInsight(m, rows) {
   const L = m.L, W = m.W;
@@ -1703,7 +1704,7 @@ function procInsight(m, rows) {
     optaToSsi[uuid] = uuid; return uuid;
   };
 
-  const passByEid = {};
+  const passByEid = {}, lossRaw = [];
   const setup = {};
   const subs = [];
   const D1 = (m.periods.find(p => p.n === 1) || {dur: 2820}).dur;
@@ -1746,6 +1747,12 @@ function procInsight(m, rows) {
     }
     if (o.typeId === 17) { e.card = qv[33] !== undefined ? 'r' : qv[32] !== undefined ? 'r' : 'y'; e.per = pm.per; e.mi = pm.mi; }
     ev.opta.push(e);
+    // pertes de balle dans son camp : passe ratée, dépossession, mauvais contrôle, dribble raté
+    if (o.x < 50 && !o.outcome && (o.typeId === 1 ? !e.co && !e.cr : o.typeId === 50 || o.typeId === 61 || o.typeId === 3)) {
+      const k = o.typeId === 50 ? 'dp' : o.typeId === 61 ? 'mc' : o.typeId === 3 ? 'dr'
+        : qv[107] !== undefined ? 'th' : qv[124] !== undefined ? 'gk' : qv[5] !== undefined ? 'fk' : qv[1] !== undefined ? 'pl' : 'ps';
+      lossRaw.push({tm, per: pm.per, t: minIn * 60, p: pid, k, x: o.x, y: o.y, ex: e.ex, ey: e.ey, oid: o.id});
+    }
   }
   // Passes clés & passes décisives
   for (const s of ev.shots) {
@@ -1791,6 +1798,18 @@ function procInsight(m, rows) {
         const hi = nx && ST_GRP[nx.st] === 'rec' && nx.z0 === 2 && nx._s - (po._e ?? po._s) < 4;
         const out = hi ? 'rec' : (po.np || 0) <= 2 && po.z1 >= 1 ? 'long' : po.z1 === 2 ? 'f3' : po.z1 === 1 ? 'mid' : 'stop';
         ev.bu.push([po.tm, po._per, r1(po._s), r1(po._e ?? po._s), out, po.np || 0]); }); }
+    // Pertes de balle dans son camp : [équipe, période, s, joueur, type, x, y, ex, ey, distance du 1er adversaire (m), début de la possession, s depuis le début, passes réussies avant, tirs adverses ≤ 15 s, xG, but]
+    { const pdOf = {}, poOfOid = {}; for (const [po, ids] of possRaw) for (const id of ids) { const k = mkById[id]; if (k && k.optaId && k.attTeamId === po.tm) poOfOid[k.optaId] = po; }
+      for (const k of Object.values(mkById)) if (k.markingType === 'pass' && k.optaId && k.passerDefDist != null) pdOf[k.optaId] = k.passerDefDist;
+      ev.loss = lossRaw.map(l => {
+        let po = poOfOid[l.oid] || null; if (!po) for (const x of ev.poss) if (x.tm === l.tm && x._per === l.per && x._s != null && x._s - 1.5 <= l.t && l.t <= (x._e ?? x._s) + 5 && (!po || x._s > po._s)) po = x;
+        const s0 = po ? po._s : null;
+        const np = s0 == null ? 0 : ev.opta.filter(e => e.t === 1 && e.o && e.tm === l.tm && e.per === l.per && e.mi * 60 >= s0 - .5 && e.mi * 60 < l.t).length;
+        const S = ev.shots.filter(sh => sh.tm !== l.tm && sh.per === l.per && sh.mi * 60 > l.t && sh.mi * 60 - l.t <= 15);
+        const pd = pdOf[l.oid];
+        return [l.tm, l.per, r1(l.t), l.p, l.k, r1(l.x), r1(l.y), l.ex ?? null, l.ey ?? null, pd == null ? null : r1(pd), po ? (ST_GRP[po.st] || 'autre') : ev.poss.length ? 'rec' : null, // sans possession à elle : ballon jamais maîtrisé (= juste récupéré)
+          s0 == null ? (ev.poss.length ? 0 : null) : Math.max(0, Math.round(l.t - s0)), np, S.length, Math.round(S.reduce((a, sh) => a + (sh.xg || 0), 0) * 100) / 100, S.some(sh => sh.g) ? 1 : 0];
+      }); }
     for (const po of ev.poss) { delete po._s; delete po._e; delete po._per; }
   }
   // Corners : exécution, trajectoire, premier et second contact, issue (événements Opta)
@@ -2157,7 +2176,7 @@ const TAC_FIELDS = ['mp', 'secs', 'gf', 'ga', 'xg', 'xga', 'xgot', 'xgota', 'gfo
   'cross', 'crossOk', 'carry', 'carryD', 'carryProg', 'rec', 'intc', 'possN', 'possT', 'possTot', 'possXg', 'vp', 'vc', 'tk', 'tkW', 'int', 'recov', 'clr',
   'aer', 'aerW', 'foul', 'fouled', 'drb', 'drbOk', 'lost', 'yc', 'rc', 'saves', 'blk', 'opp60', 'defAct', 'corners',
   'recovH', 'shCtr', 'xgCtr', 'shCpa', 'xgCpa', 'gfCpa', 'gaCpa', 'shaCpa', 'xgaCpa', 'pen', 'penG', 'cpaPoss', 'cpaXgP', 'cpaXgaP', 'cornD', 'cornAtt', 'cornShort', 'cornIn', 'cornOut', 'mV2',
-  'gd', 'gdW', 'lbA', 'f3A', 'boxA', 'progA', 'passA', 'own60', 'defActA', 'lostLow', 'bpass', 'bpassOk', 'blong', 'blongOk', 'bout', 'carryF3', 'possD', 'possD2', 'possD3', 'recX', 'recN', 'xg_pl', 'xg_tr', 'xg_di', 'xg_sp', 'xga_pl', 'xga_tr', 'xga_di', 'xga_sp', 'gSA_pl', 'gSA_tr', 'gSA_di', 'gSA_sp', 'gSA_pen', 'gSA_nc', 'gSA_og', 'xSA_pl', 'xSA_tr', 'xSA_di', 'xSA_sp', 'xSA_pen', 'xSA_nc', 'gS_pl', 'gS_tr', 'gS_di', 'gS_sp', 'gS_pen', 'gS_nc', 'gS_og', 'xS_pl', 'xS_tr', 'xS_di', 'xS_sp', 'xS_pen', 'xS_nc', 'clN', 'clOld', 'clApx', 'n_pl', 'n_tr', 'n_di', 'n_sp', 'npSum', 'npN', 'chal', 'aerD', 'aerDW', 'crO', 'crOk', 'crSh', 'crA', 'crAok', 'crASh'];
+  'gd', 'gdW', 'lbA', 'f3A', 'boxA', 'progA', 'passA', 'own60', 'defActA', 'lostLow', 'bpass', 'bpassOk', 'blong', 'blongOk', 'bout', 'carryF3', 'possD', 'possD2', 'possD3', 'recX', 'recN', 'lsN', 'lsL', 'lsP', 'lsPK', 'lsSh', 'lsXg', 'lsG', 'lfN', 'lfL', 'lfP', 'lfPK', 'lfSh', 'lfXg', 'lfG', 'xg_pl', 'xg_tr', 'xg_di', 'xg_sp', 'xga_pl', 'xga_tr', 'xga_di', 'xga_sp', 'gSA_pl', 'gSA_tr', 'gSA_di', 'gSA_sp', 'gSA_pen', 'gSA_nc', 'gSA_og', 'xSA_pl', 'xSA_tr', 'xSA_di', 'xSA_sp', 'xSA_pen', 'xSA_nc', 'gS_pl', 'gS_tr', 'gS_di', 'gS_sp', 'gS_pen', 'gS_nc', 'gS_og', 'xS_pl', 'xS_tr', 'xS_di', 'xS_sp', 'xS_pen', 'xS_nc', 'clN', 'clOld', 'clApx', 'n_pl', 'n_tr', 'n_di', 'n_sp', 'npSum', 'npN', 'chal', 'aerD', 'aerDW', 'crO', 'crOk', 'crSh', 'crA', 'crAok', 'crASh'];
 const newAgg = () => { const o = {starts: {}, cpaT: {}, cpaTa: {}, byQ: [0, 1, 2, 3, 4, 5].map(() => ({xg: 0, xga: 0, gf: 0, ga: 0, sh: 0, lb: 0, pass: 0, possT: 0, possTot: 0}))}; TAC_FIELDS.forEach(k => o[k] = 0); return o; };
 
 /* Cache des agrégations : changer d'onglet ou de sous-onglet ne recalcule rien
@@ -2205,6 +2224,10 @@ function aggTacticalRaw(ms, qsOverride) {
       if (g.p && !g.og) p(g.p).gf++;
       if (g.a) { p(g.a).ast++; t(g.tm).ast++; }
     }
+    for (const l of E.loss || []) { if (l[0] !== H && l[0] !== A) continue; if (!qs.has(quarter(l[1], l[2] / 60))) continue;
+      const pr = lossPress(l);
+      for (const [o, k] of [[t(l[0]), 'ls'], [t(opp(l[0])), 'lf'], [l[3] && p(l[3]), 'ls']]) { if (!o) continue;
+        o[k + 'N']++; if (l[5] < 33.3) o[k + 'L']++; if (pr != null) { o[k + 'PK']++; o[k + 'P'] += pr; } if (l[13]) o[k + 'Sh']++; o[k + 'Xg'] += l[14]; o[k + 'G'] += l[15]; } }
     for (const e of E.passes) { if (!ok(e)) continue;
       if (t(e.tm).byQ[e.q]) { t(e.tm).byQ[e.q].pass++; if (e.c && e.br) t(e.tm).byQ[e.q].lb++; }
       if (!qs.has(e.q)) continue;
@@ -2336,7 +2359,11 @@ const TAC = {
   ppdaF: {l: 'PPDA subi', t: 'ratio', d: 1, f: o => o.defActA ? o.own60 / o.defActA : null, h: 'Passes de l’équipe dans ses 60 % de terrain / actions défensives adverses : bas = l’équipe est pressée'},
   bpass: {l: 'Passes tiers déf.', t: 'add'}, bpassPct: {l: '% passes tiers déf.', t: 'ratio', d: 1, f: o => o.bpass ? o.bpassOk / o.bpass * 100 : null},
   blongPct: {l: '% jeu long (tiers déf.)', t: 'ratio', d: 1, f: o => o.bpass ? o.blong / o.bpass * 100 : null}, bout: {l: 'Sorties de balle réussies', t: 'add', h: 'Passes réussies partant du tiers défensif et arrivant au-delà'},
-  lostLow: {l: 'Pertes dans son tiers', t: 'add'}, recH: {l: 'Hauteur moyenne des récupérations (m)', t: 'ratio', d: 1, f: o => o.recN ? o.recX / o.recN : null}, xgsha: {l: 'xG concédé / tir', t: 'ratio', d: 2, f: o => o.sha ? o.xga / o.sha : null}, recAll: {l: 'Ballons récupérés', t: 'add', f: o => o.recN}, carryF3: {l: 'Conduites dans le dernier tiers', t: 'add'},
+  lostLow: {l: 'Pertes dans son tiers', t: 'add'},
+  lsN: {l: 'Pertes dans son camp', t: 'add'}, lsL: {l: 'Pertes dans son tiers défensif', t: 'add'}, lsPPct: {l: '% pertes sous pression', t: 'ratio', d: 1, f: o => o.lsPK ? o.lsP / o.lsPK * 100 : null},
+  lsSh: {l: 'Pertes suivies d’un tir adverse', t: 'add'}, lsXg: {l: 'xG concédés après une perte dans son camp', t: 'add', d: 2}, lsG: {l: 'Buts encaissés après une perte dans son camp', t: 'add'},
+  lfN: {l: 'Pertes adverses provoquées dans leur camp', t: 'add'}, lfL: {l: 'Pertes adverses provoquées dans leur tiers', t: 'add'}, lfPPct: {l: '% pertes adverses sous pression', t: 'ratio', d: 1, f: o => o.lfPK ? o.lfP / o.lfPK * 100 : null},
+  lfSh: {l: 'Pertes adverses suivies d’un tir', t: 'add'}, lfXg: {l: 'xG créés après une perte adverse', t: 'add', d: 2}, lfG: {l: 'Buts marqués après une perte adverse', t: 'add'}, recH: {l: 'Hauteur moyenne des récupérations (m)', t: 'ratio', d: 1, f: o => o.recN ? o.recX / o.recN : null}, xgsha: {l: 'xG concédé / tir', t: 'ratio', d: 2, f: o => o.sha ? o.xga / o.sha : null}, recAll: {l: 'Ballons récupérés', t: 'add', f: o => o.recN}, carryF3: {l: 'Conduites dans le dernier tiers', t: 'add'},
   possD: {l: 'Possessions depuis le tiers déf.', t: 'add'}, possD2Pct: {l: '% atteignant le tiers médian', t: 'ratio', d: 1, f: o => o.possD ? o.possD2 / o.possD * 100 : null}, possD3Pct: {l: '% atteignant le tiers offensif', t: 'ratio', d: 1, f: o => o.possD ? o.possD3 / o.possD * 100 : null},
   sh: {l: 'Tirs', t: 'add'}, sot: {l: 'Tirs cadrés', t: 'add'}, sha: {l: 'Tirs concédés', t: 'add'},
   xgsh: {l: 'xG / tir', t: 'ratio', d: 2, f: o => o.sh ? o.xg / o.sh : null},
@@ -3230,7 +3257,7 @@ function renderTactical() {
 
   if (sub === 'off') {
     renderStyle(f, tmFocus, TN);
-    { const lgM = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1)); $('#buOff').innerHTML = tmFocus ? buHTML(ms, lgM, tmFocus, 'off', f, TN) : '<p class="rnote">Choisissez une équipe pour voir ses sorties de balle.</p>'; }
+    { const lgM = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1)); $('#lossOff').innerHTML = lossHTML(ms, lgM, tmFocus, 'off', f, TN, PI); }
     const PMODE = $('#offMode').value === 'pm', nM = Math.max(1, (isPl ? F && F.mp : (tmFocus && T[tmFocus] ? T[tmFocus].mp : ms.filter(m => m.ev).length)) || 1);
     const cnt = v => PMODE ? fmt(v / nM, 1) : fmt(v);
     phaseUI('', [
@@ -3323,7 +3350,7 @@ function renderTactical() {
 
   if (sub === 'def') {
     renderDefStyle(f, tmFocus, TN);
-    { const lgM = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1)); $('#buDef').innerHTML = tmFocus ? buHTML(ms, lgM, tmFocus, 'def', f, TN) : '<p class="rnote">Choisissez une équipe pour voir comment elle presse selon la sortie de balle adverse.</p>'; }
+    { const lgM = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1)); $('#lossDef').innerHTML = tmFocus ? lossHTML(ms, lgM, tmFocus, 'def', f, TN, PI) : '<p class="rnote">Choisissez une équipe pour voir les pertes qu’elle provoque chez ses adversaires (la vue « toutes équipes » est dans Offensif).</p>'; }
     const tid = tmFocus, PMODE = $('#defMode').value === 'pm';
     const nM = Math.max(1, (isPl ? F && F.mp : (tid && T[tid] ? T[tid].mp : ms.filter(m => m.ev).length)) || 1), cnt = v => PMODE ? fmt(v / nM, 1) : fmt(v);
     phaseUI('d', [
@@ -3865,7 +3892,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-16 11:06 UTC';
+const BUILD = '2026-11-17 08:16 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -3908,6 +3935,9 @@ function leadersHTML(groups, rows, PI, p90, minSecs = 270 * 60) {
 }
 document.addEventListener('click', e => { const r = e.target.closest && e.target.closest('[data-lbpid],[data-lbtid]'); if (!r) return;
   if (r.dataset.lbtid) setFilter('team', r.dataset.lbtid); else setFilter('player', r.dataset.lbpid); window.scrollTo({top: 0}); });
+document.addEventListener('click', e => { const r = e.target.closest && e.target.closest('[data-lossc]'); if (!r) return;
+  const card = r.closest('.card'), k = r.dataset.lossc, off = !r.classList.contains('off'); r.classList.toggle('off', off);
+  card.querySelectorAll(`.loss-map g[data-lc="${k}"]`).forEach(g => g.classList.toggle('off', off)); });
 function renderPlyOverview(ms, TN, PI, f, P) {
   const SR = seasonRoles(), mode = $('#plyOvMode').value, p90 = mode === 'p90';
   const rows = Object.entries(P).filter(([id, o]) => PI[id] && o.secs > 0 && (!f.team || PI[id].team === f.team)).map(([id, o]) => ({id, tid: PI[id].team, secs: o.secs, o}));
@@ -4966,6 +4996,100 @@ function concedeBlock(me, tid, lg, f, TN) {
 const BU_SH = [[2, 'Sortie à 2', 'deux joueurs (ou moins) en première ligne'], [3, 'Sortie à 3', 'trois joueurs en première ligne'], [4, 'Sortie à 4', 'quatre joueurs en première ligne'], [5, 'Sortie à 5 ou plus', 'cinq joueurs ou plus en première ligne']];
 const BU_OUT = [['rec', 'Récupération haute', '#2e9e5b'], ['long', 'Jeu long forcé', '#c9a227'], ['stop', 'Ressortie bloquée', '#8a8f98'], ['mid', 'Passe le milieu', '#6f9be8'], ['f3', 'Atteint le dernier tiers', '#2a56b8']];
 // role 'def' : les relances des adversaires de tid ; 'off' : les relances de tid ; sans tid : toutes
+
+/* ---------- Pertes de balle dans son camp (événements Opta + distance Second Spectrum) ----------
+   ev.loss : [équipe, période, s, joueur, type, x, y, ex, ey, distance 1er adversaire, début possession, s depuis, passes avant, tirs adverses ≤ 15 s, xG, but] */
+const LOSS_CAT = [['pav', 'Passe courte vers l’avant', '#d0453f'], ['plat', 'Passe courte latérale ou en retrait', '#e0842b'], ['pl', 'Jeu long perdu', '#8a63d2'],
+  ['dp', 'Dépossédé au contact', '#2b6cb0'], ['mc', 'Mauvais contrôle', '#2e9e5b'], ['dr', 'Dribble raté', '#c2a01a'], ['cpa', 'Sur coup de pied arrêté', '#7a8699']];
+const LOSS_CL = Object.fromEntries(LOSS_CAT.map(([k, l, c]) => [k, {l, c}]));
+const LOSS_MO = [['rel', 'Relance du gardien', 'perte dans les 10 s d’une possession commencée par le gardien (6 m, ballon à la main)'], ['vite', 'Juste après avoir récupéré', 'perte dans les 5 s qui suivent la récupération du ballon, ou ballon jamais vraiment maîtrisé'],
+  ['cons', 'En construction', 'possession installée depuis plus de 5 s'], ['cpa', 'Sur coup de pied arrêté', 'touche, coup franc ou 6 m mal joués, ou perte juste après']];
+const LOSS_ROLE = {GK: 'Gardien', CB: 'Défenseur central', FB: 'Latéral', CM: 'Milieu central', WM: 'Milieu excentré', FW: 'Attaquant'};
+function lossCat(l) {
+  const k = l[4]; if (k === 'th' || k === 'gk' || k === 'fk') return 'cpa'; if (k === 'pl') return 'pl';
+  if (k === 'ps') { if (l[7] == null) return 'plat'; const dx = (l[7] - l[5]) * 1.05, dy = Math.abs(l[8] - l[6]) * .68; return dx > 2 && dx > dy * .6 ? 'pav' : 'plat'; }
+  return k;
+}
+function lossPress(l) { if (l[4] === 'dp' || l[4] === 'dr') return 1; if (l[9] == null) return null; return l[9] < 2 ? 1 : 0; }
+function lossMoment(l, c) {
+  if (c === 'cpa' || (l[10] === 'cpa' && l[11] != null && l[11] <= 10)) return 'cpa';
+  if (l[10] === 'rel' && l[11] != null && l[11] <= 10) return 'rel';
+  return l[11] != null && l[11] <= 5 ? 'vite' : 'cons';
+}
+const LOSS_CH = {G: 'côté gauche', A: 'axe', D: 'côté droit'}, LOSS_Z = ['tiers défensif', 'milieu de son camp'];
+function lossList(ms, tid, role, qs) {
+  const L = [], R = seasonRoles();
+  for (const m of ms) { if (!m.ev || !m.ev.loss) continue; const H = m.home.id, A = m.away.id;
+    if (tid && H !== tid && A !== tid) continue;
+    for (const l of m.ev.loss) { const tm = l[0];
+      if (tid && (role === 'def' ? tm === tid : tm !== tid)) continue;
+      if (qs && !qs.has(quarter(l[1], l[2] / 60))) continue;
+      const c = lossCat(l);
+      L.push({m, l, tm, c, pr: lossPress(l), mo: lossMoment(l, c), z: l[5] < 33.3 ? 0 : 1, ch: l[6] > 66.7 ? 'G' : l[6] < 33.3 ? 'D' : 'A', p: l[3], r: R[l[3]] || null, sh: l[13], xg: l[14], g: l[15]}); } }
+  return L;
+}
+function lossMapSVG(L, PI, TN, role) {
+  const RED = '#d0453f';
+  const minute = l => Math.floor((l[1] === 2 ? 45 : 0) + l[2] / 60) + 1;
+  const big = L.length > 250, rr = big ? .6 : .85;
+  const dots = L.slice(0, 1500).map(e => { const l = e.l, x = l[5] * 1.05, y = (100 - l[6]) * .68, col = LOSS_CL[e.c].c;
+    const opp = otherSide(e.m, e.tm);
+    const tip = `${PI[e.p] ? PI[e.p].name : '—'} · ${minute(l)}e contre ${TN[opp] || ''} (J${e.m.j})\n${LOSS_CL[e.c].l}${l[9] != null ? ` · adversaire le plus proche à ${fmt(l[9], 1)} m` : ''}\n${LOSS_MO.find(x => x[0] === e.mo)[1]}${e.sh ? `\n${role === 'def' ? 'Suivie d’un tir de l’équipe' : 'Suivie d’un tir adverse'} (${fmt(e.xg, 2)} xG)${e.g ? ' · BUT' : ''}` : ''}`;
+    const ln = !big && (e.c === 'pav' || e.c === 'plat') && l[7] != null ? `<line x1="${x}" y1="${y}" x2="${r1(l[7] * 1.05)}" y2="${r1((100 - l[8]) * .68)}" stroke="${col}" stroke-width=".28" stroke-opacity=".55" stroke-dasharray="1 .6"/>` : '';
+    return `<g data-lc="${e.c}">${ln}<circle cx="${r1(x)}" cy="${r1(y)}" r="${e.sh ? rr + .3 : rr}" fill="${col}" fill-opacity=".85" stroke="${e.g ? '#111' : e.sh ? RED : '#fff'}" stroke-width="${e.sh ? .45 : .18}" data-tip="${esc(tip)}"/></g>`; }).join('');
+  const zl = `<line x1="35" y1="0" x2="35" y2="68" stroke="var(--pitch-line)" stroke-width=".2" stroke-dasharray="1 1"/>`;
+  return `<svg class="pitch loss-map" viewBox="-2 -2 58 72">${pitchLines(true)}${zl}${dots}</svg>`;
+}
+function lossHTML(ms, lgM, tid, role, f, TN, PI) {
+  const D = role === 'def', L = lossList(ms, tid, role, f.qs);
+  if (!L.length) return `<p class="rnote">${ms.some(m => m.ev) ? 'Réimportez les fichiers insight.jsonl de ces matchs pour analyser les pertes de balle (nouvelle version du traitement).' : 'Aucun match.'}</p>`;
+  const LG = lossList(lgM, null, role, f.qs), nTM = 2 * lgM.filter(m => m.ev && m.ev.loss).length || 1;
+  const nM = tid ? new Set(L.map(e => e.m.id)).size || 1 : 2 * ms.filter(m => m.ev && m.ev.loss).length || 1;
+  const cnt = A => A.length, pm = (A, n) => fmt(A.length / n, 1);
+  const pctP = A => { const k = A.filter(e => e.pr != null); return k.length ? k.filter(e => e.pr).length / k.length * 100 : null; };
+  const shTxt = D ? 'Suivies d’un tir de l’équipe' : 'Suivies d’un tir adverse';
+  const kp = D ? 'lf' : 'ls', dir = D ? 1 : -1;
+  const kpis = tid ? `<div class="ph-kpis">${kpiRowHTML([[D ? 'Pertes adverses dans leur camp' : 'Pertes dans son camp', kp + 'N', dir, 'pm'], ['Sous pression (adversaire à moins de 2 m)', kp + 'PPct', 1, '%', 1], [shTxt + ' (≤ 15 s)', kp + 'Sh', dir, 'pm'], [D ? 'xG créés derrière' : 'xG concédés derrière', kp + 'Xg', dir, 'pm']], f, tid, false, nM)}</div>` : '';
+  // par type
+  const good = (v, a) => v == null || a == null || Math.abs(v - a) / Math.max(a, .1) < .15 ? '' : (v > a) === D ? 'pos' : 'neg';
+  const rows = LOSS_CAT.map(([k, l, c]) => { const A = L.filter(e => e.c === k), G = LG.filter(e => e.c === k); if (!A.length && !G.length) return '';
+    const v = A.length / nM, a = G.length / nTM, sh = A.filter(e => e.sh).length, xg = A.reduce((s, e) => s + e.xg, 0), g = A.filter(e => e.g).length, pp = pctP(A);
+    return `<tr><td class="txt"><span class="sty-dot" style="background:${c}"></span>${l}</td><td>${A.length}<br><small class="muted">${fmt(A.length / L.length * 100, 0)} %</small></td><td class="${good(v, a)}">${fmt(v, 1)}<br><small class="muted">moy. ${fmt(a, 1)}</small></td><td>${pp == null ? '—' : fmt(pp, 0) + ' %'}</td><td>${sh}${A.length ? `<br><small class="muted">${fmt(sh / A.length * 100, 0)} %</small>` : ''}</td><td>${fmt(xg, 2)}</td><td>${g || ''}</td></tr>`; }).join('');
+  const tot = (() => { const sh = L.filter(e => e.sh).length, pp = pctP(L); return `<tr class="sty-tot"><td class="txt"><b>Total</b></td><td><b>${L.length}</b></td><td><b>${fmt(L.length / nM, 1)}</b><br><small class="muted">moy. ${fmt(LG.length / nTM, 1)}</small></td><td>${pp == null ? '—' : fmt(pp, 0) + ' %'}</td><td><b>${sh}</b><br><small class="muted">${fmt(sh / L.length * 100, 0)} %</small></td><td><b>${fmt(L.reduce((s, e) => s + e.xg, 0), 2)}</b></td><td><b>${L.filter(e => e.g).length || ''}</b></td></tr>`; })();
+  const tbl = `<table class="gkz bu-t sty-eff"><tr><th class="txt">${D ? 'Comment l’adversaire perd le ballon' : 'Comment elle perd le ballon'}</th><th>Pertes</th><th>Par match</th><th>Sous pression</th><th>${D ? 'Tir de l’équipe' : 'Tir adverse'} ≤ 15 s</th><th>xG</th><th>Buts</th></tr>${rows}${tot}</table>`;
+  // moment + zones
+  const share = (A, fn) => A.length ? A.filter(fn).length / A.length * 100 : 0;
+  const moBar = `<div class="sty-bar">${LOSS_MO.map(([k, l, h], i) => { const v = share(L, e => e.mo === k); return v > 0 ? `<i style="width:${v}%;background:${['#5b6b7f', '#d0453f', '#2b6cb0', '#a9b3be'][i]}" data-tip="${esc(`${l} : ${fmt(v, 0)} % (${L.filter(e => e.mo === k).length}) · moy. ${fmt(share(LG, e => e.mo === k), 0)} %\n${h}`)}">${v >= 9 ? fmt(v, 0) + ' %' : ''}</i>` : ''; }).join('')}</div>`
+    + `<div class="sty-leg">${LOSS_MO.map(([, l], i) => `<span><i style="background:${['#5b6b7f', '#d0453f', '#2b6cb0', '#a9b3be'][i]}"></i>${l}</span>`).join('')}</div>`;
+  const zoneGrid = `<table class="gkz loss-z"><tr><th class="txt"></th>${['G', 'A', 'D'].map(c => `<th>${LOSS_CH[c][0].toUpperCase() + LOSS_CH[c].slice(1)}</th>`).join('')}</tr>${[1, 0].map(z => `<tr><td class="txt" style="width:28%">${(D && z ? 'Milieu de leur camp' : LOSS_Z[z][0].toUpperCase() + LOSS_Z[z].slice(1))}</td>${['G', 'A', 'D'].map(c => { const A = L.filter(e => e.z === z && e.ch === c), v = share(L, e => e.z === z && e.ch === c), a = share(LG, e => e.z === z && e.ch === c), sh = A.filter(e => e.sh).length;
+    return `<td style="background:rgba(208,69,63,${Math.min(.55, v / 45)})" data-tip="${esc(`${A.length} pertes (${fmt(v, 0)} %, moy. ${fmt(a, 0)} %)\n${sh} suivie(s) d’un tir`)}"><b>${fmt(v, 0)} %</b><br><small class="muted">moy. ${fmt(a, 0)} %</small></td>`; }).join('')}</tr>`).join('')}</table>`;
+  // similitudes : type × poste × zone
+  const G = {}, zL = z => D && z ? 'milieu de leur camp' : LOSS_Z[z];
+  for (const e of L) { if (e.c === 'pl' || e.c === 'cpa') continue; const key = e.c + '|' + (e.r || '?') + '|' + e.z + e.ch; (G[key] || (G[key] = [])).push(e); }
+  const pats = Object.entries(G).filter(([, A]) => A.length >= 3).sort((a, b) => b[1].length - a[1].length || b[1].filter(e => e.sh).length - a[1].filter(e => e.sh).length).slice(0, 6);
+  const patHTML = pats.length ? pats.map(([key, A]) => { const [c, r, zc] = key.split('|'), z = +zc[0], ch = zc[1];
+    const nm = new Set(A.map(e => e.m.id)).size, pp = A.filter(e => e.pr).length, sh = A.filter(e => e.sh).length, xg = A.reduce((s, e) => s + e.xg, 0), g = A.filter(e => e.g).length;
+    const byP = {}; A.forEach(e => byP[e.p] = (byP[e.p] || 0) + 1);
+    const who = Object.entries(byP).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([p, n]) => `${esc(PI[p] ? PI[p].name : '—')} (${n})`).join(', ');
+    const mo = LOSS_MO.map(([k, l]) => [l, A.filter(e => e.mo === k).length]).sort((a, b) => b[1] - a[1])[0];
+    return `<div class="loss-pat"><span class="sty-dot" style="background:${LOSS_CL[c].c}"></span><div><b>${LOSS_CL[c].l}</b> · ${r === '?' ? 'poste inconnu' : LOSS_ROLE[r] || r} · ${zL(z)}, ${LOSS_CH[ch]}`
+      + `<small><b>${A.length} fois</b> (${fmt(A.length / L.length * 100, 0)} % des pertes) · ${nm} match${nm > 1 ? 's' : ''} · ${pp} sous pression · ${mo[1] / A.length >= .5 ? `surtout ${mo[0].toLowerCase()} · ` : ''}${sh ? `<span class="${D ? 'pos' : 'neg'}">${sh} tir${sh > 1 ? 's' : ''} ${D ? 'derrière' : 'concédé' + (sh > 1 ? 's' : '')} (${fmt(xg, 2)} xG)${g ? ` · ${g} but${g > 1 ? 's' : ''}` : ''}</span>` : 'aucun tir derrière'}<br>${who}</small></div></div>`; }).join('')
+    : '<p class="note">Pas encore de perte qui se répète au moins 3 fois.</p>';
+  // signature : ce qui ressort par rapport à la moyenne
+  const over = LOSS_CAT.map(([k, l]) => [l, share(L, e => e.c === k), share(LG, e => e.c === k)]).filter(x => x[1] >= 8).sort((a, b) => (b[1] - b[2]) - (a[1] - a[2]))[0];
+  const sig = tid && over && over[1] - over[2] >= 4 ? `<p class="style-v" style="font-size:14px">${D ? 'Elle provoque surtout' : 'Ce qui ressort'} : ${D ? 'des pertes sur' : 'plus de pertes que la moyenne sur'} <b>${over[0].toLowerCase()}</b> — ${fmt(over[1], 0)} % ${D ? 'des pertes adverses' : 'de ses pertes'}, contre ${fmt(over[2], 0)} % en moyenne.</p>` : '';
+  // joueurs
+  let ply = '';
+  if (!D && tid) { const byP = {}; L.forEach(e => (byP[e.p] || (byP[e.p] = [])).push(e));
+    const T = aggTactical(ms, f.qs).P;
+    const R = Object.entries(byP).filter(([p]) => p && p !== 'null').sort((a, b) => b[1].length - a[1].length).slice(0, 8).map(([p, A]) => { const secs = T[p] ? T[p].secs : 0, top = LOSS_CAT.map(([k, l]) => [l, A.filter(e => e.c === k).length]).sort((a, b) => b[1] - a[1])[0], sh = A.filter(e => e.sh).length;
+      return `<tr><td class="txt"><span data-lbpid="${esc(p)}" style="cursor:pointer;font-weight:600">${esc(PI[p] ? PI[p].name : '—')}</span><br><small class="muted">${esc(LOSS_ROLE[seasonRoles()[p]] || '')}</small></td><td>${Math.round(secs / 60)}</td><td><b>${A.length}</b></td><td>${secs ? fmt(A.length / secs * 5400, 1) : '—'}</td><td>${A.filter(e => e.z === 0).length}</td><td>${A.filter(e => e.pr).length}</td><td class="txt">${esc(top[0])} (${top[1]})</td><td>${sh || ''}</td></tr>`; }).join('');
+    ply = `<h3 class="sty-h">Les joueurs qui perdent le plus de ballons dans leur camp</h3><div class="tbl-wrap"><table class="gkz"><tr><th class="txt">Joueur</th><th>Min</th><th>Pertes</th><th>Par 90</th><th>Dans son tiers</th><th>Sous pression</th><th class="txt">Le plus souvent</th><th>Tirs adverses derrière</th></tr>${R}</table></div>`; }
+  const leg = `<div class="sty-leg loss-leg">${LOSS_CAT.map(([k, l, c]) => L.some(e => e.c === k) ? `<span data-lossc="${k}" title="Cliquer pour masquer / afficher"><i style="background:${c}"></i>${l}</span>` : '').join('')}<span class="muted">cercle rouge = suivie d’un tir · contour noir = but</span></div>`;
+  return kpis + sig + `<div class="style-grid"><div>${tbl}<h3 class="sty-h">À quel moment</h3>${moBar}<h3 class="sty-h">Où</h3>${zoneGrid}</div><div><h3 class="sty-h" style="margin-top:4px">${D ? 'Les pertes adverses (l’adversaire attaque vers la droite)' : 'Ses pertes (l’équipe attaque vers la droite)'}</h3>${lossMapSVG(L, PI, TN, role)}${leg}</div></div>`
+    + `<h3 class="sty-h">Les pertes qui se répètent</h3><p class="sub" style="margin:0 0 6px">Même type de perte, même poste, même zone — au moins 3 fois (hors jeu long et coups de pied arrêtés)</p><div class="loss-pats">${patHTML}</div>` + ply
+    + `<p class="note">${L.length} pertes ${D ? 'adverses ' : ''}dans ${D ? 'leur' : 'son'} camp (passes ratées hors centres et corners, dépossessions, mauvais contrôles, dribbles ratés), d’après les événements Opta. <b>Sous pression</b> : adversaire le plus proche à moins de 2 m du passeur au moment de la passe (Second Spectrum) ; les dépossessions et dribbles ratés comptent comme sous pression. <b>Passe vers l’avant / latérale</b> : d’après le point d’arrivée prévu de la passe. <b>Tir derrière</b> : tir ${D ? 'de l’équipe' : 'adverse'} dans les 15 secondes. Le poste est le poste habituel du joueur sur la saison.</p>`;
+}
 function buList(ms, tid, role, qs) {
   const L = [];
   for (const m of ms) { const B = m.ev && m.ev.bu, Z = m.bus && m.bus.v === BU_VER && m.bus.n === (B || []).length ? m.bus.L : null; if (!B || !Z) continue;
