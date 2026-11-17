@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-17 09:28 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-17 09:36 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3900,7 +3900,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-17 09:28 UTC';
+const BUILD = '2026-11-17 09:36 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -5180,13 +5180,9 @@ function lossHTML(ms, lgM, tid, role, f, TN, PI) {
     const RO = ['GK', 'CB', 'FB', 'CM', 'WM', 'FW'].map(r => { const A = L.filter(e => e.r === r), G = LG.filter(e => e.r === r); return [r, A, G]; }).filter(x => x[1].length);
     const roleT = `<table class="gkz bu-t"><tr><th class="txt">Poste adverse</th><th>Pertes</th><th>Par match</th><th>Sous pression</th><th class="txt">Comment</th><th>Tirs derrière</th></tr>${RO.map(([r, A, G]) => { const v = A.length / nM, a = G.length / nTMd, pp = pctP(A), t = top(A), sh = A.filter(e => e.sh).length;
       return `<tr><td class="txt"><b>${LOSS_ROLE[r]}</b></td><td>${A.length}</td><td class="${good(v, a)}">${fmt(v, 1)}<br><small class="muted">moy. ${fmt(a, 1)}</small></td><td>${pp == null ? '—' : fmt(pp, 0) + ' %'}</td><td class="txt">${typeBar(A)}<small class="muted">surtout ${t[1].toLowerCase()} (${t[2]})</small></td><td>${sh || ''}</td></tr>`; }).join('')}</table>`;
-    // adversaires qui perdent le plus de ballons
-    const byP = {}; L.forEach(e => { if (e.p) (byP[e.p] || (byP[e.p] = [])).push(e); });
-    const plT = `<table class="gkz bu-t"><tr><th class="txt">Joueur adverse</th><th>Pertes</th><th>Sous pression</th><th class="txt">Comment</th><th>Tirs derrière</th></tr>${Object.entries(byP).sort((a, b) => b[1].length - a[1].length || b[1].filter(e => e.sh).length - a[1].filter(e => e.sh).length).slice(0, 10).map(([p, A]) => { const t = top(A), sh = A.filter(e => e.sh).length, tm = A[0].tm;
-      return `<tr><td class="txt"><span data-lbpid="${esc(p)}" style="cursor:pointer;font-weight:600">${esc(PI[p] ? PI[p].name : '—')}</span><br><small class="muted">${esc(C[tm] || TN[tm] || '')} · ${esc(LOSS_ROLE[SR[p]] || '')} · J${[...new Set(A.map(e => e.m.j))].sort((a, b) => a - b).join(', J')}</small></td><td><b>${A.length}</b></td><td>${A.filter(e => e.pr).length}</td><td class="txt">${typeBar(A)}<small class="muted">surtout ${t[1].toLowerCase()} (${t[2]})</small></td><td>${sh || ''}</td></tr>`; }).join('')}</table>`;
     return `<div class="dloss"><h3 class="sty-h" style="font-size:16px;margin-top:22px">Où et comment son pressing fait perdre le ballon</h3><p class="sub" style="margin:0 0 8px">${L.length} pertes adverses dans leur moitié de terrain face à l’équipe (${fmt(L.length / nM, 1)} par match, moy. ${fmt(LG.length / nTM, 1)}) · ${L.filter(e => e.sh).length} suivies d’un tir de l’équipe dans les 15 s</p>`
       + `<div class="style-grid"><div><h3 class="sty-h" style="margin-top:4px">Où</h3>${zoneGrid}<h3 class="sty-h">À quel moment</h3>${moBar}${bpHTML(ms, lgM, tid, role, f, TN, PI)}</div><div><h3 class="sty-h" style="margin-top:4px">Les pertes adverses (l’adversaire attaque vers la droite)</h3>${lossMapSVG(L, PI, TN, role)}${leg}</div></div>`
-      + `<div class="style-grid" style="grid-template-columns:1fr 1fr"><div><h3 class="sty-h">Les postes adverses qui perdent le ballon</h3>${roleT}</div><div><h3 class="sty-h">Les adversaires qui perdent le plus de ballons</h3>${plT}</div></div>`
+      + `<h3 class="sty-h">Les postes adverses qui perdent le ballon</h3>${roleT}`
       + `<p class="note">Pertes adverses dans leur camp : passes ratées (hors centres et corners), dépossessions, mauvais contrôles, dribbles ratés, et dégagements perdus juste après un retrait sous pression ; les ballons longs du gardien ne sont pas comptés. <b>Sous pression</b> : défenseur de l’équipe à moins de 2 m du passeur (Second Spectrum) ; dépossessions et dribbles ratés comptés sous pression. <b>Tirs derrière</b> : tir de l’équipe dans les 15 secondes. Le poste est le poste habituel du joueur sur la saison.</p></div>`;
   }
   return kpis + sig + `<div class="style-grid"><div>${tbl}<h3 class="sty-h">À quel moment</h3>${moBar}<h3 class="sty-h">Où</h3>${zoneGrid}</div><div><h3 class="sty-h" style="margin-top:4px">${D ? 'Les pertes adverses (l’adversaire attaque vers la droite)' : 'Ses pertes (l’équipe attaque vers la droite)'}</h3>${lossMapSVG(L, PI, TN, role)}${leg}</div></div>`
