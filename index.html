@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-17 09:53 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-17 09:56 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3916,7 +3916,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-17 09:53 UTC';
+const BUILD = '2026-11-17 09:56 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -5167,7 +5167,7 @@ function lossHTML(ms, lgM, tid, role, f, TN, PI) {
   const share = (A, fn) => A.length ? A.filter(fn).length / A.length * 100 : 0;
   const MO = D ? LOSS_MO.filter(x => x[0] !== 'cpa') : LOSS_MO;
   const moBar = `<div class="sty-bar">${MO.map(([k, l, h], i) => { const v = share(L, e => e.mo === k); return v > 0 ? `<i style="width:${v}%;background:${['#5b6b7f', '#d0453f', '#2b6cb0', '#a9b3be'][i]}" data-tip="${esc(`${l} : ${fmt(v, 0)} % (${L.filter(e => e.mo === k).length}) · moy. ${fmt(share(LG, e => e.mo === k), 0)} %\n${h}`)}">${v >= 9 ? fmt(v, 0) + ' %' : ''}</i>` : ''; }).join('')}</div>`
-    + `<div class="sty-leg">${MO.map(([, l], i) => `<span><i style="background:${['#5b6b7f', '#d0453f', '#2b6cb0', '#a9b3be'][i]}"></i>${l}</span>`).join('')}</div>`;
+    + `<div class="sty-leg">${MO.map(([k, l], i) => `<span><i style="background:${['#5b6b7f', '#d0453f', '#2b6cb0', '#a9b3be'][i]}"></i>${l} <b>${fmt(share(L, e => e.mo === k), 0)} %</b> <small>(moy. ${fmt(share(LG, e => e.mo === k), 0)} %)</small></span>`).join('')}</div>`;
   const zoneGrid = `<table class="gkz loss-z"><tr><th class="txt"></th>${['G', 'A', 'D'].map(c => `<th>${LOSS_CH[c][0].toUpperCase() + LOSS_CH[c].slice(1)}</th>`).join('')}</tr>${[1, 0].map(z => `<tr><td class="txt" style="width:28%">${(D && z ? 'Milieu de leur camp' : LOSS_Z[z][0].toUpperCase() + LOSS_Z[z].slice(1))}</td>${['G', 'A', 'D'].map(c => { const A = L.filter(e => e.z === z && e.ch === c), v = share(L, e => e.z === z && e.ch === c), a = share(LG, e => e.z === z && e.ch === c), sh = A.filter(e => e.sh).length;
     return `<td style="background:rgba(208,69,63,${Math.min(.55, v / 45)})" data-tip="${esc(`${A.length} pertes (${fmt(v, 0)} %, moy. ${fmt(a, 0)} %)\n${sh} suivie(s) d’un tir`)}"><b>${fmt(v, 0)} %</b><br><small class="muted">moy. ${fmt(a, 0)} %</small></td>`; }).join('')}</tr>`).join('')}</table>`;
   // similitudes : type × poste × zone
