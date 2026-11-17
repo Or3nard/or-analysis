@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-17 08:35 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-17 09:04 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -675,7 +675,7 @@ input.j{width:64px}
         </div>
         <div class="card c12" id="dstyleCard">
           <div class="card-head"><div><h2>Style de jeu défensif</h2><p class="sub" id="dstyleSub"></p></div></div>
-          <div class="style-grid"><div id="dstyleL"></div><div><div class="chart-box" style="height:380px"><canvas id="chDefStyle"></canvas></div><p class="note">Chaque équipe selon ses deux notes · lignes pointillées = 50 · en haut à droite : presse haut et concède peu ; en haut à gauche : bloc bas solide ; en bas à droite : presse haut mais se fait transpercer.</p></div></div>
+          <div class="style-grid"><div id="dstyleL"></div><div><div class="ctrl" style="justify-content:flex-end;margin-bottom:6px"><select id="dsMode"><option value="ps">Pressing × solidité</option><option value="ie">Intensité × efficacité du pressing</option><option value="ih">Hauteur × intensité du pressing</option></select></div><div class="chart-box" style="height:380px"><canvas id="chDefStyle"></canvas></div><p class="note">Chaque équipe selon deux notes sur 100 · lignes pointillées = 50 · <span id="dsNote"></span></p></div></div>
         </div>
         <div class="card c12 ph" id="dph1">
           <div class="ph-head"><span class="chap-n">1</span><div><h2>Pressing et récupération</h2><p>Est-ce que l’équipe récupère le ballon haut et souvent ?</p></div><span class="ph-verdict" id="dphV1"></span></div>
@@ -2177,7 +2177,7 @@ const TAC_FIELDS = ['mp', 'secs', 'gf', 'ga', 'xg', 'xga', 'xgot', 'xgota', 'gfo
   'cross', 'crossOk', 'carry', 'carryD', 'carryProg', 'rec', 'intc', 'possN', 'possT', 'possTot', 'possXg', 'vp', 'vc', 'tk', 'tkW', 'int', 'recov', 'clr',
   'aer', 'aerW', 'foul', 'fouled', 'drb', 'drbOk', 'lost', 'yc', 'rc', 'saves', 'blk', 'opp60', 'defAct', 'corners',
   'recovH', 'shCtr', 'xgCtr', 'shCpa', 'xgCpa', 'gfCpa', 'gaCpa', 'shaCpa', 'xgaCpa', 'pen', 'penG', 'cpaPoss', 'cpaXgP', 'cpaXgaP', 'cornD', 'cornAtt', 'cornShort', 'cornIn', 'cornOut', 'mV2',
-  'gd', 'gdW', 'lbA', 'f3A', 'boxA', 'progA', 'passA', 'own60', 'defActA', 'lostLow', 'bpass', 'bpassOk', 'blong', 'blongOk', 'bout', 'carryF3', 'possD', 'possD2', 'possD3', 'recX', 'recN', 'lsN', 'lsL', 'lsP', 'lsPK', 'lsSh', 'lsXg', 'lsG', 'lfN', 'lfL', 'lfP', 'lfPK', 'lfSh', 'lfXg', 'lfG', 'xg_pl', 'xg_tr', 'xg_di', 'xg_sp', 'xga_pl', 'xga_tr', 'xga_di', 'xga_sp', 'gSA_pl', 'gSA_tr', 'gSA_di', 'gSA_sp', 'gSA_pen', 'gSA_nc', 'gSA_og', 'xSA_pl', 'xSA_tr', 'xSA_di', 'xSA_sp', 'xSA_pen', 'xSA_nc', 'gS_pl', 'gS_tr', 'gS_di', 'gS_sp', 'gS_pen', 'gS_nc', 'gS_og', 'xS_pl', 'xS_tr', 'xS_di', 'xS_sp', 'xS_pen', 'xS_nc', 'clN', 'clOld', 'clApx', 'n_pl', 'n_tr', 'n_di', 'n_sp', 'npSum', 'npN', 'chal', 'aerD', 'aerDW', 'crO', 'crOk', 'crSh', 'crA', 'crAok', 'crASh'];
+  'gd', 'gdW', 'lbA', 'f3A', 'boxA', 'progA', 'passA', 'own60', 'defActA', 'lostLow', 'bpass', 'bpassOk', 'blong', 'blongOk', 'bout', 'carryF3', 'possD', 'possD2', 'possD3', 'recX', 'recN', 'pzN', 'pzP', 'pzHN', 'pzHP', 'pzT', 'pzHKo', 'pzB', 'pzPOk', 'lsN', 'lsL', 'lsP', 'lsPK', 'lsSh', 'lsXg', 'lsG', 'lfN', 'lfL', 'lfP', 'lfPK', 'lfSh', 'lfXg', 'lfG', 'xg_pl', 'xg_tr', 'xg_di', 'xg_sp', 'xga_pl', 'xga_tr', 'xga_di', 'xga_sp', 'gSA_pl', 'gSA_tr', 'gSA_di', 'gSA_sp', 'gSA_pen', 'gSA_nc', 'gSA_og', 'xSA_pl', 'xSA_tr', 'xSA_di', 'xSA_sp', 'xSA_pen', 'xSA_nc', 'gS_pl', 'gS_tr', 'gS_di', 'gS_sp', 'gS_pen', 'gS_nc', 'gS_og', 'xS_pl', 'xS_tr', 'xS_di', 'xS_sp', 'xS_pen', 'xS_nc', 'clN', 'clOld', 'clApx', 'n_pl', 'n_tr', 'n_di', 'n_sp', 'npSum', 'npN', 'chal', 'aerD', 'aerDW', 'crO', 'crOk', 'crSh', 'crA', 'crAok', 'crASh'];
 const newAgg = () => { const o = {starts: {}, cpaT: {}, cpaTa: {}, byQ: [0, 1, 2, 3, 4, 5].map(() => ({xg: 0, xga: 0, gf: 0, ga: 0, sh: 0, lb: 0, pass: 0, possT: 0, possTot: 0}))}; TAC_FIELDS.forEach(k => o[k] = 0); return o; };
 
 /* Cache des agrégations : changer d'onglet ou de sous-onglet ne recalcule rien
@@ -2229,9 +2229,13 @@ function aggTacticalRaw(ms, qsOverride) {
       const pr = lossPress(l);
       for (const [o, k] of [[t(l[0]), 'ls'], [t(opp(l[0])), 'lf'], [l[3] && p(l[3]), 'ls']]) { if (!o) continue;
         o[k + 'N']++; if (l[5] < 33.3) o[k + 'L']++; if (pr != null) { o[k + 'PK']++; o[k + 'P'] += pr; } if (l[13]) o[k + 'Sh']++; o[k + 'Xg'] += l[14]; o[k + 'G'] += l[15]; } }
+    const FL = passFlip(m);
     for (const e of E.passes) { if (!ok(e)) continue;
       if (t(e.tm).byQ[e.q]) { t(e.tm).byQ[e.q].pass++; if (e.c && e.br) t(e.tm).byQ[e.q].lb++; }
       if (!qs.has(e.q)) continue;
+      if (e.pd != null && e.per) { const d = t(opp(e.tm)), X = FL(e.tm, e.per) ? 105 - e.x0 : e.x0, P = e.pd < 2, own = X < 52.5;
+        d.pzN++; if (P) { d.pzP++; if (e.c) { d.pzPOk++; if ((e.by || 0) >= 3) d.pzB++; } }
+        if (own) { d.pzHN++; if (P) { d.pzHP++; if (!e.c) d.pzHKo++; if (X < 35) d.pzT++; } } }
       const prog = e.c && (e.x1 - e.x0) >= 10 && e.x1 >= 35;
       const f3 = e.c && e.x1 >= 70 && e.x0 < 70;
       const inBox = (x, y) => x >= 88.5 && Math.abs(y - 34) <= 20.16;
@@ -2361,6 +2365,12 @@ const TAC = {
   bpass: {l: 'Passes tiers déf.', t: 'add'}, bpassPct: {l: '% passes tiers déf.', t: 'ratio', d: 1, f: o => o.bpass ? o.bpassOk / o.bpass * 100 : null},
   blongPct: {l: '% jeu long (tiers déf.)', t: 'ratio', d: 1, f: o => o.bpass ? o.blong / o.bpass * 100 : null}, bout: {l: 'Sorties de balle réussies', t: 'add', h: 'Passes réussies partant du tiers défensif et arrivant au-delà'},
   lostLow: {l: 'Pertes dans son tiers', t: 'add'},
+  pzPct: {l: '% passes adverses sous pression', t: 'ratio', d: 1, f: o => o.pzN ? o.pzP / o.pzN * 100 : null, h: 'Passes adverses jouées avec un défenseur à moins de 2 m du passeur (Second Spectrum)'},
+  pzHPct: {l: '% passes adverses sous pression dans leur camp', t: 'ratio', d: 1, f: o => o.pzHN ? o.pzHP / o.pzHN * 100 : null},
+  pzHShare: {l: 'Part des pressions dans le camp adverse', t: 'ratio', d: 1, f: o => o.pzP ? o.pzHP / o.pzP * 100 : null},
+  pzT: {l: 'Pressions dans le tiers défensif adverse', t: 'add'}, pzHP: {l: 'Pressions dans le camp adverse', t: 'add'},
+  pzKoPct: {l: '% pressions dans le camp adverse qui font rater la passe', t: 'ratio', d: 1, f: o => o.pzHP ? o.pzHKo / o.pzHP * 100 : null},
+  pzBPct: {l: '% pressions contournées', t: 'ratio', d: 1, f: o => o.pzP ? o.pzB / o.pzP * 100 : null, h: 'Passes adverses réussies malgré la pression et qui éliminent au moins 3 joueurs'},
   lsN: {l: 'Pertes dans son camp', t: 'add'}, lsL: {l: 'Pertes dans son tiers défensif', t: 'add'}, lsPPct: {l: '% pertes sous pression', t: 'ratio', d: 1, f: o => o.lsPK ? o.lsP / o.lsPK * 100 : null},
   lsSh: {l: 'Pertes suivies d’un tir adverse', t: 'add'}, lsXg: {l: 'xG concédés après une perte dans son camp', t: 'add', d: 2}, lsG: {l: 'Buts encaissés après une perte dans son camp', t: 'add'},
   lfN: {l: 'Pertes adverses provoquées dans leur camp', t: 'add'}, lfL: {l: 'Pertes adverses provoquées dans leur tiers', t: 'add'}, lfPPct: {l: '% pertes adverses sous pression', t: 'ratio', d: 1, f: o => o.lfPK ? o.lfP / o.lfPK * 100 : null},
@@ -3893,7 +3903,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-17 08:35 UTC';
+const BUILD = '2026-11-17 09:04 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4969,7 +4979,12 @@ function poleScores(T, ids, P) {
   const out = {}; for (const [pole, ks] of Object.entries(P)) { const M = ks.map(([k, dir]) => pv(k, dir)); for (const t of ids) { const v = M.map(R => R[t]).filter(x => x != null); (out[t] = out[t] || {})[pole] = v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; } }
   return out;
 }
-const DEF_POLES = {press: [['ppda', -1], ['recH', 1], ['recovHpm', 1]], solid: [['xgapm', -1], ['xgsha', -1], ['boxApm', -1], ['shapm', -1]]};
+const DEF_POLES = {int: [['pzPct', 1], ['ppda', -1]], high: [['pzHShare', 1], ['pzTpm', 1], ['recH', 1], ['recovHpm', 1]], eff: [['pzKoPct', 1], ['pzBPct', -1], ['lfNpm', 1], ['lfXgpm', 1], ['xga_trpm', -1]],
+  press: [['pzPct', 1], ['ppda', -1], ['pzHShare', 1], ['pzTpm', 1], ['recH', 1], ['recovHpm', 1]], solid: [['xgapm', -1], ['xgsha', -1], ['boxApm', -1], ['shapm', -1]]};
+const pressLabel = (i, h, e) => { if (i == null || h == null || e == null) return '';
+  const a = i >= 60 ? 'Presse beaucoup' : i < 40 ? 'Presse peu' : 'Presse modérément', b = h >= 60 ? 'haut' : h < 40 ? 'plutôt bas' : 'à mi-hauteur';
+  const c = e >= 60 ? (i < 40 ? 'mais efficace quand elle y va' : 'et efficacement') : e < 40 ? (i >= 60 ? 'mais se fait souvent contourner' : 'et sans grande réussite') : 'avec une efficacité moyenne';
+  return `${a}, ${b}, ${c}`; };
 const defLabel = (p, s) => p == null || s == null ? '' : p >= 60 && s >= 60 ? 'Pressing haut et solide' : p >= 60 && s < 40 ? 'Presse haut mais concède des occasions' : p < 40 && s >= 60 ? 'Bloc bas et solide' : p < 40 && s < 40 ? 'Bloc bas et perméable' : p >= s + 15 ? 'Plutôt pressing' : s >= p + 15 ? 'Plutôt solide en place' : 'Profil équilibré';
 // Défensif : comment l'équipe défend, et ce qu'elle concède
 function concedeBlock(me, tid, lg, f, TN) {
@@ -5038,14 +5053,19 @@ function lossList(ms, tid, role, qs) {
 
 /* Passes en retrait vers le gardien et ce qu'il en fait (passes Second Spectrum + dégagements Opta).
    Coordonnées remises dans le sens d'attaque de l'équipe (repère Opta 0-100), comme ev.loss. */
-const BP_MEMO = new WeakMap(), BP_PRESS = 2, BP_WIN = 8;
+const BP_MEMO = new WeakMap(), BP_PRESS = 2, BP_WIN = 8, FLIP_MEMO = new WeakMap();
+// sens d'attaque par équipe et période (position moyenne des passes du gardien) : true = l'équipe attaque vers la gauche
+function passFlip(m) {
+  let r = FLIP_MEMO.get(m); if (r && r.v === DATA_VER) return r.f;
+  const GK = gkSetOf(m), dirOf = {};
+  for (const e of (m.ev && m.ev.passes) || []) if (GK.has(e.p)) { const k = e.tm + '|' + e.per; (dirOf[k] || (dirOf[k] = [])).push(e.x0); }
+  const f = (tm, per) => { const a = dirOf[tm + '|' + per]; if (a && a.length) return mean(a) > 52.5; const o = dirOf[(tm === m.home.id ? m.away.id : m.home.id) + '|' + per]; return o && o.length ? mean(o) < 52.5 : false; };
+  FLIP_MEMO.set(m, {v: DATA_VER, f}); return f;
+}
 function bpSeqs(m) {
   let r = BP_MEMO.get(m); if (r && r.v === DATA_VER) return r.L;
   const L = [], E = m.ev; if (!E || !E.passes || !E.passes.some(e => 'rc' in e)) { BP_MEMO.set(m, {v: DATA_VER, L}); return L; }
-  const GK = gkSetOf(m), T = e => e.mi * 60;
-  // sens d'attaque : position moyenne des passes du gardien par équipe et période
-  const dirOf = {}; for (const e of E.passes) if (GK.has(e.p)) { const k = e.tm + '|' + e.per; (dirOf[k] || (dirOf[k] = [])).push(e.x0); }
-  const flip = (tm, per) => { const a = dirOf[tm + '|' + per]; return a && a.length ? mean(a) > 52.5 : false; };
+  const GK = gkSetOf(m), T = e => e.mi * 60, flip = passFlip(m);
   const toO = (tm, per, x, y) => { const f = flip(tm, per); const X = f ? 105 - x : x, Y = f ? 68 - y : y; return [r1(X / 1.05), r1(100 - Y / .68)]; };
   const byTime = E.passes.filter(e => e.per).slice().sort((a, b) => a.per - b.per || a.mi - b.mi);
   const opt = (E.opta || []).filter(e => e.per && GK.has(e.p) && (e.t === 12 || e.t === 50 || (e.t === 61 && !e.o)));
@@ -5195,12 +5215,24 @@ function renderDefStyle(f, tid, TN) {
   const lgS = STY_O.map((_, i) => mean(ids.map(t => share(T[t])[i])));
   const bar = (S, lab) => `<div class="sty-row"><span>${lab}</span><div class="sty-bar">${STY_O.map(([k, l], i) => S[i] > 0 ? `<i style="width:${S[i]}%;background:${STY_O[i][3]}" data-tip="${esc(`${l} : ${fmt(S[i], 0)} % des xG concédés`)}">${S[i] >= 9 ? fmt(S[i], 0) + ' %' : ''}</i>` : '').join('')}</div></div>`;
   let left;
-  if (!me) left = `<p class="style-v">Choisissez une équipe pour voir son style défensif.</p><p class="note">Le graphique place chaque équipe selon deux notes sur 100 : <b>pressing</b> (PPDA, hauteur des récupérations, récupérations dans le camp adverse) et <b>solidité</b> (peu de xG concédés, peu de tirs concédés, des tirs adverses de faible qualité, peu d’entrées adverses dans la surface). 50 = au milieu du championnat.</p>`;
+  if (!me) left = `<p class="style-v">Choisissez une équipe pour voir son style défensif.</p><p class="note">Le pressing est découpé en trois notes sur 100 : <b>intensité</b> (part des passes adverses jouées avec un défenseur à moins de 2 m, PPDA), <b>hauteur</b> (où se font ces pressions, hauteur des récupérations) et <b>efficacité</b> (passes adverses ratées sous pression, pressions contournées, pertes provoquées dans le camp adverse et ce qu’elles rapportent, xG concédés en transition). Le graphique « Pressing × solidité » place chaque équipe selon sa note de <b>pressing</b> (intensité + hauteur) et <b>solidité</b> (peu de xG concédés, peu de tirs concédés, des tirs adverses de faible qualité, peu d’entrées adverses dans la surface). 50 = au milieu du championnat.</p>`;
   else {
     const S = share(me), top = STY_O.map((x, i) => [x, S[i], lgS[i]]).sort((a, b) => (b[1] - b[2]) - (a[1] - a[2]))[0];
-    left = `<p class="style-v">${esc(defLabel(sc.press, sc.solid))}</p>`
-      + gauge('Pressing', sc.press, '#e0842b', 'PPDA, hauteur des récupérations, récupérations dans le camp adverse') + gauge('Solidité', sc.solid, '#2e9e5b', 'xG concédés, tirs concédés, xG par tir concédé, entrées adverses dans la surface')
-      + `<h3 class="sty-h">Comment elle défend</h3><div class="ph-kpis">${kpiRowHTML([['PPDA (bas = pressing intense)', 'ppda', -1, '', 1], ['Hauteur des récupérations (m)', 'recH', 1, '', 1], ['Récupérations dans le camp adverse', 'recovH', 1, 'pm', 1], ['Duels défensifs gagnés', 'duelDPct', 1, '%']], f, tid, false, me.mp)}</div>`
+    const pv = (k, pm) => { const o = me; const v = TAC[k] && TAC[k].f ? TAC[k].f(o) : o[k]; return v == null ? null : pm ? v / o.mp : v; };
+    const lgv = (k, pm) => mean(ids.map(t => { const o = T[t], v = TAC[k] && TAC[k].f ? TAC[k].f(o) : o[k]; return v == null ? null : pm ? v / o.mp : v; }).filter(v => v != null && isFinite(v)));
+    const det = (L) => L.map(([l, k, pm, u, d]) => `${l} : ${fmt(pv(k, pm), d ?? 1)}${u || ''} (moy. ${fmt(lgv(k, pm), d ?? 1)}${u || ''})`).join('\n');
+    const hasPz = me.pzN > 0;
+    const gaugeT = (l, v, col, help, tip) => gauge(l, v, col, help).replace('<div class="stg">', `<div class="stg" data-tip="${esc(tip)}">`);
+    left = `<p class="style-v">${esc(hasPz ? pressLabel(sc.int, sc.high, sc.eff) : defLabel(sc.press, sc.solid))}</p>`
+      + (hasPz ? `<h3 class="sty-h" style="margin-top:0">Son pressing</h3>`
+        + gaugeT('Intensité', sc.int, '#e0842b', 'Presse-t-elle beaucoup ?', det([['Passes adverses sous pression (défenseur à moins de 2 m)', 'pzPct', 0, ' %'], ['PPDA (bas = presse plus)', 'ppda', 0]]))
+        + gaugeT('Hauteur', sc.high, '#c2571a', 'Presse-t-elle haut ?', det([['Part de ses pressions faites dans le camp adverse', 'pzHShare', 0, ' %'], ['Pressions dans le tiers défensif adverse / match', 'pzT', 1], ['Hauteur moyenne des récupérations (m)', 'recH', 0], ['Récupérations dans le camp adverse / match', 'recovH', 1]]))
+        + gaugeT('Efficacité', sc.eff, '#2b6cb0', 'Presse-t-elle bien ?', det([['Pressions dans le camp adverse qui font rater la passe', 'pzKoPct', 0, ' %'], ['Pressions contournées (passe réussie qui élimine 3 joueurs ou plus, bas = mieux)', 'pzBPct', 0, ' %'], ['Pertes adverses provoquées dans leur camp / match', 'lfN', 1], ['xG créés après ces pertes / match', 'lfXg', 1, '', 2], ['xG concédés en transition / match (bas = mieux)', 'xga_tr', 1, '', 2]]))
+        + `<h3 class="sty-h">Sa solidité</h3>` : gauge('Pressing', sc.press, '#e0842b', 'PPDA, hauteur des récupérations, récupérations dans le camp adverse'))
+      + gauge('Solidité', sc.solid, '#2e9e5b', 'xG concédés, tirs concédés, xG par tir concédé, entrées adverses dans la surface')
+      + (hasPz ? '' : '<p class="rnote">Réimportez les fichiers insight.jsonl pour séparer intensité, hauteur et efficacité du pressing.</p>')
+      + `<h3 class="sty-h">Comment elle presse</h3><div class="ph-kpis">${kpiRowHTML(hasPz ? [['Passes adverses sous pression', 'pzPct', 1, '%', 1], ['Part des pressions dans le camp adverse', 'pzHShare', 1, '%', 1], ['Pressions qui font rater la passe (camp adverse)', 'pzKoPct', 1, '%'], ['Pressions contournées', 'pzBPct', -1, '%']] : [['PPDA (bas = pressing intense)', 'ppda', -1, '', 1], ['Hauteur des récupérations (m)', 'recH', 1, '', 1], ['Récupérations dans le camp adverse', 'recovH', 1, 'pm', 1], ['Duels défensifs gagnés', 'duelDPct', 1, '%']], f, tid, false, me.mp)}</div>`
+      + (hasPz ? `<div class="ph-kpis">${kpiRowHTML([['PPDA (bas = pressing intense)', 'ppda', -1, '', 1], ['Hauteur des récupérations (m)', 'recH', 1, '', 1], ['Récupérations dans le camp adverse', 'recovH', 1, 'pm', 1], ['Duels défensifs gagnés', 'duelDPct', 1, '%']], f, tid, false, me.mp)}</div>` : '')
       + `<h3 class="sty-h">Comment on la met en danger</h3><p class="sub" style="margin:0 0 6px">D’où viennent les xG concédés${top[1] - top[2] > 3 ? ` · point faible : <b>${({pl: 'en attaque placée', tr: 'en transition', di: 'sur le jeu direct', sp: 'sur coups de pied arrêtés'})[top[0][0]]}</b> (${fmt(top[1], 0)} % de ses xG concédés, contre ${fmt(top[2], 0)} % en moyenne)` : ''}</p>${bar(S, C[tid] || TN[tid])}${bar(lgS, 'Moy. championnat')}`
       + `<div class="sty-leg">${STY_O.map(([, l, h, c]) => `<span><i style="background:${c}"></i>${l} <small>${h.replace('une récupération', 'une récupération adverse')}</small></span>`).join('')}</div>`
       + concedeBlock(me, tid, lg, f, TN)
@@ -5208,11 +5240,13 @@ function renderDefStyle(f, tid, TN) {
   }
   $('#dstyleL').innerHTML = left;
   const sz = 26, icon = t => { const d = logoData(t); if (!d) return null; const k = t + '@' + sz; let im = XC_IMG[k]; if (!im) { im = new Image(sz, sz); im.onload = () => scheduleRender(); im.src = d; XC_IMG[k] = im; } return im.complete && im.naturalWidth ? im : null; };
-  const pts = ids.filter(t => SC[t].press != null && SC[t].solid != null).map(t => ({x: SC[t].press, y: SC[t].solid, lab: C[t] || TN[t], full: TN[t], tid: t, hl: t === tid, dim: !!tid && t !== tid, img: icon(t)}));
+  const md = ($('#dsMode') || {}).value || 'ps', AX = md === 'ie' ? ['int', 'eff', 'Intensité du pressing →', 'Efficacité du pressing →'] : md === 'ih' ? ['high', 'int', 'Hauteur du pressing →', 'Intensité du pressing →'] : ['press', 'solid', 'Pressing (intensité + hauteur) →', 'Solidité →'];
+  $('#dsNote').textContent = md === 'ie' ? 'En haut à droite : presse beaucoup et bien ; en bas à droite : presse beaucoup mais se fait contourner ; en haut à gauche : presse peu mais efficace quand elle y va.' : md === 'ih' ? 'En haut à droite : presse beaucoup et haut ; en bas à gauche : bloc bas, peu de pressing.' : 'En haut à droite : presse haut et concède peu ; en haut à gauche : bloc bas solide ; en bas à droite : presse haut mais se fait transpercer.';
+  const pts = ids.filter(t => SC[t][AX[0]] != null && SC[t][AX[1]] != null).map(t => ({x: SC[t][AX[0]], y: SC[t][AX[1]], lab: C[t] || TN[t], full: TN[t], tid: t, hl: t === tid, dim: !!tid && t !== tid, img: icon(t)}));
   const tk = {stepSize: 25, callback: v => v % 25 === 0 && v >= 0 && v <= 100 ? v : ''};
   chart('chDefStyle', {type: 'scatter', data: {datasets: [{data: pts, pointStyle: pts.map(p => p.img || 'circle'), pointRadius: pts.map(p => p.img ? (p.hl ? 17 : 13) : 7), backgroundColor: pts.map(p => color4(clubColor(p.tid), p.dim ? .3 : 1))}]},
-    options: {animation: false, layout: {padding: {top: 18, right: 14}}, plugins: {legend: {display: false}, tooltip: {displayColors: false, callbacks: {title: it => it[0].raw.full, label: c => [`Pressing : ${Math.round(c.raw.x)}/100`, `Solidité : ${Math.round(c.raw.y)}/100`, defLabel(c.raw.x, c.raw.y)]}}},
-      scales: {x: {min: -6, max: 106, ticks: tk, title: {display: true, text: 'Pressing →'}, grid: {color: css('--grid')}}, y: {min: -6, max: 106, ticks: tk, title: {display: true, text: 'Solidité →'}, grid: {color: css('--grid')}}}},
+    options: {animation: false, layout: {padding: {top: 18, right: 14}}, plugins: {legend: {display: false}, tooltip: {displayColors: false, callbacks: {title: it => it[0].raw.full, label: c => { const s = SC[c.raw.tid]; return [`Intensité : ${Math.round(s.int ?? 0)}/100 · Hauteur : ${Math.round(s.high ?? 0)}/100 · Efficacité : ${Math.round(s.eff ?? 0)}/100`, `Solidité : ${Math.round(s.solid)}/100`, pressLabel(s.int, s.high, s.eff) || defLabel(s.press, s.solid)]; }}}},
+      scales: {x: {min: -6, max: 106, ticks: tk, title: {display: true, text: AX[2]}, grid: {color: css('--grid')}}, y: {min: -6, max: 106, ticks: tk, title: {display: true, text: AX[3]}, grid: {color: css('--grid')}}}},
     plugins: [medLines(50, 50, () => '', () => ''), nameAbove]});
   $('#dstyleSub').textContent = `${ids.length} équipes · notes sur 100 (50 = milieu du championnat) · ${lg.filter(m => m.ev).length} match(s)`;
 }
@@ -6286,7 +6320,7 @@ function bindUI() {
     refreshAll();
   };
   $('#fReset').onclick = () => { S.f = {team: '', j0: null, j1: null, match: '', player: '', qs: new Set([0, 1, 2, 3, 4, 5])}; refreshAll(); };
-  ['#plyPeer', '#plyOvMode', '#ppTeamMode', '#xcPop', '#xcMode', '#xcX', '#xcY', '#ptLeadMode', '#ppLeadMode', '#plyPassType', '#offMode', '#bmGk', '#defMode', '#duelMin', '#gkCrType', '#gkShotType', '#gkPassType', '#gkTblMode', '#gkMinMin', '#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyTeamMode', '#h2hEvoMetric', '#momOffMode', '#xtPlMode',
+  ['#plyPeer', '#dsMode', '#plyOvMode', '#ppTeamMode', '#xcPop', '#xcMode', '#xcX', '#xcY', '#ptLeadMode', '#ppLeadMode', '#plyPassType', '#offMode', '#bmGk', '#defMode', '#duelMin', '#gkCrType', '#gkShotType', '#gkPassType', '#gkTblMode', '#gkMinMin', '#tacTeamMode', '#tacPlMode', '#tacMinMin', '#tacMetric', '#tacQMetric', '#phyPlMode', '#phyMinMin', '#phyMetric', '#phyTeamMode', '#h2hEvoMetric', '#momOffMode', '#xtPlMode',
    '#offMetric', '#offTeamMode', '#defMetric', '#defTeamMode', '#dngMode']
     .forEach(s => $(s).onchange = () => scheduleRender());
   document.querySelectorAll('[data-csv]').forEach(b => b.onclick = () => exportCSV(b.dataset.csv));
