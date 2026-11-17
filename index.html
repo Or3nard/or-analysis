@@ -203,7 +203,7 @@ details.det{padding:12px 16px}details.det summary{cursor:pointer;font-size:14px}
 .lb-team{display:flex;align-items:center;gap:8px}.lb-logo{width:30px;height:30px;object-fit:contain;flex:none}.lb-team b{font-weight:600}.lb-g{margin-top:6px}.lb-g+.lb-g{margin-top:18px;padding-top:14px;border-top:1px solid var(--grid)}.lb-g>h3{font-size:15px;margin:0 0 10px}.lb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px 22px}.lb-grid h4{font-size:13px;margin:0 0 6px;color:var(--text-2);font-weight:600}.lb-grid .t5[data-lbpid],.lb-grid .t5[data-lbtid]{cursor:pointer;border-radius:6px}.lb-grid .t5[data-lbpid]:hover,.lb-grid .t5[data-lbtid]:hover{background:var(--hover,rgba(127,127,127,.08))}.empty-card p{color:var(--text-2)}
 .shf [data-sh]{cursor:pointer;user-select:none;border-radius:6px;padding:1px 5px;transition:opacity .15s}.shf [data-sh]:hover{background:var(--surface-2)}
 .shfoc .sh-g,.shfoc .sh-ot,.shfoc .sh-off{opacity:.1}.shfoc-g .sh-g,.shfoc-ot .sh-ot,.shfoc-off .sh-off{opacity:1}
-.cage .cz-g,.cage .cz-ot{display:none}.shfoc-g .cage .cz-all,.shfoc-ot .cage .cz-all{display:none}.shfoc-g .cage .cz-g{display:inline}.shfoc-ot .cage .cz-ot{display:inline}
+.cage .cz-g,.cage .cz-ot{display:none}.shfoc-g .cage .cz-all,.shfoc-ot .cage .cz-all{display:none}.shfoc-g .cage .cz-g{display:inline}.shfoc-ot .cage .cz-ot{display:inline}.shfoc-g.shfoc-ot .cage .cz-g,.shfoc-g.shfoc-ot .cage .cz-ot{display:none}.shfoc-g.shfoc-ot .cage .cz-all{display:inline}
 .shfoc .shf [data-sh]{opacity:.35}.shfoc-g .shf [data-sh=g],.shfoc-ot .shf [data-sh=ot],.shfoc-off .shf [data-sh=off]{opacity:1;font-weight:700}
 #verBar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;background:var(--text);color:var(--surface);padding:10px 14px;border-radius:10px;font-size:13.5px;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;gap:12px;align-items:center}#verBar .btn{background:var(--surface);color:var(--text)}
 .ph-kpis.ck6{grid-template-columns:repeat(6,1fr)}@media (max-width:1100px){.ph-kpis.ck6{grid-template-columns:repeat(3,1fr)}}
@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-17 09:43 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-17 09:53 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -599,7 +599,7 @@ input.j{width:64px}
           <div class="ph-head"><span class="chap-n">3</span><div><h2>30 derniers mètres</h2><p>Est-ce que l’équipe se crée des occasions et les convertit ?</p></div><span class="ph-verdict" id="phV3"></span></div>
           <div class="ph-kpis" id="phK3"></div>
           <div class="ph-vis">
-            <div><h3>D’où l’équipe tire</h3><p class="sub" id="shotSub"></p><div id="shotMap"></div><div class="legend shleg shf"><span data-sh="g" title="Cliquer pour mettre en avant ; nouveau clic pour tout réafficher"><b class="lgball">⚽</b>But</span><span data-sh="ot" title="Cliquer pour mettre en avant ; nouveau clic pour tout réafficher"><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span data-sh="off" title="Cliquer pour mettre en avant ; nouveau clic pour tout réafficher"><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG · cliquez sur la légende pour filtrer</span></div></div>
+            <div><h3>D’où l’équipe tire</h3><p class="sub" id="shotSub"></p><div id="shotMap"></div><div class="legend shleg shf"><span data-sh="g" title="Cliquer pour mettre en avant (plusieurs choix possibles) ; nouveau clic pour retirer"><b class="lgball">⚽</b>But</span><span data-sh="ot" title="Cliquer pour mettre en avant (plusieurs choix possibles) ; nouveau clic pour retirer"><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span data-sh="off" title="Cliquer pour mettre en avant (plusieurs choix possibles) ; nouveau clic pour retirer"><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG · cliquez sur la légende pour filtrer</span></div></div>
             <div><h3>Où vont les tirs dans la cage</h3><p class="sub" id="cageSub"></p><div id="cageOff" class="cage-wrap"></div>
               <h3 style="margin-top:14px">Les joueurs les plus dangereux</h3><div id="dgTop"></div></div>
           </div>
@@ -699,7 +699,7 @@ input.j{width:64px}
           <div class="ph-head"><span class="chap-n">3</span><div><h2>30 derniers mètres</h2><p>Est-ce que l’équipe protège son but ?</p></div><span class="ph-verdict" id="dphV3"></span></div>
           <div class="ph-kpis" id="dphK3"></div>
           <div class="ph-vis">
-            <div><h3>D’où l’adversaire tire</h3><p class="sub" id="shotAgSub"></p><div id="shotMapAg"></div><div class="legend shleg shf"><span data-sh="g" title="Cliquer pour mettre en avant ; nouveau clic pour tout réafficher"><b class="lgball">⚽</b>But</span><span data-sh="ot" title="Cliquer pour mettre en avant ; nouveau clic pour tout réafficher"><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span data-sh="off" title="Cliquer pour mettre en avant ; nouveau clic pour tout réafficher"><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG · cliquez sur la légende pour filtrer</span></div></div>
+            <div><h3>D’où l’adversaire tire</h3><p class="sub" id="shotAgSub"></p><div id="shotMapAg"></div><div class="legend shleg shf"><span data-sh="g" title="Cliquer pour mettre en avant (plusieurs choix possibles) ; nouveau clic pour retirer"><b class="lgball">⚽</b>But</span><span data-sh="ot" title="Cliquer pour mettre en avant (plusieurs choix possibles) ; nouveau clic pour retirer"><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span data-sh="off" title="Cliquer pour mettre en avant (plusieurs choix possibles) ; nouveau clic pour retirer"><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG · cliquez sur la légende pour filtrer</span></div></div>
             <div><h3>Où arrivent les tirs concédés</h3><p class="sub" id="cageAgSub"></p><div id="cageAg" class="cage-wrap"></div>
               <h3 style="margin-top:14px">Type de tirs concédés</h3><div id="shATypes"></div></div>
           </div>
@@ -816,7 +816,7 @@ input.j{width:64px}
           <div class="card-head"><div><h2>D’où on lui tire dessus</h2><p class="sub" id="gkShotSub"></p></div>
           <div class="ctrl"><select id="gkShotType"><option value="all">Tous les tirs</option><option value="ot">Cadrés</option><option value="g">Buts</option></select></div></div>
           <div id="gkShotMap"></div>
-          <div class="legend shleg shf"><span data-sh="g" title="Cliquer pour mettre en avant ; nouveau clic pour tout réafficher"><b class="lgball">⚽</b>But</span><span data-sh="ot" title="Cliquer pour mettre en avant ; nouveau clic pour tout réafficher"><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span data-sh="off" title="Cliquer pour mettre en avant ; nouveau clic pour tout réafficher"><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG · cliquez sur la légende pour filtrer</span></div>
+          <div class="legend shleg shf"><span data-sh="g" title="Cliquer pour mettre en avant (plusieurs choix possibles) ; nouveau clic pour retirer"><b class="lgball">⚽</b>But</span><span data-sh="ot" title="Cliquer pour mettre en avant (plusieurs choix possibles) ; nouveau clic pour retirer"><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span data-sh="off" title="Cliquer pour mettre en avant (plusieurs choix possibles) ; nouveau clic pour retirer"><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG · cliquez sur la légende pour filtrer</span></div>
         </div>
         <div class="card c12 gk-sec"><h2 class="gk-h">Centres et sorties aériennes</h2></div>
         <div class="card c7">
@@ -930,7 +930,7 @@ input.j{width:64px}
           <div class="card c5">
             <div class="card-head"><div><h2>Ses tirs</h2><p class="sub" id="plyShotSub"></p></div></div>
             <div id="plyShotMap"></div>
-            <div class="legend shleg shf"><span data-sh="g" title="Cliquer pour mettre en avant ; nouveau clic pour tout réafficher"><b class="lgball">⚽</b>But</span><span data-sh="ot" title="Cliquer pour mettre en avant ; nouveau clic pour tout réafficher"><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span data-sh="off" title="Cliquer pour mettre en avant ; nouveau clic pour tout réafficher"><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG · cliquez sur la légende pour filtrer</span></div>
+            <div class="legend shleg shf"><span data-sh="g" title="Cliquer pour mettre en avant (plusieurs choix possibles) ; nouveau clic pour retirer"><b class="lgball">⚽</b>But</span><span data-sh="ot" title="Cliquer pour mettre en avant (plusieurs choix possibles) ; nouveau clic pour retirer"><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span data-sh="off" title="Cliquer pour mettre en avant (plusieurs choix possibles) ; nouveau clic pour retirer"><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG · cliquez sur la légende pour filtrer</span></div>
           </div>
           <div class="card c6">
             <div class="card-head"><div><h2>Ses duels</h2><p class="sub" id="plyDuelSub"></p></div></div>
@@ -2551,19 +2551,19 @@ function chartDefaults() {
   Chart.defaults.maintainAspectRatio = false;
   // Pas d'animation : un incident pendant une animation figeait tous les graphiques (barres à 0, courbes au plancher)
   Chart.defaults.animation = false;
-  // Légende : un clic met l'élément en avant (les autres s'estompent) au lieu de le masquer ; nouveau clic = tout réafficher
+  // Légende : chaque clic ajoute / retire l'élément de la mise en avant (les autres s'estompent) ; rien de sélectionné = tout normal
   Chart.defaults.plugins.legend.onClick = (e, item, legend) => {
     const ch = legend.chart, byIdx = ['pie', 'doughnut', 'polarArea'].includes(ch.config.type), k = byIdx ? item.index : item.datasetIndex;
-    ch.$focus = ch.$focus === k ? null : k;
+    const F = ch.$focus || (ch.$focus = new Set()); F.has(k) ? F.delete(k) : F.add(k); const on = F.size > 0;
     const fade = c => typeof c === 'string' ? color4(c, .12) : c;
     const keys = ['backgroundColor', 'borderColor', 'pointBackgroundColor', 'pointBorderColor'];
     ch.data.datasets.forEach((ds, i) => {
       if (!ds.$orig) { ds.$orig = {}; keys.forEach(p => { if (p in ds) ds.$orig[p] = ds[p]; }); ds.$order = ds.order ?? 0; }
       keys.forEach(p => { if (!(p in ds.$orig)) return; const o = ds.$orig[p];
-        if (ch.$focus == null) ds[p] = o;
-        else if (byIdx) ds[p] = Array.isArray(o) ? o.map((c, j) => j === ch.$focus ? c : fade(c)) : o;
-        else ds[p] = i === ch.$focus ? o : Array.isArray(o) ? o.map(fade) : fade(o); });
-      if (!byIdx) ds.order = ch.$focus === i ? -1 : ds.$order;
+        if (!on) ds[p] = o;
+        else if (byIdx) ds[p] = Array.isArray(o) ? o.map((c, j) => F.has(j) ? c : fade(c)) : o;
+        else ds[p] = F.has(i) ? o : Array.isArray(o) ? o.map(fade) : fade(o); });
+      if (!byIdx) ds.order = on && F.has(i) ? -1 : ds.$order;
     });
     ch.update('none');
   };
@@ -2903,7 +2903,7 @@ function cageSVG(shots, col) {
   const lab = ['lucarne', 'mi-hauteur', 'ras de terre'].map((l, r) => `<text x="${X(PY1) - .12}" y="${(Z(cz[r]) + Z(cz[r + 1])) / 2 + .06}" text-anchor="end" font-size=".17" fill="var(--text-3)">${l}</text>`).join('');
   const gl = ok.filter(s => s.g).length, sv = ok.filter(s => s.ot && !s.g).length, off = ok.length - gl - sv;
   return {svg: `<svg class="cage" viewBox="-.1 -.1 ${W + .2} ${H + .35}"><rect x="-.1" y="-.1" width="${W + .2}" height="${H + .35}" fill="var(--pitch)"/>${cells}${frame}${lab}${dots}<text x="${W / 2}" y="${H + .25}" text-anchor="middle" font-size=".16" fill="var(--text-3)">vue depuis le tireur</text></svg>`
-    + `<div class="cage-leg shf" title="Chiffres des zones = tirs cadrés (buts + arrêtés) arrivés dans chaque partie du cadre"><span data-sh="g" title="Cliquer pour mettre en avant ; nouveau clic pour tout réafficher">⚽ but (${gl})</span><span data-sh="ot" title="Cliquer pour mettre en avant ; nouveau clic pour tout réafficher"><i style="background:${col}"></i>arrêté (${sv})</span><span data-sh="off" title="Cliquer pour mettre en avant ; nouveau clic pour tout réafficher"><i style="border:1.5px dashed ${col}"></i>non cadré (${off})</span>${blk ? `<span>${blk} contré(s), non placés</span>` : ''}</div>`,
+    + `<div class="cage-leg shf" title="Chiffres des zones = tirs cadrés (buts + arrêtés) arrivés dans chaque partie du cadre"><span data-sh="g" title="Cliquer pour mettre en avant (plusieurs choix possibles) ; nouveau clic pour retirer">⚽ but (${gl})</span><span data-sh="ot" title="Cliquer pour mettre en avant (plusieurs choix possibles) ; nouveau clic pour retirer"><i style="background:${col}"></i>arrêté (${sv})</span><span data-sh="off" title="Cliquer pour mettre en avant (plusieurs choix possibles) ; nouveau clic pour retirer"><i style="border:1.5px dashed ${col}"></i>non cadré (${off})</span>${blk ? `<span>${blk} contré(s), non placés</span>` : ''}</div>`,
     sub: `${shots.length} tirs · ${inF} cadrés placés dans le cadre (chiffres = tirs cadrés par zone) · xGOT ${fmt(ok.filter(s => s.ot || s.g).reduce((a, s) => a + PSC(s), 0), 2)} · taille = xG${miss ? ` · ${miss} tir(s) sans position (réimportez les matchs)` : ''}`};
 }
 /* =====================================================================
@@ -3916,7 +3916,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-17 09:43 UTC';
+const BUILD = '2026-11-17 09:53 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -3961,9 +3961,10 @@ document.addEventListener('click', e => { const r = e.target.closest && e.target
   if (r.dataset.lbtid) setFilter('team', r.dataset.lbtid); else setFilter('player', r.dataset.lbpid); window.scrollTo({top: 0}); });
 document.addEventListener('click', e => { const r = e.target.closest && e.target.closest('[data-lossc]'); if (!r) return;
   // un clic met ce type en avant, un second clic réaffiche tout
-  const box = r.closest('.loss-leg').parentElement, k = r.dataset.lossc, on = !r.classList.contains('sel');
-  box.querySelectorAll('[data-lossc]').forEach(x => { x.classList.toggle('sel', on && x === r); x.classList.toggle('dim', on && x !== r); });
-  box.querySelectorAll('.loss-map g[data-lc]').forEach(g => { g.classList.toggle('dim', on && g.dataset.lc !== k); g.classList.toggle('hi', on && g.dataset.lc === k); });
+  const box = r.closest('.loss-leg').parentElement; r.classList.toggle('sel');
+  const K = new Set([...box.querySelectorAll('[data-lossc].sel')].map(x => x.dataset.lossc)), on = K.size > 0;
+  box.querySelectorAll('[data-lossc]').forEach(x => x.classList.toggle('dim', on && !K.has(x.dataset.lossc)));
+  box.querySelectorAll('.loss-map g[data-lc]').forEach(g => { g.classList.toggle('dim', on && !K.has(g.dataset.lc)); g.classList.toggle('hi', on && K.has(g.dataset.lc)); });
   const svg = box.querySelector('.loss-map'); if (svg && on) svg.querySelectorAll('g.hi').forEach(g => svg.appendChild(g)); });
 function renderPlyOverview(ms, TN, PI, f, P) {
   const SR = seasonRoles(), mode = $('#plyOvMode').value, p90 = mode === 'p90';
@@ -5146,9 +5147,9 @@ function lossMapSVG(L, PI, TN, role) {
   return `<svg class="pitch loss-map" viewBox="-2 -2 58 72">${pitchLines(true)}${zl}${dots}</svg>`;
 }
 function lossHTML(ms, lgM, tid, role, f, TN, PI) {
-  const D = role === 'def', L = lossList(ms, tid, role, f.qs);
+  const D = role === 'def', noSP = A => D ? A.filter(e => e.c !== 'cpa' && e.mo !== 'cpa') : A, L = noSP(lossList(ms, tid, role, f.qs));
   if (!L.length) return `<p class="rnote">${ms.some(m => m.ev) ? 'Réimportez les fichiers insight.jsonl de ces matchs pour analyser les pertes de balle (nouvelle version du traitement).' : 'Aucun match.'}</p>`;
-  const LG = lossList(lgM, null, role, f.qs), nTM = 2 * lgM.filter(m => m.ev && m.ev.loss).length || 1;
+  const LG = noSP(lossList(lgM, null, role, f.qs)), nTM = 2 * lgM.filter(m => m.ev && m.ev.loss).length || 1;
   const nM = tid ? new Set(L.map(e => e.m.id)).size || 1 : 2 * ms.filter(m => m.ev && m.ev.loss).length || 1;
   const cnt = A => A.length, pm = (A, n) => fmt(A.length / n, 1);
   const pctP = A => { const k = A.filter(e => e.pr != null); return k.length ? k.filter(e => e.pr).length / k.length * 100 : null; };
@@ -5164,8 +5165,9 @@ function lossHTML(ms, lgM, tid, role, f, TN, PI) {
   const tbl = `<table class="gkz bu-t sty-eff"><tr><th class="txt">${D ? 'Comment l’adversaire perd le ballon' : 'Comment elle perd le ballon'}</th><th>Pertes</th><th>Par match</th><th>Sous pression</th><th>${D ? 'Tir de l’équipe' : 'Tir adverse'} ≤ 15 s</th><th>xG</th><th>Buts</th></tr>${rows}${tot}</table>`;
   // moment + zones
   const share = (A, fn) => A.length ? A.filter(fn).length / A.length * 100 : 0;
-  const moBar = `<div class="sty-bar">${LOSS_MO.map(([k, l, h], i) => { const v = share(L, e => e.mo === k); return v > 0 ? `<i style="width:${v}%;background:${['#5b6b7f', '#d0453f', '#2b6cb0', '#a9b3be'][i]}" data-tip="${esc(`${l} : ${fmt(v, 0)} % (${L.filter(e => e.mo === k).length}) · moy. ${fmt(share(LG, e => e.mo === k), 0)} %\n${h}`)}">${v >= 9 ? fmt(v, 0) + ' %' : ''}</i>` : ''; }).join('')}</div>`
-    + `<div class="sty-leg">${LOSS_MO.map(([, l], i) => `<span><i style="background:${['#5b6b7f', '#d0453f', '#2b6cb0', '#a9b3be'][i]}"></i>${l}</span>`).join('')}</div>`;
+  const MO = D ? LOSS_MO.filter(x => x[0] !== 'cpa') : LOSS_MO;
+  const moBar = `<div class="sty-bar">${MO.map(([k, l, h], i) => { const v = share(L, e => e.mo === k); return v > 0 ? `<i style="width:${v}%;background:${['#5b6b7f', '#d0453f', '#2b6cb0', '#a9b3be'][i]}" data-tip="${esc(`${l} : ${fmt(v, 0)} % (${L.filter(e => e.mo === k).length}) · moy. ${fmt(share(LG, e => e.mo === k), 0)} %\n${h}`)}">${v >= 9 ? fmt(v, 0) + ' %' : ''}</i>` : ''; }).join('')}</div>`
+    + `<div class="sty-leg">${MO.map(([, l], i) => `<span><i style="background:${['#5b6b7f', '#d0453f', '#2b6cb0', '#a9b3be'][i]}"></i>${l}</span>`).join('')}</div>`;
   const zoneGrid = `<table class="gkz loss-z"><tr><th class="txt"></th>${['G', 'A', 'D'].map(c => `<th>${LOSS_CH[c][0].toUpperCase() + LOSS_CH[c].slice(1)}</th>`).join('')}</tr>${[1, 0].map(z => `<tr><td class="txt" style="width:28%">${(D && z ? 'Milieu de leur camp' : LOSS_Z[z][0].toUpperCase() + LOSS_Z[z].slice(1))}</td>${['G', 'A', 'D'].map(c => { const A = L.filter(e => e.z === z && e.ch === c), v = share(L, e => e.z === z && e.ch === c), a = share(LG, e => e.z === z && e.ch === c), sh = A.filter(e => e.sh).length;
     return `<td style="background:rgba(208,69,63,${Math.min(.55, v / 45)})" data-tip="${esc(`${A.length} pertes (${fmt(v, 0)} %, moy. ${fmt(a, 0)} %)\n${sh} suivie(s) d’un tir`)}"><b>${fmt(v, 0)} %</b><br><small class="muted">moy. ${fmt(a, 0)} %</small></td>`; }).join('')}</tr>`).join('')}</table>`;
   // similitudes : type × poste × zone
@@ -5190,7 +5192,7 @@ function lossHTML(ms, lgM, tid, role, f, TN, PI) {
     const R = Object.entries(byP).filter(([p]) => p && p !== 'null').sort((a, b) => b[1].length - a[1].length).slice(0, 8).map(([p, A]) => { const secs = T[p] ? T[p].secs : 0, top = LOSS_CAT.map(([k, l]) => [l, A.filter(e => e.c === k).length]).sort((a, b) => b[1] - a[1])[0], sh = A.filter(e => e.sh).length;
       return `<tr><td class="txt"><span data-lbpid="${esc(p)}" style="cursor:pointer;font-weight:600">${esc(PI[p] ? PI[p].name : '—')}</span><br><small class="muted">${esc(LOSS_ROLE[seasonRoles()[p]] || '')}</small></td><td>${Math.round(secs / 60)}</td><td><b>${A.length}</b></td><td>${secs ? fmt(A.length / secs * 5400, 1) : '—'}</td><td>${A.filter(e => e.z === 0).length}</td><td>${A.filter(e => e.pr).length}</td><td class="txt">${esc(top[0])} (${top[1]})</td><td>${sh || ''}</td></tr>`; }).join('');
     ply = `<h3 class="sty-h">Les joueurs qui perdent le plus de ballons dans leur camp</h3><div class="tbl-wrap"><table class="gkz"><tr><th class="txt">Joueur</th><th>Min</th><th>Pertes</th><th>Par 90</th><th>Dans son tiers</th><th>Sous pression</th><th class="txt">Le plus souvent</th><th>Tirs adverses derrière</th></tr>${R}</table></div>`; }
-  const leg = `<div class="sty-leg loss-leg">${LOSS_CAT.map(([k, l, c]) => L.some(e => e.c === k) ? `<span data-lossc="${k}" title="Cliquer pour mettre en avant ; nouveau clic pour tout réafficher"><i style="background:${c}"></i>${l}</span>` : '').join('')}<span class="muted">cercle rouge = suivie d’un tir · contour noir = but</span></div>`;
+  const leg = `<div class="sty-leg loss-leg">${LOSS_CAT.map(([k, l, c]) => L.some(e => e.c === k) ? `<span data-lossc="${k}" title="Cliquer pour mettre en avant (plusieurs choix possibles) ; nouveau clic pour retirer"><i style="background:${c}"></i>${l}</span>` : '').join('')}<span class="muted">cercle rouge = suivie d’un tir · contour noir = but</span></div>`;
   if (D) {
     const SR = seasonRoles(), C = teamCodes(), nTMd = nTM;
     const top = A => LOSS_CAT.map(([k, l]) => [k, l, A.filter(e => e.c === k).length]).sort((a, b) => b[2] - a[2])[0];
@@ -5202,7 +5204,7 @@ function lossHTML(ms, lgM, tid, role, f, TN, PI) {
     return `<div class="dloss"><h3 class="sty-h" style="font-size:16px;margin-top:22px">Où et comment son pressing fait perdre le ballon</h3><p class="sub" style="margin:0 0 8px">${L.length} pertes adverses dans leur moitié de terrain face à l’équipe (${fmt(L.length / nM, 1)} par match, moy. ${fmt(LG.length / nTM, 1)}) · ${L.filter(e => e.sh).length} suivies d’un tir de l’équipe dans les 15 s</p>`
       + `<div class="style-grid"><div><h3 class="sty-h" style="margin-top:4px">Où</h3>${zoneGrid}<h3 class="sty-h">À quel moment</h3>${moBar}${bpHTML(ms, lgM, tid, role, f, TN, PI)}</div><div><h3 class="sty-h" style="margin-top:4px">Les pertes adverses (l’adversaire attaque vers la droite)</h3>${lossMapSVG(L, PI, TN, role)}${leg}</div></div>`
       + `<h3 class="sty-h">Les postes adverses qui perdent le ballon</h3>${roleT}`
-      + `<p class="note">Pertes adverses dans leur camp : passes ratées (hors centres et corners), dépossessions, mauvais contrôles, dribbles ratés, et dégagements perdus juste après un retrait sous pression ; les ballons longs du gardien ne sont pas comptés. <b>Sous pression</b> : défenseur de l’équipe à moins de 2 m du passeur (Second Spectrum) ; dépossessions et dribbles ratés comptés sous pression. <b>Tirs derrière</b> : tir de l’équipe dans les 15 secondes. Le poste est le poste habituel du joueur sur la saison.</p></div>`;
+      + `<p class="note">Pertes adverses dans leur camp, hors coups de pied arrêtés (touches, coups francs, 6 m et pertes juste après) : passes ratées (hors centres et corners), dépossessions, mauvais contrôles, dribbles ratés, et dégagements perdus juste après un retrait sous pression ; les ballons longs du gardien ne sont pas comptés. <b>Sous pression</b> : défenseur de l’équipe à moins de 2 m du passeur (Second Spectrum) ; dépossessions et dribbles ratés comptés sous pression. <b>Tirs derrière</b> : tir de l’équipe dans les 15 secondes. Le poste est le poste habituel du joueur sur la saison.</p></div>`;
   }
   return kpis + sig + `<div class="style-grid"><div>${tbl}<h3 class="sty-h">À quel moment</h3>${moBar}<h3 class="sty-h">Où</h3>${zoneGrid}</div><div><h3 class="sty-h" style="margin-top:4px">${D ? 'Les pertes adverses (l’adversaire attaque vers la droite)' : 'Ses pertes (l’équipe attaque vers la droite)'}</h3>${lossMapSVG(L, PI, TN, role)}${leg}</div></div>`
     + bpHTML(ms, lgM, tid, role, f, TN, PI)
@@ -6308,8 +6310,8 @@ function bindUI() {
   bindSubtabs();
   bindPhyUI();
   bindReportUI();
-  document.addEventListener('click', e => { const t = e.target.closest('.shf [data-sh]'); if (!t) return; const sc = t.closest('.subpanel, .rpage, .card') || document.body, k = t.dataset.sh, on = !sc.classList.contains('shfoc-' + k);
-    sc.classList.remove('shfoc', 'shfoc-g', 'shfoc-ot', 'shfoc-off'); if (on) sc.classList.add('shfoc', 'shfoc-' + k); });
+  document.addEventListener('click', e => { const t = e.target.closest('.shf [data-sh]'); if (!t) return; const sc = t.closest('.subpanel, .rpage, .card') || document.body;
+    sc.classList.toggle('shfoc-' + t.dataset.sh); sc.classList.toggle('shfoc', ['g', 'ot', 'off'].some(k => sc.classList.contains('shfoc-' + k))); });
   document.addEventListener('click', e => { const b = e.target.closest('[data-more]'); if (!b) return; const w = document.getElementById(b.dataset.more + 'Wrap'); if (!w) return; w.hidden = !w.hidden; b.textContent = b.textContent.replace(/^(Voir|Masquer)/, w.hidden ? 'Voir' : 'Masquer'); });
   [['#ckSide', 'side'], ['#ckZoneMode', 'zm'], ['#ckPlMode', 'pl'], ['#spType', 'ty'], ['#fkDir', 'fd']].forEach(([id, k]) => $(id).onclick = e => { const b = e.target.closest('[data-v]'); if (!b || b.disabled) return; S.ck = S.ck || {}; S.ck[k] = b.dataset.v; if (k === 'ty') S.ck.dt = b.dataset.v; scheduleRender(); });
   $('#qcRun').onclick = () => { $('#qcSum').textContent = 'Contrôle en cours…'; setTimeout(renderQuality, 30); };
