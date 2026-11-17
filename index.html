@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-17 08:16 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-17 08:27 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -2195,7 +2195,7 @@ function aggTactical(ms, qsOverride) { return memoAgg('T', aggTacticalRaw, ms, q
 function aggPhys(ms, qsOverride) { return memoAgg('P', aggPhysRaw, ms, qsOverride || S.f.qs); }
 function aggTacticalRaw(ms, qsOverride) {
   const qs = qsOverride || S.f.qs;
-  const T = {}, P = {}, PSM = psModel();
+  const T = {}, P = {}, PSM = psModel(), SR = seasonRoles();
   const t = id => T[id] || (T[id] = newAgg());
   const p = id => P[id] || (P[id] = newAgg());
   for (const m of ms) {
@@ -2224,7 +2224,7 @@ function aggTacticalRaw(ms, qsOverride) {
       if (g.p && !g.og) p(g.p).gf++;
       if (g.a) { p(g.a).ast++; t(g.tm).ast++; }
     }
-    for (const l of E.loss || []) { if (l[0] !== H && l[0] !== A) continue; if (!qs.has(quarter(l[1], l[2] / 60))) continue;
+    for (const l of E.loss || []) { if (l[0] !== H && l[0] !== A) continue; if (lossGkLong(l, SR)) continue; if (!qs.has(quarter(l[1], l[2] / 60))) continue;
       const pr = lossPress(l);
       for (const [o, k] of [[t(l[0]), 'ls'], [t(opp(l[0])), 'lf'], [l[3] && p(l[3]), 'ls']]) { if (!o) continue;
         o[k + 'N']++; if (l[5] < 33.3) o[k + 'L']++; if (pr != null) { o[k + 'PK']++; o[k + 'P'] += pr; } if (l[13]) o[k + 'Sh']++; o[k + 'Xg'] += l[14]; o[k + 'G'] += l[15]; } }
@@ -3892,7 +3892,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-17 08:16 UTC';
+const BUILD = '2026-11-17 08:27 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -5010,6 +5010,11 @@ function lossCat(l) {
   if (k === 'ps') { if (l[7] == null) return 'plat'; const dx = (l[7] - l[5]) * 1.05, dy = Math.abs(l[8] - l[6]) * .68; return dx > 2 && dx > dy * .6 ? 'pav' : 'plat'; }
   return k;
 }
+// Ballons longs du gardien (dégagement, 6 m, coup franc) et 6 m longs : ballons disputés, pas des pertes de relance
+function lossGkLong(l, R) {
+  const long = l[4] === 'pl' || (l[7] != null ? (l[7] - l[5]) * 1.05 >= 30 : l[4] !== 'ps');
+  return long && (l[4] === 'gk' || ((l[4] === 'pl' || l[4] === 'fk') && R[l[3]] === 'GK'));
+}
 function lossPress(l) { if (l[4] === 'dp' || l[4] === 'dr') return 1; if (l[9] == null) return null; return l[9] < 2 ? 1 : 0; }
 function lossMoment(l, c) {
   if (c === 'cpa' || (l[10] === 'cpa' && l[11] != null && l[11] <= 10)) return 'cpa';
@@ -5024,6 +5029,7 @@ function lossList(ms, tid, role, qs) {
     for (const l of m.ev.loss) { const tm = l[0];
       if (tid && (role === 'def' ? tm === tid : tm !== tid)) continue;
       if (qs && !qs.has(quarter(l[1], l[2] / 60))) continue;
+      if (lossGkLong(l, R)) continue;
       const c = lossCat(l);
       L.push({m, l, tm, c, pr: lossPress(l), mo: lossMoment(l, c), z: l[5] < 33.3 ? 0 : 1, ch: l[6] > 66.7 ? 'G' : l[6] < 33.3 ? 'D' : 'A', p: l[3], r: R[l[3]] || null, sh: l[13], xg: l[14], g: l[15]}); } }
   return L;
@@ -5065,7 +5071,7 @@ function lossHTML(ms, lgM, tid, role, f, TN, PI) {
     return `<td style="background:rgba(208,69,63,${Math.min(.55, v / 45)})" data-tip="${esc(`${A.length} pertes (${fmt(v, 0)} %, moy. ${fmt(a, 0)} %)\n${sh} suivie(s) d’un tir`)}"><b>${fmt(v, 0)} %</b><br><small class="muted">moy. ${fmt(a, 0)} %</small></td>`; }).join('')}</tr>`).join('')}</table>`;
   // similitudes : type × poste × zone
   const G = {}, zL = z => D && z ? 'milieu de leur camp' : LOSS_Z[z];
-  for (const e of L) { if (e.c === 'pl' || e.c === 'cpa') continue; const key = e.c + '|' + (e.r || '?') + '|' + e.z + e.ch; (G[key] || (G[key] = [])).push(e); }
+  for (const e of L) { if (e.c === 'cpa') continue; const key = e.c + '|' + (e.r || '?') + '|' + e.z + e.ch; (G[key] || (G[key] = [])).push(e); }
   const pats = Object.entries(G).filter(([, A]) => A.length >= 3).sort((a, b) => b[1].length - a[1].length || b[1].filter(e => e.sh).length - a[1].filter(e => e.sh).length).slice(0, 6);
   const patHTML = pats.length ? pats.map(([key, A]) => { const [c, r, zc] = key.split('|'), z = +zc[0], ch = zc[1];
     const nm = new Set(A.map(e => e.m.id)).size, pp = A.filter(e => e.pr).length, sh = A.filter(e => e.sh).length, xg = A.reduce((s, e) => s + e.xg, 0), g = A.filter(e => e.g).length;
@@ -5087,8 +5093,8 @@ function lossHTML(ms, lgM, tid, role, f, TN, PI) {
     ply = `<h3 class="sty-h">Les joueurs qui perdent le plus de ballons dans leur camp</h3><div class="tbl-wrap"><table class="gkz"><tr><th class="txt">Joueur</th><th>Min</th><th>Pertes</th><th>Par 90</th><th>Dans son tiers</th><th>Sous pression</th><th class="txt">Le plus souvent</th><th>Tirs adverses derrière</th></tr>${R}</table></div>`; }
   const leg = `<div class="sty-leg loss-leg">${LOSS_CAT.map(([k, l, c]) => L.some(e => e.c === k) ? `<span data-lossc="${k}" title="Cliquer pour masquer / afficher"><i style="background:${c}"></i>${l}</span>` : '').join('')}<span class="muted">cercle rouge = suivie d’un tir · contour noir = but</span></div>`;
   return kpis + sig + `<div class="style-grid"><div>${tbl}<h3 class="sty-h">À quel moment</h3>${moBar}<h3 class="sty-h">Où</h3>${zoneGrid}</div><div><h3 class="sty-h" style="margin-top:4px">${D ? 'Les pertes adverses (l’adversaire attaque vers la droite)' : 'Ses pertes (l’équipe attaque vers la droite)'}</h3>${lossMapSVG(L, PI, TN, role)}${leg}</div></div>`
-    + `<h3 class="sty-h">Les pertes qui se répètent</h3><p class="sub" style="margin:0 0 6px">Même type de perte, même poste, même zone — au moins 3 fois (hors jeu long et coups de pied arrêtés)</p><div class="loss-pats">${patHTML}</div>` + ply
-    + `<p class="note">${L.length} pertes ${D ? 'adverses ' : ''}dans ${D ? 'leur' : 'son'} camp (passes ratées hors centres et corners, dépossessions, mauvais contrôles, dribbles ratés), d’après les événements Opta. <b>Sous pression</b> : adversaire le plus proche à moins de 2 m du passeur au moment de la passe (Second Spectrum) ; les dépossessions et dribbles ratés comptent comme sous pression. <b>Passe vers l’avant / latérale</b> : d’après le point d’arrivée prévu de la passe. <b>Tir derrière</b> : tir ${D ? 'de l’équipe' : 'adverse'} dans les 15 secondes. Le poste est le poste habituel du joueur sur la saison.</p>`;
+    + `<h3 class="sty-h">Les pertes qui se répètent</h3><p class="sub" style="margin:0 0 6px">Même type de perte, même poste, même zone — au moins 3 fois (hors coups de pied arrêtés)</p><div class="loss-pats">${patHTML}</div>` + ply
+    + `<p class="note">${L.length} pertes ${D ? 'adverses ' : ''}dans ${D ? 'leur' : 'son'} camp (passes ratées hors centres et corners, dépossessions, mauvais contrôles, dribbles ratés), d’après les événements Opta. Les ballons longs du gardien (dégagements, 6 m, coups francs) ne sont pas comptés : ce sont des ballons disputés ; ses relances courtes ratées le sont. <b>Sous pression</b> : adversaire le plus proche à moins de 2 m du passeur au moment de la passe (Second Spectrum) ; les dépossessions et dribbles ratés comptent comme sous pression. <b>Passe vers l’avant / latérale</b> : d’après le point d’arrivée prévu de la passe. <b>Tir derrière</b> : tir ${D ? 'de l’équipe' : 'adverse'} dans les 15 secondes. Le poste est le poste habituel du joueur sur la saison.</p>`;
 }
 function buList(ms, tid, role, qs) {
   const L = [];
