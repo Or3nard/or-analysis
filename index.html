@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-17 09:56 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-17 09:58 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3916,7 +3916,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-17 09:56 UTC';
+const BUILD = '2026-11-17 09:58 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -5038,6 +5038,13 @@ const LOSS_CL = Object.fromEntries(LOSS_CAT.map(([k, l, c]) => [k, {l, c}]));
 const LOSS_MO = [['rel', 'Relance du gardien', 'perte dans les 10 s d’une possession commencée par le gardien (6 m, ballon à la main)'], ['vite', 'Juste après avoir récupéré', 'perte dans les 5 s qui suivent la récupération du ballon, ou ballon jamais vraiment maîtrisé'],
   ['cons', 'En construction', 'possession installée depuis plus de 5 s'], ['cpa', 'Sur coup de pied arrêté', 'touche, coup franc ou 6 m mal joués, ou perte juste après']];
 const LOSS_ROLE = {GK: 'Gardien', CB: 'Défenseur central', FB: 'Latéral', CM: 'Milieu central', WM: 'Milieu excentré', FW: 'Attaquant'};
+// Arrondit des parts (en %) à l'entier en gardant un total de 100 (méthode des plus grands restes)
+function pct100(V) {
+  const T = V.reduce((a, b) => a + (b || 0), 0); if (!T) return V.map(() => 0);
+  const x = V.map(v => (v || 0) / T * 100), r = x.map(Math.floor); let d = 100 - r.reduce((a, b) => a + b, 0);
+  x.map((v, i) => [v - r[i], i]).sort((a, b) => b[0] - a[0]).forEach(([, i]) => { if (d > 0 && x[i] > 0) { r[i]++; d--; } });
+  return r;
+}
 function lossCat(l) {
   const k = l[4]; if (k === 'th' || k === 'gk' || k === 'fk') return 'cpa'; if (k === 'pl' || k === 'rtd') return k;
   if (k === 'ps') { if (l[7] == null) return 'plat'; const dx = (l[7] - l[5]) * 1.05, dy = Math.abs(l[8] - l[6]) * .68; return dx > 2 && dx > dy * .6 ? 'pav' : 'plat'; }
@@ -5158,18 +5165,21 @@ function lossHTML(ms, lgM, tid, role, f, TN, PI) {
   const kpis = tid ? `<div class="ph-kpis">${kpiRowHTML([[D ? 'Pertes adverses dans leur camp' : 'Pertes dans son camp', kp + 'N', dir, 'pm'], ['Sous pression (adversaire à moins de 2 m)', kp + 'PPct', 1, '%', 1], [shTxt + ' (≤ 15 s)', kp + 'Sh', dir, 'pm'], [D ? 'xG créés derrière' : 'xG concédés derrière', kp + 'Xg', dir, 'pm']], f, tid, false, nM)}</div>` : '';
   // par type
   const good = (v, a) => v == null || a == null || Math.abs(v - a) / Math.max(a, .1) < .15 ? '' : (v > a) === D ? 'pos' : 'neg';
-  const rows = LOSS_CAT.map(([k, l, c]) => { const A = L.filter(e => e.c === k), G = LG.filter(e => e.c === k); if (!A.length && !G.length) return '';
+  const cP = pct100(LOSS_CAT.map(([k]) => L.filter(e => e.c === k).length));
+  const rows = LOSS_CAT.map(([k, l, c], ci) => { const A = L.filter(e => e.c === k), G = LG.filter(e => e.c === k); if (!A.length && !G.length) return '';
     const v = A.length / nM, a = G.length / nTM, sh = A.filter(e => e.sh).length, xg = A.reduce((s, e) => s + e.xg, 0), g = A.filter(e => e.g).length, pp = pctP(A);
-    return `<tr><td class="txt"><span class="sty-dot" style="background:${c}"></span>${l}</td><td>${A.length}<br><small class="muted">${fmt(A.length / L.length * 100, 0)} %</small></td><td class="${good(v, a)}">${fmt(v, 1)}<br><small class="muted">moy. ${fmt(a, 1)}</small></td><td>${pp == null ? '—' : fmt(pp, 0) + ' %'}</td><td>${sh}${A.length ? `<br><small class="muted">${fmt(sh / A.length * 100, 0)} %</small>` : ''}</td><td>${fmt(xg, 2)}</td><td>${g || ''}</td></tr>`; }).join('');
+    return `<tr><td class="txt"><span class="sty-dot" style="background:${c}"></span>${l}</td><td>${A.length}<br><small class="muted">${cP[ci]} %</small></td><td class="${good(v, a)}">${fmt(v, 1)}<br><small class="muted">moy. ${fmt(a, 1)}</small></td><td>${pp == null ? '—' : fmt(pp, 0) + ' %'}</td><td>${sh}${A.length ? `<br><small class="muted">${fmt(sh / A.length * 100, 0)} %</small>` : ''}</td><td>${fmt(xg, 2)}</td><td>${g || ''}</td></tr>`; }).join('');
   const tot = (() => { const sh = L.filter(e => e.sh).length, pp = pctP(L); return `<tr class="sty-tot"><td class="txt"><b>Total</b></td><td><b>${L.length}</b></td><td><b>${fmt(L.length / nM, 1)}</b><br><small class="muted">moy. ${fmt(LG.length / nTM, 1)}</small></td><td>${pp == null ? '—' : fmt(pp, 0) + ' %'}</td><td><b>${sh}</b><br><small class="muted">${fmt(sh / L.length * 100, 0)} %</small></td><td><b>${fmt(L.reduce((s, e) => s + e.xg, 0), 2)}</b></td><td><b>${L.filter(e => e.g).length || ''}</b></td></tr>`; })();
   const tbl = `<table class="gkz bu-t sty-eff"><tr><th class="txt">${D ? 'Comment l’adversaire perd le ballon' : 'Comment elle perd le ballon'}</th><th>Pertes</th><th>Par match</th><th>Sous pression</th><th>${D ? 'Tir de l’équipe' : 'Tir adverse'} ≤ 15 s</th><th>xG</th><th>Buts</th></tr>${rows}${tot}</table>`;
   // moment + zones
   const share = (A, fn) => A.length ? A.filter(fn).length / A.length * 100 : 0;
   const MO = D ? LOSS_MO.filter(x => x[0] !== 'cpa') : LOSS_MO;
-  const moBar = `<div class="sty-bar">${MO.map(([k, l, h], i) => { const v = share(L, e => e.mo === k); return v > 0 ? `<i style="width:${v}%;background:${['#5b6b7f', '#d0453f', '#2b6cb0', '#a9b3be'][i]}" data-tip="${esc(`${l} : ${fmt(v, 0)} % (${L.filter(e => e.mo === k).length}) · moy. ${fmt(share(LG, e => e.mo === k), 0)} %\n${h}`)}">${v >= 9 ? fmt(v, 0) + ' %' : ''}</i>` : ''; }).join('')}</div>`
-    + `<div class="sty-leg">${MO.map(([k, l], i) => `<span><i style="background:${['#5b6b7f', '#d0453f', '#2b6cb0', '#a9b3be'][i]}"></i>${l} <b>${fmt(share(L, e => e.mo === k), 0)} %</b> <small>(moy. ${fmt(share(LG, e => e.mo === k), 0)} %)</small></span>`).join('')}</div>`;
+  const moP = pct100(MO.map(([k]) => L.filter(e => e.mo === k).length)), moA = pct100(MO.map(([k]) => LG.filter(e => e.mo === k).length));
+  const moBar = `<div class="sty-bar">${MO.map(([k, l, h], i) => { const v = share(L, e => e.mo === k); return v > 0 ? `<i style="width:${v}%;background:${['#5b6b7f', '#d0453f', '#2b6cb0', '#a9b3be'][i]}" data-tip="${esc(`${l} : ${moP[i]} % (${L.filter(e => e.mo === k).length}) · moy. ${moA[i]} %\n${h}`)}">${v >= 9 ? moP[i] + ' %' : ''}</i>` : ''; }).join('')}</div>`
+    + `<div class="sty-leg">${MO.map(([k, l], i) => `<span><i style="background:${['#5b6b7f', '#d0453f', '#2b6cb0', '#a9b3be'][i]}"></i>${l} <b>${moP[i]} %</b> <small>(moy. ${moA[i]} %)</small></span>`).join('')}</div>`;
+  const ZK = [1, 0].flatMap(z => ['G', 'A', 'D'].map(c => z + c)), zP = pct100(ZK.map(k => L.filter(e => e.z + e.ch === k).length)), zA = pct100(ZK.map(k => LG.filter(e => e.z + e.ch === k).length)), zi = (z, c) => ZK.indexOf(z + c);
   const zoneGrid = `<table class="gkz loss-z"><tr><th class="txt"></th>${['G', 'A', 'D'].map(c => `<th>${LOSS_CH[c][0].toUpperCase() + LOSS_CH[c].slice(1)}</th>`).join('')}</tr>${[1, 0].map(z => `<tr><td class="txt" style="width:28%">${(D && z ? 'Milieu de leur camp' : LOSS_Z[z][0].toUpperCase() + LOSS_Z[z].slice(1))}</td>${['G', 'A', 'D'].map(c => { const A = L.filter(e => e.z === z && e.ch === c), v = share(L, e => e.z === z && e.ch === c), a = share(LG, e => e.z === z && e.ch === c), sh = A.filter(e => e.sh).length;
-    return `<td style="background:rgba(208,69,63,${Math.min(.55, v / 45)})" data-tip="${esc(`${A.length} pertes (${fmt(v, 0)} %, moy. ${fmt(a, 0)} %)\n${sh} suivie(s) d’un tir`)}"><b>${fmt(v, 0)} %</b><br><small class="muted">moy. ${fmt(a, 0)} %</small></td>`; }).join('')}</tr>`).join('')}</table>`;
+    return `<td style="background:rgba(208,69,63,${Math.min(.55, v / 45)})" data-tip="${esc(`${A.length} pertes (${zP[zi(z, c)]} %, moy. ${zA[zi(z, c)]} %)\n${sh} suivie(s) d’un tir`)}"><b>${zP[zi(z, c)]} %</b><br><small class="muted">moy. ${zA[zi(z, c)]} %</small></td>`; }).join('')}</tr>`).join('')}</table>`;
   // similitudes : type × poste × zone
   const G = {}, zL = z => D && z ? 'milieu de leur camp' : LOSS_Z[z];
   for (const e of L) { if (e.c === 'cpa') continue; const key = e.c + '|' + (e.r || '?') + '|' + e.z + e.ch; (G[key] || (G[key] = [])).push(e); }
@@ -5244,7 +5254,7 @@ function renderDefStyle(f, tid, TN) {
   const gauge = (l, v, col, help) => `<div class="stg"><div class="stg-l"><b>${l}</b><small>${help}</small></div><div class="stg-b"><i style="width:${v == null ? 0 : v}%;background:${col}"></i></div><em>${v == null ? '—' : Math.round(v)}<small>/100</small></em></div>`;
   const share = o => { const tot = STY_O.reduce((a, [k]) => a + (o['xga_' + k] || 0), 0); return STY_O.map(([k]) => tot ? (o['xga_' + k] || 0) / tot * 100 : 0); };
   const lgS = STY_O.map((_, i) => mean(ids.map(t => share(T[t])[i])));
-  const bar = (S, lab) => `<div class="sty-row"><span>${lab}</span><div class="sty-bar">${STY_O.map(([k, l], i) => S[i] > 0 ? `<i style="width:${S[i]}%;background:${STY_O[i][3]}" data-tip="${esc(`${l} : ${fmt(S[i], 0)} % des xG concédés`)}">${S[i] >= 9 ? fmt(S[i], 0) + ' %' : ''}</i>` : '').join('')}</div></div>`;
+  const bar = (S, lab) => { const R = pct100(S); return `<div class="sty-row"><span>${lab}</span><div class="sty-bar">${STY_O.map(([k, l], i) => S[i] > 0 ? `<i style="width:${S[i]}%;background:${STY_O[i][3]}" data-tip="${esc(`${l} : ${R[i]} % des xG concédés`)}">${S[i] >= 9 ? R[i] + ' %' : ''}</i>` : '').join('')}</div></div>`; };
   let left;
   if (!me) left = `<p class="style-v">Choisissez une équipe pour voir son style défensif.</p><p class="note">Le pressing est découpé en trois notes sur 100 : <b>intensité</b> (part des passes adverses jouées avec un défenseur à moins de 2 m, PPDA), <b>hauteur</b> (où se font ces pressions, hauteur des récupérations) et <b>efficacité</b> (passes adverses ratées sous pression, pressions contournées, pertes provoquées dans le camp adverse et ce qu’elles rapportent, xG concédés en transition). Le graphique « Pressing × solidité » place chaque équipe selon sa note de <b>pressing</b> (intensité + hauteur) et <b>solidité</b> (peu de xG concédés, peu de tirs concédés, des tirs adverses de faible qualité, peu d’entrées adverses dans la surface). 50 = au milieu du championnat.</p>`;
   else {
@@ -5324,7 +5334,7 @@ function renderStyle(f, tid, TN) {
   // part du danger (xG) par origine, équipe vs moyenne du championnat
   const share = o => { const tot = STY_O.reduce((a, [k]) => a + (o['xg_' + k] || 0), 0); return STY_O.map(([k]) => tot ? (o['xg_' + k] || 0) / tot * 100 : 0); };
   const lgS = STY_O.map((_, i) => mean(ids.map(t => share(T[t])[i])));
-  const bar = (S, lab) => `<div class="sty-row"><span>${lab}</span><div class="sty-bar">${STY_O.map(([k, l], i) => S[i] > 0 ? `<i style="width:${S[i]}%;background:${STY_O[i][3]}" data-tip="${esc(`${l} : ${fmt(S[i], 0)} % des xG`)}">${S[i] >= 9 ? fmt(S[i], 0) + ' %' : ''}</i>` : '').join('')}</div></div>`;
+  const bar = (S, lab) => { const R = pct100(S); return `<div class="sty-row"><span>${lab}</span><div class="sty-bar">${STY_O.map(([k, l], i) => S[i] > 0 ? `<i style="width:${S[i]}%;background:${STY_O[i][3]}" data-tip="${esc(`${l} : ${R[i]} % des xG`)}">${S[i] >= 9 ? R[i] + ' %' : ''}</i>` : '').join('')}</div></div>`; };
   let left;
   if (!me) left = `<p class="style-v">Choisissez une équipe pour voir son style de jeu.</p><p class="note">Le graphique place chaque équipe du championnat selon deux notes sur 100 : <b>construction</b> (possession, passes par possession, % de passes, part des xG en attaque placée) et <b>transition</b> (verticalité, part des xG en transition, récupérations dans le camp adverse, tirs en contre). 50 = au milieu du championnat.</p>`;
   else {
