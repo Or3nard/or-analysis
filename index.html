@@ -168,7 +168,7 @@ main{padding:18px 20px 60px;max-width:1500px;margin:0 auto}
 .scn .sv small,.scn .sm{font-size:11.5px;color:var(--text-3)}.vnd{display:flex;height:14px;border-radius:5px;overflow:hidden;background:var(--grid);margin:6px 0 4px}.vnd i{display:block;cursor:help}.vnd i+i{border-left:2px solid var(--surface-2)}.vnd .V{background:#2e9e5b}.vnd .N{background:#c9a227}.vnd .D{background:#d0453f}
 .sys2{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:700px){.sys2,.scn{grid-template-columns:1fr}}.sys2 table td:first-child{white-space:nowrap}
 .resl .rs{font-size:11px;color:var(--text-3);white-space:nowrap}
-.loss-pats{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:8px}.loss-pat{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12.5px}.loss-pat .sty-dot{margin-top:4px;flex:none}.loss-pat small{display:block;color:var(--text-2);margin-top:3px;line-height:1.45}.loss-pat .pos{color:#2e9e5b;font-weight:700}.loss-pat .neg{color:#d0453f;font-weight:700}.loss-z td{text-align:center}.loss-z th{text-align:center}.loss-leg span[data-lossc]{cursor:pointer;user-select:none}.loss-leg span.off{opacity:.35;text-decoration:line-through}.loss-map g.off{display:none}
+.dloss th,.loss-z th{position:static}.dloss{border-top:1px solid var(--border);margin-top:18px}.loss-pats{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:8px}.loss-pat{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:12.5px}.loss-pat .sty-dot{margin-top:4px;flex:none}.loss-pat small{display:block;color:var(--text-2);margin-top:3px;line-height:1.45}.loss-pat .pos{color:#2e9e5b;font-weight:700}.loss-pat .neg{color:#d0453f;font-weight:700}.loss-z td{text-align:center}.loss-z th{text-align:center}.loss-leg span[data-lossc]{cursor:pointer;user-select:none}.loss-leg span.off{opacity:.35;text-decoration:line-through}.loss-map g.off{display:none}
 .bu-t td{vertical-align:middle}.bu-t td small{font-size:10.5px}.bu-t td.pos{color:#2e9e5b;font-weight:700}.bu-t td.neg{color:#d0453f;font-weight:700}.style-grid{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:24px}@media(max-width:980px){.style-grid{grid-template-columns:1fr}}
 .rk.neu{background:var(--surface);color:var(--text-2);border:1px solid var(--border)}.style-v{font-size:19px;font-weight:800;margin:0 0 12px}.stg{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,2fr) 60px;gap:12px;align-items:center;margin:6px 0}.stg-l b{display:block;font-size:13px}.stg-l small{font-size:11px;color:var(--text-3)}
 .stg-b{height:12px;border-radius:6px;background:var(--grid);overflow:hidden}.stg-b i{display:block;height:100%;border-radius:6px}.stg em{font-style:normal;font-weight:800;font-size:16px;text-align:right}.stg em small{font-size:10px;color:var(--text-3);font-weight:600}
@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-17 09:04 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-17 09:28 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -669,13 +669,10 @@ input.j{width:64px}
           <div class="syn syn4" id="dsynCols"></div>
           <p class="syn-read" id="dsynRead"></p>
         </div>
-        <div class="card c12" id="lossDefCard">
-          <div class="card-head"><div><h2>Pertes provoquées dans le camp adverse</h2><p class="sub">Comment les adversaires perdent le ballon dans leur moitié face à l’équipe, et ce qu’elle en fait</p></div></div>
-          <div id="lossDef"></div>
-        </div>
         <div class="card c12" id="dstyleCard">
           <div class="card-head"><div><h2>Style de jeu défensif</h2><p class="sub" id="dstyleSub"></p></div></div>
           <div class="style-grid"><div id="dstyleL"></div><div><div class="ctrl" style="justify-content:flex-end;margin-bottom:6px"><select id="dsMode"><option value="ps">Pressing × solidité</option><option value="ie">Intensité × efficacité du pressing</option><option value="ih">Hauteur × intensité du pressing</option></select></div><div class="chart-box" style="height:380px"><canvas id="chDefStyle"></canvas></div><p class="note">Chaque équipe selon deux notes sur 100 · lignes pointillées = 50 · <span id="dsNote"></span></p></div></div>
+          <div id="lossDef"></div>
         </div>
         <div class="card c12 ph" id="dph1">
           <div class="ph-head"><span class="chap-n">1</span><div><h2>Pressing et récupération</h2><p>Est-ce que l’équipe récupère le ballon haut et souvent ?</p></div><span class="ph-verdict" id="dphV1"></span></div>
@@ -3361,7 +3358,7 @@ function renderTactical() {
 
   if (sub === 'def') {
     renderDefStyle(f, tmFocus, TN);
-    { const lgM = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1)); $('#lossDef').innerHTML = tmFocus ? lossHTML(ms, lgM, tmFocus, 'def', f, TN, PI) : '<p class="rnote">Choisissez une équipe pour voir les pertes qu’elle provoque chez ses adversaires (la vue « toutes équipes » est dans Offensif).</p>'; }
+    { const lgM = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1)); $('#lossDef').innerHTML = tmFocus ? lossHTML(ms, lgM, tmFocus, 'def', f, TN, PI) : ''; }
     const tid = tmFocus, PMODE = $('#defMode').value === 'pm';
     const nM = Math.max(1, (isPl ? F && F.mp : (tid && T[tid] ? T[tid].mp : ms.filter(m => m.ev).length)) || 1), cnt = v => PMODE ? fmt(v / nM, 1) : fmt(v);
     phaseUI('d', [
@@ -3903,7 +3900,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-17 09:04 UTC';
+const BUILD = '2026-11-17 09:28 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -5175,6 +5172,23 @@ function lossHTML(ms, lgM, tid, role, f, TN, PI) {
       return `<tr><td class="txt"><span data-lbpid="${esc(p)}" style="cursor:pointer;font-weight:600">${esc(PI[p] ? PI[p].name : '—')}</span><br><small class="muted">${esc(LOSS_ROLE[seasonRoles()[p]] || '')}</small></td><td>${Math.round(secs / 60)}</td><td><b>${A.length}</b></td><td>${secs ? fmt(A.length / secs * 5400, 1) : '—'}</td><td>${A.filter(e => e.z === 0).length}</td><td>${A.filter(e => e.pr).length}</td><td class="txt">${esc(top[0])} (${top[1]})</td><td>${sh || ''}</td></tr>`; }).join('');
     ply = `<h3 class="sty-h">Les joueurs qui perdent le plus de ballons dans leur camp</h3><div class="tbl-wrap"><table class="gkz"><tr><th class="txt">Joueur</th><th>Min</th><th>Pertes</th><th>Par 90</th><th>Dans son tiers</th><th>Sous pression</th><th class="txt">Le plus souvent</th><th>Tirs adverses derrière</th></tr>${R}</table></div>`; }
   const leg = `<div class="sty-leg loss-leg">${LOSS_CAT.map(([k, l, c]) => L.some(e => e.c === k) ? `<span data-lossc="${k}" title="Cliquer pour masquer / afficher"><i style="background:${c}"></i>${l}</span>` : '').join('')}<span class="muted">cercle rouge = suivie d’un tir · contour noir = but</span></div>`;
+  if (D) {
+    const SR = seasonRoles(), C = teamCodes(), nTMd = nTM;
+    const top = A => LOSS_CAT.map(([k, l]) => [k, l, A.filter(e => e.c === k).length]).sort((a, b) => b[2] - a[2])[0];
+    const typeBar = A => `<div class="sty-bar" style="height:14px;min-width:120px">${LOSS_CAT.map(([k, l, c]) => { const n = A.filter(e => e.c === k).length; return n ? `<i style="width:${n / A.length * 100}%;background:${c}" data-tip="${esc(`${l} : ${n} (${fmt(n / A.length * 100, 0)} %)`)}"></i>` : ''; }).join('')}</div>`;
+    // par poste adverse : qui son pressing fait craquer
+    const RO = ['GK', 'CB', 'FB', 'CM', 'WM', 'FW'].map(r => { const A = L.filter(e => e.r === r), G = LG.filter(e => e.r === r); return [r, A, G]; }).filter(x => x[1].length);
+    const roleT = `<table class="gkz bu-t"><tr><th class="txt">Poste adverse</th><th>Pertes</th><th>Par match</th><th>Sous pression</th><th class="txt">Comment</th><th>Tirs derrière</th></tr>${RO.map(([r, A, G]) => { const v = A.length / nM, a = G.length / nTMd, pp = pctP(A), t = top(A), sh = A.filter(e => e.sh).length;
+      return `<tr><td class="txt"><b>${LOSS_ROLE[r]}</b></td><td>${A.length}</td><td class="${good(v, a)}">${fmt(v, 1)}<br><small class="muted">moy. ${fmt(a, 1)}</small></td><td>${pp == null ? '—' : fmt(pp, 0) + ' %'}</td><td class="txt">${typeBar(A)}<small class="muted">surtout ${t[1].toLowerCase()} (${t[2]})</small></td><td>${sh || ''}</td></tr>`; }).join('')}</table>`;
+    // adversaires qui perdent le plus de ballons
+    const byP = {}; L.forEach(e => { if (e.p) (byP[e.p] || (byP[e.p] = [])).push(e); });
+    const plT = `<table class="gkz bu-t"><tr><th class="txt">Joueur adverse</th><th>Pertes</th><th>Sous pression</th><th class="txt">Comment</th><th>Tirs derrière</th></tr>${Object.entries(byP).sort((a, b) => b[1].length - a[1].length || b[1].filter(e => e.sh).length - a[1].filter(e => e.sh).length).slice(0, 10).map(([p, A]) => { const t = top(A), sh = A.filter(e => e.sh).length, tm = A[0].tm;
+      return `<tr><td class="txt"><span data-lbpid="${esc(p)}" style="cursor:pointer;font-weight:600">${esc(PI[p] ? PI[p].name : '—')}</span><br><small class="muted">${esc(C[tm] || TN[tm] || '')} · ${esc(LOSS_ROLE[SR[p]] || '')} · J${[...new Set(A.map(e => e.m.j))].sort((a, b) => a - b).join(', J')}</small></td><td><b>${A.length}</b></td><td>${A.filter(e => e.pr).length}</td><td class="txt">${typeBar(A)}<small class="muted">surtout ${t[1].toLowerCase()} (${t[2]})</small></td><td>${sh || ''}</td></tr>`; }).join('')}</table>`;
+    return `<div class="dloss"><h3 class="sty-h" style="font-size:16px;margin-top:22px">Où et comment son pressing fait perdre le ballon</h3><p class="sub" style="margin:0 0 8px">${L.length} pertes adverses dans leur moitié de terrain face à l’équipe (${fmt(L.length / nM, 1)} par match, moy. ${fmt(LG.length / nTM, 1)}) · ${L.filter(e => e.sh).length} suivies d’un tir de l’équipe dans les 15 s</p>`
+      + `<div class="style-grid"><div><h3 class="sty-h" style="margin-top:4px">Où</h3>${zoneGrid}<h3 class="sty-h">À quel moment</h3>${moBar}${bpHTML(ms, lgM, tid, role, f, TN, PI)}</div><div><h3 class="sty-h" style="margin-top:4px">Les pertes adverses (l’adversaire attaque vers la droite)</h3>${lossMapSVG(L, PI, TN, role)}${leg}</div></div>`
+      + `<div class="style-grid" style="grid-template-columns:1fr 1fr"><div><h3 class="sty-h">Les postes adverses qui perdent le ballon</h3>${roleT}</div><div><h3 class="sty-h">Les adversaires qui perdent le plus de ballons</h3>${plT}</div></div>`
+      + `<p class="note">Pertes adverses dans leur camp : passes ratées (hors centres et corners), dépossessions, mauvais contrôles, dribbles ratés, et dégagements perdus juste après un retrait sous pression ; les ballons longs du gardien ne sont pas comptés. <b>Sous pression</b> : défenseur de l’équipe à moins de 2 m du passeur (Second Spectrum) ; dépossessions et dribbles ratés comptés sous pression. <b>Tirs derrière</b> : tir de l’équipe dans les 15 secondes. Le poste est le poste habituel du joueur sur la saison.</p></div>`;
+  }
   return kpis + sig + `<div class="style-grid"><div>${tbl}<h3 class="sty-h">À quel moment</h3>${moBar}<h3 class="sty-h">Où</h3>${zoneGrid}</div><div><h3 class="sty-h" style="margin-top:4px">${D ? 'Les pertes adverses (l’adversaire attaque vers la droite)' : 'Ses pertes (l’équipe attaque vers la droite)'}</h3>${lossMapSVG(L, PI, TN, role)}${leg}</div></div>`
     + bpHTML(ms, lgM, tid, role, f, TN, PI)
     + `<h3 class="sty-h">Les pertes qui se répètent</h3><p class="sub" style="margin:0 0 6px">Même type de perte, même poste, même zone — au moins 3 fois (hors coups de pied arrêtés)</p><div class="loss-pats">${patHTML}</div>` + ply
