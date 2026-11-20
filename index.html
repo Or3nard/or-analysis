@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-20 09:57 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-20 10:01 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3907,7 +3907,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-20 09:57 UTC';
+const BUILD = '2026-11-20 10:01 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -5199,18 +5199,27 @@ function pressZoneHTML(ms, lgM, tid, f, nM) {
     + `<svg class="pitch pz-map" viewBox="-2 -2 109 72">${pitchLines(true)}${rects}</svg>${pressArrow(tid, 1)}`;
 }
 
-// Où l'adversaire perd le ballon : moitié adverse en 3 × 3 zones, dans le sens du pressing de l'équipe (vers la droite)
-function lossZoneHTML(L, LG, nM) {
-  const XS = [52.5, 70, 87.5, 105], YS = [0, 68 / 3, 136 / 3, 68];
-  const pt = e => [105 - e.l[5] * 1.05, 68 - (100 - e.l[6]) * .68];
-  const grid = A => { const G = Array(9).fill(0); for (const e of A) { const [x, y] = pt(e), i = Math.min(2, Math.max(0, Math.floor((x - 52.5) / 17.5))), j = Math.min(2, Math.max(0, Math.floor(y / (68 / 3)))); G[j * 3 + i]++; } return G; };
-  const G = grid(L), P = pct100(G), PA = pct100(grid(LG)), mx = Math.max(...P, 1);
+// Où l'adversaire perd le ballon sur tout le terrain, 3 × 3 zones, dans le sens du pressing de l'équipe (vers la droite).
+// Dans le camp adverse : les pertes déjà analysées (hors CPA, hors ballons longs du gardien) ; dans le camp de l'équipe : passes ratées (hors centres et corners), dépossessions, mauvais contrôles, dribbles ratés (Opta).
+function oppLossPts(ms, L, tid, qs) {
+  const P = L.map(e => ({x: 105 - e.l[5] * 1.05, y: 68 - (100 - e.l[6]) * .68, sh: e.sh}));
+  for (const m of ms) { if (!m.ev || !m.ev.opta) continue; if (tid && m.home.id !== tid && m.away.id !== tid) continue;
+    for (const e of m.ev.opta) { if (e.x < 50 || !e.per || (qs && !qs.has(e.q))) continue; if (tid && e.tm === tid) continue;
+      if (!(e.t === 1 ? !e.o && !e.co && !e.cr : e.t === 50 || ((e.t === 61 || e.t === 3) && !e.o))) continue;
+      const t = e.mi * 60, sh = (m.ev.shots || []).some(x => x.tm !== e.tm && x.per === e.per && x.mi * 60 > t && x.mi * 60 - t <= 15);
+      P.push({x: 105 - e.x * 1.05, y: 68 - (100 - e.y) * .68, sh}); } }
+  return P;
+}
+function lossZoneHTML(PTS, LPTS, nM) {
+  const XS = [0, 35, 70, 105], YS = [0, 68 / 3, 136 / 3, 68];
+  const ci = p => Math.min(2, Math.max(0, Math.floor(p.y / (68 / 3)))) * 3 + Math.min(2, Math.max(0, Math.floor(p.x / 35)));
+  const grid = A => { const G = Array(9).fill(0); for (const p of A) G[ci(p)]++; return G; };
+  const G = grid(PTS), P = pct100(G), PA = pct100(grid(LPTS)), mx = Math.max(...P, 1), SH = Array(9).fill(0); PTS.forEach(p => { if (p.sh) SH[ci(p)]++; });
   const rects = G.map((n, k) => { const i = k % 3, j = Math.floor(k / 3), x = XS[i], y = YS[j], w = XS[i + 1] - x, h = YS[j + 1] - y, d = P[k] - PA[k], dark = P[k] / mx > .55;
-    const A = L.filter(e => { const [px, py] = pt(e); return Math.min(2, Math.max(0, Math.floor((px - 52.5) / 17.5))) === i && Math.min(2, Math.max(0, Math.floor(py / (68 / 3)))) === j; }), sh = A.filter(e => e.sh).length;
-    return `<g data-tip="${esc(`${n} pertes adverses (${fmt(n / nM, 1)} par match)\n${P[k]} % de ces pertes, contre ${PA[k]} % en moyenne\n${sh} suivie(s) d’un tir de l’équipe`)}"><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#d0453f" fill-opacity="${(P[k] / mx * .7).toFixed(2)}" stroke="#fff" stroke-width=".3"/>`
-      + `<text x="${x + w / 2}" y="${y + h / 2 - 1}" text-anchor="middle" font-size="5" font-weight="800" fill="${dark ? '#fff' : 'var(--text)'}">${P[k]} %</text>`
-      + `<text x="${x + w / 2}" y="${y + h / 2 + 5}" text-anchor="middle" font-size="3.3" font-weight="700" fill="${dark ? '#fff' : Math.abs(d) < 2 ? 'var(--text-2)' : d > 0 ? '#a83a32' : '#2b6cb0'}">${d > 0 ? '+' : d < 0 ? '−' : ''}${Math.abs(d)} pt</text></g>`; }).join('');
-  return `<svg class="pitch pz-map" viewBox="-2 -2 109 72">${pitchLines(true)}<rect x="0" y="0" width="52.5" height="68" fill="var(--text-3)" fill-opacity=".08"/><text x="26.25" y="35.5" text-anchor="middle" font-size="3.2" fill="var(--text-2)">son camp</text>${rects}</svg>`;
+    return `<g data-tip="${esc(`${n} pertes adverses (${fmt(n / nM, 1)} par match)\n${P[k]} % de ces pertes, contre ${PA[k]} % en moyenne\n${SH[k]} suivie(s) d’un tir de l’équipe dans les 15 s`)}"><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#d0453f" fill-opacity="${(P[k] / mx * .7).toFixed(2)}" stroke="#fff" stroke-width=".3"/>`
+      + `<text x="${x + w / 2}" y="${y + h / 2 - 1}" text-anchor="middle" font-size="6" font-weight="800" fill="${dark ? '#fff' : 'var(--text)'}">${P[k]} %</text>`
+      + `<text x="${x + w / 2}" y="${y + h / 2 + 6}" text-anchor="middle" font-size="3.8" font-weight="700" fill="${dark ? '#fff' : Math.abs(d) < 2 ? 'var(--text-2)' : d > 0 ? '#a83a32' : '#2b6cb0'}">${d > 0 ? '+' : d < 0 ? '−' : ''}${Math.abs(d)} pt</text></g>`; }).join('');
+  return `<svg class="pitch pz-map" viewBox="-2 -2 109 72">${pitchLines(true)}${rects}</svg>`;
 }
 function lossMapSVG(L, PI, TN, role) {
   const RED = '#d0453f';
@@ -5285,8 +5294,10 @@ function lossHTML(ms, lgM, tid, role, f, TN, PI) {
     const roleT = `<table class="gkz bu-t"><tr><th class="txt">Poste adverse</th><th>Pertes</th><th>Par match</th><th>Sous pression</th><th class="txt">Comment</th><th>Tirs derrière</th></tr>${RO.map(([r, A, G]) => { const v = A.length / nM, a = G.length / nTMd, pp = pctP(A), t = top(A), sh = A.filter(e => e.sh).length;
       return `<tr><td class="txt"><b>${LOSS_ROLE[r]}</b></td><td>${A.length}</td><td class="${good(v, a)}">${fmt(v, 1)}<br><small class="muted">moy. ${fmt(a, 1)}</small></td><td>${pp == null ? '—' : fmt(pp, 0) + ' %'}</td><td class="txt">${typeBar(A)}<small class="muted">surtout ${t[1].toLowerCase()} (${t[2]})</small></td><td>${sh || ''}</td></tr>`; }).join('')}</table>`;
     return `<div class="dloss"><h3 class="sty-h" style="font-size:16px;margin-top:22px">Où et comment son pressing fait perdre le ballon</h3><p class="sub" style="margin:0 0 8px">${L.length} pertes adverses dans leur moitié de terrain face à l’équipe (${fmt(L.length / nM, 1)} par match, moy. ${fmt(LG.length / nTM, 1)}) · ${L.filter(e => e.sh).length} suivies d’un tir de l’équipe dans les 15 s</p>`
-      + `<div class="style-grid" style="grid-template-columns:1fr 1fr"><div>${pressZoneHTML(ms, lgM, tid, f, nM)}</div><div><h3 class="sty-h" style="margin-top:4px">Les pertes adverses provoquées</h3><p class="sub" style="margin:0 0 6px">Dans le camp adverse · même sens que le terrain de gauche</p>${lossMapSVG(L, PI, TN, role)}${pressArrow(tid, 1)}${leg}</div></div>`
-      + `<div class="style-grid" style="grid-template-columns:1fr 1fr"><div><h3 class="sty-h">Où l’adversaire perd le ballon</h3><p class="sub" style="margin:0 0 6px">Moitié adverse en 9 zones (les pertes adverses ne sont comptées que dans leur camp) · part des pertes adverses dans chaque zone · « +3 pt » = 3 points de plus que la moyenne</p>${lossZoneHTML(L, LG, nM)}${pressArrow(tid, 1)}</div><div>${bpHTML(ms, lgM, tid, role, f, TN, PI)}</div></div>`
+      + `<div class="style-grid" style="grid-template-columns:1fr 1fr"><div>${pressZoneHTML(ms, lgM, tid, f, nM)}`
+      + (() => { const PT = oppLossPts(ms, L, tid, f.qs), LPT = oppLossPts(lgM, LG, null, f.qs); return `<h3 class="sty-h" style="margin-top:22px">Où l’adversaire perd le ballon</h3><p class="sub" style="margin:0 0 6px">${PT.length} pertes adverses sur tout le terrain (${fmt(PT.length / nM, 1)} par match) · part dans chaque zone · « +3 pt » = 3 points de plus que la moyenne</p>${lossZoneHTML(PT, LPT, nM)}${pressArrow(tid, 1)}`; })()
+      + `</div><div><h3 class="sty-h" style="margin-top:4px">Les pertes adverses provoquées</h3><p class="sub" style="margin:0 0 6px">Dans le camp adverse · même sens que le terrain de gauche</p>${lossMapSVG(L, PI, TN, role)}${pressArrow(tid, 1)}${leg}</div></div>`
+      + bpHTML(ms, lgM, tid, role, f, TN, PI)
       + `<h3 class="sty-h">Les postes adverses qui perdent le ballon</h3>${roleT}`
       + `<p class="note">Pertes adverses dans leur camp, hors coups de pied arrêtés (touches, coups francs, 6 m et pertes juste après) : passes ratées (hors centres et corners), dépossessions, mauvais contrôles, dribbles ratés, et dégagements perdus juste après un retrait sous pression ; les ballons longs du gardien ne sont pas comptés. <b>Sous pression</b> : défenseur de l’équipe à moins de 2 m du passeur (Second Spectrum) ; dépossessions et dribbles ratés comptés sous pression. <b>Tirs derrière</b> : tir de l’équipe dans les 15 secondes. Le poste est le poste habituel du joueur sur la saison.</p></div>`;
   }
