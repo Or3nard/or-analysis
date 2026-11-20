@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-20 09:42 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-20 09:48 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -2363,7 +2363,7 @@ const TAC = {
   pzPct: {l: '% passes adverses sous pression', t: 'ratio', d: 1, f: o => o.pzN ? o.pzP / o.pzN * 100 : null, h: 'Passes adverses jouées avec un défenseur à moins de 2 m du passeur (Second Spectrum)'},
   pzHPct: {l: '% passes adverses sous pression dans leur camp', t: 'ratio', d: 1, f: o => o.pzHN ? o.pzHP / o.pzHN * 100 : null},
   pzHShare: {l: 'Part des pressions dans le camp adverse', t: 'ratio', d: 1, f: o => o.pzP ? o.pzHP / o.pzP * 100 : null},
-  pzT: {l: 'Pressions dans le tiers défensif adverse', t: 'add'}, pzHP: {l: 'Pressions dans le camp adverse', t: 'add'},
+  pzT: {l: 'Pressions dans le tiers défensif adverse', t: 'add'}, pzTShare: {l: 'Part des pressions dans le tiers défensif adverse', t: 'ratio', d: 1, f: o => o.pzP ? o.pzT / o.pzP * 100 : null}, pzHP: {l: 'Pressions dans le camp adverse', t: 'add'},
   pzKoPct: {l: '% pressions dans le camp adverse qui font rater la passe', t: 'ratio', d: 1, f: o => o.pzHP ? o.pzHKo / o.pzHP * 100 : null},
   pzBPct: {l: '% pressions contournées', t: 'ratio', d: 1, f: o => o.pzP ? o.pzB / o.pzP * 100 : null, h: 'Passes adverses réussies malgré la pression et qui éliminent au moins 3 joueurs'},
   lsN: {l: 'Pertes dans son camp', t: 'add'}, lsL: {l: 'Pertes dans son tiers défensif', t: 'add'}, lsPPct: {l: '% pertes sous pression', t: 'ratio', d: 1, f: o => o.lsPK ? o.lsP / o.lsPK * 100 : null},
@@ -3907,7 +3907,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-20 09:42 UTC';
+const BUILD = '2026-11-20 09:48 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -5005,8 +5005,8 @@ function poleScores(T, ids, P) {
   const out = {}; for (const [pole, ks] of Object.entries(P)) { const M = ks.map(([k, dir]) => pv(k, dir)); for (const t of ids) { const v = M.map(R => R[t]).filter(x => x != null); (out[t] = out[t] || {})[pole] = v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; } }
   return out;
 }
-const DEF_POLES = {int: [['pzPct', 1], ['ppda', -1]], high: [['pzHShare', 1], ['pzTpm', 1], ['recH', 1], ['recovHpm', 1]], eff: [['pzKoPct', 1], ['pzBPct', -1], ['lfNpm', 1], ['lfXgpm', 1], ['xga_trpm', -1]],
-  press: [['pzPct', 1], ['ppda', -1], ['pzHShare', 1], ['pzTpm', 1], ['recH', 1], ['recovHpm', 1]], solid: [['xgapm', -1], ['xgsha', -1], ['boxApm', -1], ['shapm', -1]]};
+const DEF_POLES = {int: [['pzPct', 1], ['ppda', -1]], high: [['pzHShare', 1], ['pzTShare', 1], ['recH', 1]], eff: [['pzKoPct', 1], ['pzBPct', -1], ['lfNpm', 1], ['lfXgpm', 1], ['xga_trpm', -1]],
+  press: [['pzPct', 1], ['ppda', -1], ['pzHShare', 1], ['pzTShare', 1], ['recH', 1]], solid: [['xgapm', -1], ['xgsha', -1], ['boxApm', -1], ['shapm', -1]]};
 const pressLabel = (i, h, e) => { if (i == null || h == null || e == null) return '';
   const a = i >= 60 ? 'Presse beaucoup' : i < 40 ? 'Presse peu' : 'Presse modérément', b = h >= 60 ? 'haut' : h < 40 ? 'plutôt bas' : 'à mi-hauteur';
   const c = e >= 60 ? (i < 40 ? 'mais efficace quand elle y va' : 'et efficacement') : e < 40 ? (i >= 60 ? 'mais se fait souvent contourner' : 'et sans grande réussite') : 'avec une efficacité moyenne';
@@ -5175,7 +5175,7 @@ function pressPoints(ms, tid, qs) {
   for (const m of ms) { if (!m.ev || !m.ev.passes || (tid && m.home.id !== tid && m.away.id !== tid)) continue; const FL = passFlip(m);
     for (const e of m.ev.passes) { if (e.pd == null || e.pd >= 2 || !e.per || (qs && !qs.has(e.q))) continue;
       const d = e.tm === m.home.id ? m.away.id : m.home.id; if (tid && d !== tid) continue;
-      const fl = FL(d, e.per); (P[d] || (P[d] = [])).push([fl ? 105 - e.x0 : e.x0, fl ? 68 - e.y0 : e.y0]); } }
+      const fl = FL(e.tm, e.per), X = fl ? 105 - e.x0 : e.x0, Y = fl ? 68 - e.y0 : e.y0; (P[d] || (P[d] = [])).push([105 - X, 68 - Y]); } }
   return P;
 }
 // flèche sous un terrain : sens dans lequel l'équipe presse, avec son logo (dir 1 = vers la droite, -1 = vers la gauche)
@@ -5328,7 +5328,7 @@ function renderDefStyle(f, tid, TN) {
     left = `<p class="style-v">${esc(hasPz ? pressLabel(sc.int, sc.high, sc.eff) : defLabel(sc.press, sc.solid))}</p>`
       + (hasPz ? `<h3 class="sty-h" style="margin-top:0">Son pressing</h3>`
         + gaugeT('Intensité', sc.int, '#e0842b', 'Presse-t-elle beaucoup ?', det([['Passes adverses sous pression (défenseur à moins de 2 m)', 'pzPct', 0, ' %'], ['PPDA (bas = presse plus)', 'ppda', 0]]))
-        + gaugeT('Hauteur', sc.high, '#c2571a', 'Presse-t-elle haut ?', det([['Part de ses pressions faites dans le camp adverse', 'pzHShare', 0, ' %'], ['Pressions dans le tiers défensif adverse / match', 'pzT', 1], ['Hauteur moyenne des récupérations (m)', 'recH', 0], ['Récupérations dans le camp adverse / match', 'recovH', 1]]))
+        + gaugeT('Hauteur', sc.high, '#c2571a', 'Presse-t-elle haut ?', det([['Part de ses pressions faites dans le camp adverse', 'pzHShare', 0, ' %'], ['Part de ses pressions faites dans le tiers défensif adverse', 'pzTShare', 0, ' %'], ['Hauteur moyenne des récupérations (m)', 'recH', 0]]))
         + gaugeT('Efficacité', sc.eff, '#2b6cb0', 'Presse-t-elle bien ?', det([['Pressions dans le camp adverse qui font rater la passe', 'pzKoPct', 0, ' %'], ['Pressions contournées (passe réussie qui élimine 3 joueurs ou plus, bas = mieux)', 'pzBPct', 0, ' %'], ['Pertes adverses provoquées dans leur camp / match', 'lfN', 1], ['xG créés après ces pertes / match', 'lfXg', 1, '', 2], ['xG concédés en transition / match (bas = mieux)', 'xga_tr', 1, '', 2]]))
         + `<h3 class="sty-h">Sa solidité</h3>` : gauge('Pressing', sc.press, '#e0842b', 'PPDA, hauteur des récupérations, récupérations dans le camp adverse'))
       + gauge('Solidité', sc.solid, '#2e9e5b', 'xG concédés, tirs concédés, xG par tir concédé, entrées adverses dans la surface')
