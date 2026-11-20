@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-20 09:48 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-20 09:52 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3907,7 +3907,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-20 09:48 UTC';
+const BUILD = '2026-11-20 09:52 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -5208,7 +5208,7 @@ function lossMapSVG(L, PI, TN, role) {
     const ln = !big && (e.c === 'pav' || e.c === 'plat' || e.c === 'rtd') && l[7] != null ? `<line x1="${x}" y1="${y}" x2="${r1(l[7] * 1.05)}" y2="${r1((100 - l[8]) * .68)}" stroke="${col}" stroke-width=".28" stroke-opacity=".55" stroke-dasharray="1 .6"/>` : '';
     return `<g data-lc="${e.c}">${ln}<circle cx="${r1(x)}" cy="${r1(y)}" r="${e.sh ? rr + .3 : rr}" fill="${col}" fill-opacity=".85" stroke="${e.g ? '#111' : e.sh ? RED : '#fff'}" stroke-width="${e.sh ? .45 : .18}" data-tip="${esc(tip)}"/></g>`; }).join('');
   const zl = `<line x1="35" y1="0" x2="35" y2="68" stroke="var(--pitch-line)" stroke-width=".2" stroke-dasharray="1 1"/>`;
-  return `<svg class="pitch loss-map" viewBox="-2 -2 58 72">${pitchLines(true)}${zl}${dots}</svg>`;
+  return role === 'def' ? `<svg class="pitch loss-map" viewBox="49 -2 58 72">${pitchLines(true)}<g transform="rotate(180 52.5 34)">${zl}${dots}</g></svg>` : `<svg class="pitch loss-map" viewBox="-2 -2 58 72">${pitchLines(true)}${zl}${dots}</svg>`;
 }
 function lossHTML(ms, lgM, tid, role, f, TN, PI) {
   const D = role === 'def', noSP = A => D ? A.filter(e => e.c !== 'cpa' && e.mo !== 'cpa') : A, L = noSP(lossList(ms, tid, role, f.qs));
@@ -5271,7 +5271,7 @@ function lossHTML(ms, lgM, tid, role, f, TN, PI) {
     const roleT = `<table class="gkz bu-t"><tr><th class="txt">Poste adverse</th><th>Pertes</th><th>Par match</th><th>Sous pression</th><th class="txt">Comment</th><th>Tirs derrière</th></tr>${RO.map(([r, A, G]) => { const v = A.length / nM, a = G.length / nTMd, pp = pctP(A), t = top(A), sh = A.filter(e => e.sh).length;
       return `<tr><td class="txt"><b>${LOSS_ROLE[r]}</b></td><td>${A.length}</td><td class="${good(v, a)}">${fmt(v, 1)}<br><small class="muted">moy. ${fmt(a, 1)}</small></td><td>${pp == null ? '—' : fmt(pp, 0) + ' %'}</td><td class="txt">${typeBar(A)}<small class="muted">surtout ${t[1].toLowerCase()} (${t[2]})</small></td><td>${sh || ''}</td></tr>`; }).join('')}</table>`;
     return `<div class="dloss"><h3 class="sty-h" style="font-size:16px;margin-top:22px">Où et comment son pressing fait perdre le ballon</h3><p class="sub" style="margin:0 0 8px">${L.length} pertes adverses dans leur moitié de terrain face à l’équipe (${fmt(L.length / nM, 1)} par match, moy. ${fmt(LG.length / nTM, 1)}) · ${L.filter(e => e.sh).length} suivies d’un tir de l’équipe dans les 15 s</p>`
-      + `<div class="style-grid" style="grid-template-columns:1fr 1fr"><div>${pressZoneHTML(ms, lgM, tid, f, nM)}</div><div><h3 class="sty-h" style="margin-top:4px">Les pertes adverses provoquées</h3><p class="sub" style="margin:0 0 6px">L’adversaire attaque vers la droite, l’équipe presse donc vers la gauche</p>${lossMapSVG(L, PI, TN, role)}${pressArrow(tid, -1)}${leg}</div></div>`
+      + `<div class="style-grid" style="grid-template-columns:1fr 1fr"><div>${pressZoneHTML(ms, lgM, tid, f, nM)}</div><div><h3 class="sty-h" style="margin-top:4px">Les pertes adverses provoquées</h3><p class="sub" style="margin:0 0 6px">Dans le camp adverse · même sens que le terrain de gauche</p>${lossMapSVG(L, PI, TN, role)}${pressArrow(tid, 1)}${leg}</div></div>`
       + `<div class="style-grid" style="grid-template-columns:1fr 1fr"><div><h3 class="sty-h">Où l’adversaire perd le ballon</h3>${zoneGrid}</div><div><h3 class="sty-h">À quel moment</h3>${moRows}</div></div>`
       + bpHTML(ms, lgM, tid, role, f, TN, PI)
       + `<h3 class="sty-h">Les postes adverses qui perdent le ballon</h3>${roleT}`
