@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-20 10:16 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-20 10:19 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3907,7 +3907,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-20 10:16 UTC';
+const BUILD = '2026-11-20 10:19 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -5183,19 +5183,21 @@ function pressArrow(tid, dir) {
   const ar = `<svg viewBox="0 0 120 12" class="pz-ar"><path d="${dir > 0 ? 'M2 6H116M108 1l8 5-8 5' : 'M118 6H4M12 1 4 6l8 5'}" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   return `<div class="pz-dir">${dir > 0 ? (logoHTML(tid) || '') + ar : ar + (logoHTML(tid) || '')}<span>sens de son pressing</span></div>`;
 }
+// couleur d'une zone : vert au-dessus de la moyenne, rouge en dessous, d'autant plus marqué que l'écart est grand
+const zCol = d => d > 0 ? '#2e9e5b' : d < 0 ? '#d0453f' : '#9aa1ab', zAl = d => d ? (.18 + Math.min(Math.abs(d), 8) / 8 * .52).toFixed(2) : '.12';
 function pressZoneHTML(ms, lgM, tid, f, nM) {
   const cell = (x, y) => [Math.min(2, Math.max(0, Math.floor(x / 35))), Math.min(2, Math.max(0, Math.floor(y / (68 / 3))))];
   const grid = A => { const G = Array(9).fill(0); for (const [x, y] of A) { const [i, j] = cell(x, y); G[j * 3 + i]++; } return G; };
   const me = (pressPoints(ms, tid, f.qs)[tid]) || []; if (!me.length) return '';
   const LP = pressPoints(lgM, null, f.qs), lg = Array(9).fill(0); for (const A of Object.values(LP)) grid(A).forEach((v, i) => lg[i] += v);
   const G = grid(me), P = pct100(G), PA = pct100(lg), mx = Math.max(...P, 1);
-  const rects = G.map((n, k) => { const i = k % 3, j = Math.floor(k / 3), x = PZ_XS[i], y = PZ_YS[j], w = PZ_XS[i + 1] - x, h = PZ_YS[j + 1] - y, d = P[k] - PA[k], dark = P[k] / mx > .55;
-    return `<g data-tip="${esc(`${n} pressions (${fmt(n / nM, 1)} par match)\n${P[k]} % de ses pressions, contre ${PA[k]} % en moyenne`)}"><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#e0842b" fill-opacity="${(P[k] / mx * .75).toFixed(2)}" stroke="#fff" stroke-width=".3"/>`
-      + `<text x="${x + w / 2}" y="${y + h / 2 - 1}" text-anchor="middle" font-size="6" font-weight="800" fill="${P[k] / mx > .55 ? '#fff' : 'var(--text)'}">${P[k]} %</text>`
+  const rects = G.map((n, k) => { const i = k % 3, j = Math.floor(k / 3), x = PZ_XS[i], y = PZ_YS[j], w = PZ_XS[i + 1] - x, h = PZ_YS[j + 1] - y, d = P[k] - PA[k], dark = zAl(d) > .45;
+    return `<g data-tip="${esc(`${n} pressions (${fmt(n / nM, 1)} par match)\n${P[k]} % de ses pressions, contre ${PA[k]} % en moyenne`)}"><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${zCol(d)}" fill-opacity="${zAl(d)}" stroke="#fff" stroke-width=".3"/>`
+      + `<text x="${x + w / 2}" y="${y + h / 2 - 1}" text-anchor="middle" font-size="6" font-weight="800" fill="${dark ? '#fff' : 'var(--text)'}">${P[k]} %</text>`
       + `<text x="${x + w / 2}" y="${y + h / 2 + 6}" text-anchor="middle" font-size="3.8" font-weight="700" fill="${dark ? '#fff' : 'var(--text-2)'}">moy. ${PA[k]} %</text></g>`; }).join('');
   const hi = me.filter(([x]) => x >= 52.5).length;
   let la = 0, lt = 0; for (const A of Object.values(LP)) { lt += A.length; la += A.filter(([x]) => x >= 52.5).length; } const lhi = la / Math.max(1, lt) * 100;
-  return `<h3 class="sty-h" style="margin-top:4px">Où elle presse</h3><p class="sub" style="margin:0 0 6px">${me.length} pressions (${fmt(me.length / nM, 1)} par match) : passes adverses jouées avec un de ses joueurs à moins de 2 m · ${fmt(hi / me.length * 100, 0)} % dans le camp adverse (moy. ${fmt(lhi, 0)} %) · en petit : moyenne du championnat</p>`
+  return `<h3 class="sty-h" style="margin-top:4px">Où elle presse</h3><p class="sub" style="margin:0 0 6px">${me.length} pressions (${fmt(me.length / nM, 1)} par match) : passes adverses jouées avec un de ses joueurs à moins de 2 m · ${fmt(hi / me.length * 100, 0)} % dans le camp adverse (moy. ${fmt(lhi, 0)} %) · en petit : moyenne du championnat · <span style="color:#2e9e5b;font-weight:700">vert</span> = au-dessus de la moyenne, <span style="color:#d0453f;font-weight:700">rouge</span> = en dessous</p>`
     + `<svg class="pitch pz-map" viewBox="-2 -2 109 72">${pitchLines(true)}${rects}</svg>${pressArrow(tid, 1)}`;
 }
 
@@ -5219,8 +5221,8 @@ function lossZoneHTML(PTS, LPTS, nM) {
   const ci = p => Math.min(2, Math.max(0, Math.floor(p.y / (68 / 3)))) * 3 + Math.min(2, Math.max(0, Math.floor(p.x / 35)));
   const grid = A => { const G = Array(9).fill(0); for (const p of A) G[ci(p)]++; return G; };
   const G = grid(PTS), P = pct100(G), PA = pct100(grid(LPTS)), mx = Math.max(...P, 1), SH = Array(9).fill(0); PTS.forEach(p => { if (p.sh) SH[ci(p)]++; });
-  const rects = G.map((n, k) => { const i = k % 3, j = Math.floor(k / 3), x = XS[i], y = YS[j], w = XS[i + 1] - x, h = YS[j + 1] - y, d = P[k] - PA[k], dark = P[k] / mx > .55;
-    return `<g data-tip="${esc(`${n} pertes adverses (${fmt(n / nM, 1)} par match)\n${P[k]} % de ces pertes, contre ${PA[k]} % en moyenne\n${SH[k]} suivie(s) d’un tir de l’équipe dans les 15 s`)}"><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#d0453f" fill-opacity="${(P[k] / mx * .7).toFixed(2)}" stroke="#fff" stroke-width=".3"/>`
+  const rects = G.map((n, k) => { const i = k % 3, j = Math.floor(k / 3), x = XS[i], y = YS[j], w = XS[i + 1] - x, h = YS[j + 1] - y, d = P[k] - PA[k], dark = zAl(d) > .45;
+    return `<g data-tip="${esc(`${n} pertes adverses (${fmt(n / nM, 1)} par match)\n${P[k]} % de ces pertes, contre ${PA[k]} % en moyenne\n${SH[k]} suivie(s) d’un tir de l’équipe dans les 15 s`)}"><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${zCol(d)}" fill-opacity="${zAl(d)}" stroke="#fff" stroke-width=".3"/>`
       + `<text x="${x + w / 2}" y="${y + h / 2 - 1}" text-anchor="middle" font-size="6" font-weight="800" fill="${dark ? '#fff' : 'var(--text)'}">${P[k]} %</text>`
       + `<text x="${x + w / 2}" y="${y + h / 2 + 6}" text-anchor="middle" font-size="3.8" font-weight="700" fill="${dark ? '#fff' : 'var(--text-2)'}">moy. ${PA[k]} %</text></g>`; }).join('');
   return `<svg class="pitch pz-map" viewBox="-2 -2 109 72">${pitchLines(true)}${rects}</svg>`;
@@ -5299,7 +5301,7 @@ function lossHTML(ms, lgM, tid, role, f, TN, PI) {
       return `<tr><td class="txt"><b>${LOSS_ROLE[r]}</b></td><td>${A.length}</td><td class="${good(v, a)}">${fmt(v, 1)}<br><small class="muted">moy. ${fmt(a, 1)}</small></td><td>${pp == null ? '—' : fmt(pp, 0) + ' %'}</td><td class="txt">${typeBar(A)}<small class="muted">surtout ${t[1].toLowerCase()} (${t[2]})</small></td><td>${sh || ''}</td></tr>`; }).join('')}</table>`;
     return `<div class="dloss"><h3 class="sty-h" style="font-size:16px;margin-top:22px">Où et comment son pressing fait perdre le ballon</h3><p class="sub" style="margin:0 0 8px">${L.length} pertes adverses dans leur moitié de terrain face à l’équipe (${fmt(L.length / nM, 1)} par match, moy. ${fmt(LG.length / nTM, 1)}) · ${L.filter(e => e.sh).length} suivies d’un tir de l’équipe dans les 15 s</p>`
       + `<div class="style-grid" style="grid-template-columns:1fr 1fr"><div>${pressZoneHTML(ms, lgM, tid, f, nM)}`
-      + (() => { const PT = oppLossPts(ms, L, tid, f.qs), LPT = oppLossPts(lgM, LG, null, f.qs); return `<h3 class="sty-h" style="margin-top:22px">Où l’adversaire perd le ballon</h3><p class="sub" style="margin:0 0 6px">${PT.length} pertes adverses sur tout le terrain (${fmt(PT.length / nM, 1)} par match) · part dans chaque zone · en petit : moyenne du championnat</p>${lossZoneHTML(PT, LPT, nM)}${pressArrow(tid, 1)}`; })()
+      + (() => { const PT = oppLossPts(ms, L, tid, f.qs), LPT = oppLossPts(lgM, LG, null, f.qs); return `<h3 class="sty-h" style="margin-top:22px">Où l’adversaire perd le ballon</h3><p class="sub" style="margin:0 0 6px">${PT.length} pertes adverses sur tout le terrain (${fmt(PT.length / nM, 1)} par match) · part dans chaque zone · en petit : moyenne du championnat · <span style="color:#2e9e5b;font-weight:700">vert</span> = au-dessus de la moyenne, <span style="color:#d0453f;font-weight:700">rouge</span> = en dessous</p>${lossZoneHTML(PT, LPT, nM)}${pressArrow(tid, 1)}`; })()
       + `</div><div><h3 class="sty-h" style="margin-top:4px">Les pertes adverses provoquées</h3><p class="sub" style="margin:0 0 6px">Dans le camp adverse · même sens que le terrain de gauche</p>${lossMapSVG(L, PI, TN, role)}${pressArrow(tid, 1)}${leg}</div></div>`
       + bpHTML(ms, lgM, tid, role, f, TN, PI)
       + `<h3 class="sty-h">Les postes adverses qui perdent le ballon</h3>${roleT}`
