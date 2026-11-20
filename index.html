@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-20 10:19 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-20 10:24 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3907,7 +3907,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-20 10:19 UTC';
+const BUILD = '2026-11-20 10:24 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -5303,9 +5303,7 @@ function lossHTML(ms, lgM, tid, role, f, TN, PI) {
       + `<div class="style-grid" style="grid-template-columns:1fr 1fr"><div>${pressZoneHTML(ms, lgM, tid, f, nM)}`
       + (() => { const PT = oppLossPts(ms, L, tid, f.qs), LPT = oppLossPts(lgM, LG, null, f.qs); return `<h3 class="sty-h" style="margin-top:22px">Où l’adversaire perd le ballon</h3><p class="sub" style="margin:0 0 6px">${PT.length} pertes adverses sur tout le terrain (${fmt(PT.length / nM, 1)} par match) · part dans chaque zone · en petit : moyenne du championnat · <span style="color:#2e9e5b;font-weight:700">vert</span> = au-dessus de la moyenne, <span style="color:#d0453f;font-weight:700">rouge</span> = en dessous</p>${lossZoneHTML(PT, LPT, nM)}${pressArrow(tid, 1)}`; })()
       + `</div><div><h3 class="sty-h" style="margin-top:4px">Les pertes adverses provoquées</h3><p class="sub" style="margin:0 0 6px">Dans le camp adverse · même sens que le terrain de gauche</p>${lossMapSVG(L, PI, TN, role)}${pressArrow(tid, 1)}${leg}</div></div>`
-      + bpHTML(ms, lgM, tid, role, f, TN, PI)
-      + `<h3 class="sty-h">Les postes adverses qui perdent le ballon</h3>${roleT}`
-      + `<p class="note">Pertes adverses dans leur camp, hors coups de pied arrêtés (touches, coups francs, 6 m et pertes juste après) : passes ratées (hors centres et corners), dépossessions, mauvais contrôles, dribbles ratés, et dégagements perdus juste après un retrait sous pression ; les ballons longs du gardien ne sont pas comptés. <b>Sous pression</b> : défenseur de l’équipe à moins de 2 m du passeur (Second Spectrum) ; dépossessions et dribbles ratés comptés sous pression. <b>Tirs derrière</b> : tir de l’équipe dans les 15 secondes. Le poste est le poste habituel du joueur sur la saison.</p></div>`;
+      + `</div>`;
   }
   return kpis + sig + `<div class="style-grid"><div>${tbl}<h3 class="sty-h">À quel moment</h3>${moRows}<h3 class="sty-h">Où</h3>${zoneGrid}</div><div><h3 class="sty-h" style="margin-top:4px">${D ? 'Les pertes adverses (l’adversaire attaque vers la droite)' : 'Ses pertes (l’équipe attaque vers la droite)'}</h3>${lossMapSVG(L, PI, TN, role)}${leg}</div></div>`
     + bpHTML(ms, lgM, tid, role, f, TN, PI)
