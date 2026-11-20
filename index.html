@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-20 10:24 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-20 10:30 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -688,14 +688,9 @@ input.j{width:64px}
           </div>
         </div>
         <div class="card c12 ph" id="dph2">
-          <div class="ph-head"><span class="chap-n">1</span><div><h2>Déséquilibres concédés</h2><p>Est-ce que l’adversaire arrive à casser nos lignes et à entrer chez nous ?</p></div><span class="ph-verdict" id="dphV2"></span></div>
+          <div class="ph-head"><span class="chap-n">1</span><div><h2>Comment entrer dans ses 30 derniers mètres</h2><p>Par où et comment l’adversaire atteint ses 30 derniers mètres, et ce qui fonctionne le mieux</p></div><span class="ph-verdict" id="dphV2"></span></div>
           <div class="ph-kpis" id="dphK2"></div>
-          <div class="ph-vis">
-            <div><h3>Où l’adversaire casse nos lignes</h3><p class="sub" id="dzASub"></p><div id="dzAGrid"></div>
-              <button class="btn ph-more" data-more="lbA">Voir les passes adverses</button><div class="ph-arrows" id="lbAWrap" hidden><div id="lbAMap"></div></div></div>
-            <div><h3>Par où l’adversaire entre dans notre surface</h3><p class="sub" id="boxASub"></p><div id="boxALanes"></div>
-              <h3 style="margin-top:16px">Les adversaires qui nous ont fait le plus mal</h3><p class="sub">Passes cassant nos lignes + entrées dans notre surface</p><div id="oppTop"></div></div>
-          </div>
+          <div id="e30Vis"></div>
         </div>
         <div class="card c12 ph" id="dph3">
           <div class="ph-head"><span class="chap-n">2</span><div><h2>30 derniers mètres</h2><p>Est-ce que l’équipe protège son but ?</p></div><span class="ph-verdict" id="dphV3"></span></div>
@@ -2172,7 +2167,7 @@ const TAC_FIELDS = ['mp', 'secs', 'gf', 'ga', 'xg', 'xga', 'xgot', 'xgota', 'gfo
   'cross', 'crossOk', 'carry', 'carryD', 'carryProg', 'rec', 'intc', 'possN', 'possT', 'possTot', 'possXg', 'vp', 'vc', 'tk', 'tkW', 'int', 'recov', 'clr',
   'aer', 'aerW', 'foul', 'fouled', 'drb', 'drbOk', 'lost', 'yc', 'rc', 'saves', 'blk', 'opp60', 'defAct', 'corners',
   'recovH', 'shCtr', 'xgCtr', 'shCpa', 'xgCpa', 'gfCpa', 'gaCpa', 'shaCpa', 'xgaCpa', 'pen', 'penG', 'cpaPoss', 'cpaXgP', 'cpaXgaP', 'cornD', 'cornAtt', 'cornShort', 'cornIn', 'cornOut', 'mV2',
-  'gd', 'gdW', 'lbA', 'f3A', 'boxA', 'progA', 'passA', 'own60', 'defActA', 'lostLow', 'bpass', 'bpassOk', 'blong', 'blongOk', 'bout', 'carryF3', 'possD', 'possD2', 'possD3', 'recX', 'recN', 'pzN', 'pzP', 'pzHN', 'pzHP', 'pzT', 'pzHKo', 'pzB', 'pzPOk', 'lsN', 'lsL', 'lsP', 'lsPK', 'lsSh', 'lsXg', 'lsG', 'lfN', 'lfL', 'lfP', 'lfPK', 'lfSh', 'lfXg', 'lfG', 'xg_pl', 'xg_tr', 'xg_di', 'xg_sp', 'xga_pl', 'xga_tr', 'xga_di', 'xga_sp', 'gSA_pl', 'gSA_tr', 'gSA_di', 'gSA_sp', 'gSA_pen', 'gSA_nc', 'gSA_og', 'xSA_pl', 'xSA_tr', 'xSA_di', 'xSA_sp', 'xSA_pen', 'xSA_nc', 'gS_pl', 'gS_tr', 'gS_di', 'gS_sp', 'gS_pen', 'gS_nc', 'gS_og', 'xS_pl', 'xS_tr', 'xS_di', 'xS_sp', 'xS_pen', 'xS_nc', 'clN', 'clOld', 'clApx', 'n_pl', 'n_tr', 'n_di', 'n_sp', 'npSum', 'npN', 'chal', 'aerD', 'aerDW', 'crO', 'crOk', 'crSh', 'crA', 'crAok', 'crASh'];
+  'gd', 'gdW', 'lbA', 'f3A', 'boxA', 'progA', 'passA', 'own60', 'defActA', 'lostLow', 'bpass', 'bpassOk', 'blong', 'blongOk', 'bout', 'carryF3', 'possD', 'possD2', 'possD3', 'recX', 'recN', 'e30A', 'e30C', 'e30Sh', 'e30Xg', 'pzN', 'pzP', 'pzHN', 'pzHP', 'pzT', 'pzHKo', 'pzB', 'pzPOk', 'lsN', 'lsL', 'lsP', 'lsPK', 'lsSh', 'lsXg', 'lsG', 'lfN', 'lfL', 'lfP', 'lfPK', 'lfSh', 'lfXg', 'lfG', 'xg_pl', 'xg_tr', 'xg_di', 'xg_sp', 'xga_pl', 'xga_tr', 'xga_di', 'xga_sp', 'gSA_pl', 'gSA_tr', 'gSA_di', 'gSA_sp', 'gSA_pen', 'gSA_nc', 'gSA_og', 'xSA_pl', 'xSA_tr', 'xSA_di', 'xSA_sp', 'xSA_pen', 'xSA_nc', 'gS_pl', 'gS_tr', 'gS_di', 'gS_sp', 'gS_pen', 'gS_nc', 'gS_og', 'xS_pl', 'xS_tr', 'xS_di', 'xS_sp', 'xS_pen', 'xS_nc', 'clN', 'clOld', 'clApx', 'n_pl', 'n_tr', 'n_di', 'n_sp', 'npSum', 'npN', 'chal', 'aerD', 'aerDW', 'crO', 'crOk', 'crSh', 'crA', 'crAok', 'crASh'];
 const newAgg = () => { const o = {starts: {}, cpaT: {}, cpaTa: {}, byQ: [0, 1, 2, 3, 4, 5].map(() => ({xg: 0, xga: 0, gf: 0, ga: 0, sh: 0, lb: 0, pass: 0, possT: 0, possTot: 0}))}; TAC_FIELDS.forEach(k => o[k] = 0); return o; };
 
 /* Cache des agrégations : changer d'onglet ou de sous-onglet ne recalcule rien
@@ -2235,7 +2230,8 @@ function aggTacticalRaw(ms, qsOverride) {
       const f3 = e.c && e.x1 >= 70 && e.x0 < 70;
       const inBox = (x, y) => x >= 88.5 && Math.abs(y - 34) <= 20.16;
       const box = e.c && inBox(e.x1, e.y1) && !inBox(e.x0, e.y0);
-      { const d = t(opp(e.tm)); d.passA++; if (e.c && e.br) d.lbA++; if (f3) d.f3A++; if (box) d.boxA++; if (prog) d.progA++; }
+      { const d = t(opp(e.tm)); d.passA++; if (e.c && e.br) d.lbA++; if (f3) d.f3A++; if (box) d.boxA++; if (prog) d.progA++;
+        if (e.c && e.x0 < 75 && e.x1 >= 75 && e.per) { const a = e30After(E, e.tm, e.per, e.mi * 60); d.e30A++; if (a.n) { d.e30Sh++; d.e30Xg += a.xg; } } }
       const low = e.x0 < 35, lng = Math.hypot(e.x1 - e.x0, e.y1 - e.y0) >= 30;
       for (const o of [t(e.tm), e.p && p(e.p)]) if (o) {
         if (low) { o.bpass++; if (e.c) o.bpassOk++; else o.lostLow++; if (lng) { o.blong++; if (e.c) o.blongOk++; } if (e.c && e.x1 >= 35) o.bout++; }
@@ -2249,6 +2245,7 @@ function aggTacticalRaw(ms, qsOverride) {
     for (const e of E.carries) { if (!ok(e)) continue;
       if (!qs.has(e.q)) continue;
       for (const o of [t(e.tm), e.p && p(e.p)]) if (o) { o.carry++; o.carryD += e.d; if (e.x1 - e.x0 >= 10) o.carryProg++; if (e.x0 < 70 && e.x1 >= 70) o.carryF3++; }
+      if (e.x0 < 75 && e.x1 >= 75 && e.per) { const d = t(opp(e.tm)), a = e30After(E, e.tm, e.per, e.mi * 60); d.e30A++; d.e30C++; if (a.n) { d.e30Sh++; d.e30Xg += a.xg; } }
     }
     for (const e of E.recs) { if (!ok(e)) continue;
       if (!qs.has(e.q)) continue;
@@ -2366,6 +2363,8 @@ const TAC = {
   pzT: {l: 'Pressions dans le tiers défensif adverse', t: 'add'}, pzTShare: {l: 'Part des pressions dans le tiers défensif adverse', t: 'ratio', d: 1, f: o => o.pzP ? o.pzT / o.pzP * 100 : null}, pzHP: {l: 'Pressions dans le camp adverse', t: 'add'},
   pzKoPct: {l: '% pressions dans le camp adverse qui font rater la passe', t: 'ratio', d: 1, f: o => o.pzHP ? o.pzHKo / o.pzHP * 100 : null},
   pzBPct: {l: '% pressions contournées', t: 'ratio', d: 1, f: o => o.pzP ? o.pzB / o.pzP * 100 : null, h: 'Passes adverses réussies malgré la pression et qui éliminent au moins 3 joueurs'},
+  e30A: {l: 'Entrées adverses dans ses 30 derniers mètres', t: 'add'}, e30CPct: {l: '% des entrées adverses par la conduite', t: 'ratio', d: 1, f: o => o.e30A ? o.e30C / o.e30A * 100 : null},
+  e30ShPct: {l: '% des entrées adverses suivies d’un tir', t: 'ratio', d: 1, f: o => o.e30A ? o.e30Sh / o.e30A * 100 : null}, e30Xg: {l: 'xG concédés après une entrée dans ses 30 derniers mètres', t: 'add', d: 2},
   lsN: {l: 'Pertes dans son camp', t: 'add'}, lsL: {l: 'Pertes dans son tiers défensif', t: 'add'}, lsPPct: {l: '% pertes sous pression', t: 'ratio', d: 1, f: o => o.lsPK ? o.lsP / o.lsPK * 100 : null},
   lsSh: {l: 'Pertes suivies d’un tir adverse', t: 'add'}, lsXg: {l: 'xG concédés après une perte dans son camp', t: 'add', d: 2}, lsG: {l: 'Buts encaissés après une perte dans son camp', t: 'add'},
   lfN: {l: 'Pertes adverses provoquées dans leur camp', t: 'add'}, lfL: {l: 'Pertes adverses provoquées dans leur tiers', t: 'add'}, lfPPct: {l: '% pertes adverses sous pression', t: 'ratio', d: 1, f: o => o.lfPK ? o.lfP / o.lfPK * 100 : null},
@@ -3377,10 +3376,10 @@ function renderTactical() {
     const nM = Math.max(1, (isPl ? F && F.mp : (tid && T[tid] ? T[tid].mp : ms.filter(m => m.ev).length)) || 1), cnt = v => PMODE ? fmt(v / nM, 1) : fmt(v);
     phaseUI('d', [
       [['PPDA (bas = pressing intense)', 'ppda', -1, 'r'], ['Récupérations dans le camp adverse', 'recovH', 1, 'pm'], ['Hauteur moyenne des récupérations', 'recH', 1, 'm'], ['Ballons récupérés', 'recAll', 1, 'pm']],
-      [['Passes adverses qui cassent nos lignes', 'lbA', -1, 'pm'], ['Passes progressives concédées', 'progA', -1, 'pm'], ['Entrées adverses dans notre dernier tiers', 'f3A', -1, 'pm'], ['Entrées adverses dans notre surface', 'boxA', -1, 'pm']],
+      [['Entrées adverses dans ses 30 derniers mètres', 'e30A', -1, 'pm'], ['Entrées adverses suivies d’un tir', 'e30ShPct', -1, '%'], ['xG concédés après ces entrées', 'e30Xg', -1, 'pm2'], ['Entrées adverses dans notre surface', 'boxA', -1, 'pm']],
       [['Tirs concédés', 'sha', -1, 'pm'], ['xG concédés', 'xga', -1, 'pm2'], ['xG concédé par tir', 'xgsha', -1, 'r2'], ['Buts encaissés', 'ga', -1, 'pm2']],
       [['Duels défensifs gagnés', 'duelDPct', 1, '%'], ['Duels au sol gagnés', 'gdDPct', 1, '%'], ['Duels aériens gagnés', 'aerDPct', 1, '%'], ['Fautes commises', 'foul', -1, 'pm']]
-    ], ['Pressing et récupération', 'Déséquilibres concédés', '30 derniers mètres', 'Duels'], tid, TN, f, !PMODE, tid && T[tid] ? T[tid].mp : 1);
+    ], ['Pressing et récupération', 'Entrer dans ses 30 derniers mètres', '30 derniers mètres', 'Duels'], tid, TN, f, !PMODE, tid && T[tid] ? T[tid].mp : 1);
     const topBy = (fn, n = 5) => plRows.filter(r => !tid || r.tid === tid).map(r => ({r, v: fn(r.o)})).filter(x => x.v > 0).sort((a, b) => b.v - a.v).slice(0, n);
     // 1. Pressing et récupération
     const evs = [];
@@ -3393,24 +3392,9 @@ function renderTactical() {
     $('#recTop').innerHTML = topList(topBy(o => o.recov + o.int + o.tkW), v => fmt(v), o => `${fmt(o.recov)} récup. · ${fmt(o.int)} interc. · ${fmt(o.tkW)} tacles · ${fmt(o.recovH)} dans le camp adverse`);
     const th = [0, 0, 0]; RP.forEach(p => th[Math.min(2, Math.floor(p.x / 35))]++);
     $('#recThirds').innerHTML = laneBars(th, ['Tiers défensif', 'Tiers médian', 'Tiers offensif'], cF, RP.length, cnt);
-    // 2. Déséquilibres concédés
-    if (!tid) { needFocus('#dzAGrid', '#dzASub', 'Sélectionnez une équipe pour voir comment l’adversaire la déséquilibre.'); needFocus('#boxALanes', '#boxASub', 'Sélectionnez une équipe.'); $('#lbAMap').innerHTML = ''; $('#oppTop').innerHTML = ''; }
-    else {
-      const inBox = (x, y) => x >= 88.5 && Math.abs(y - 34) <= 20.16, dz = [], lbP = [], BX = [], hurt = {};
-      for (const m of ms) if (m.ev && (m.home.id === tid || m.away.id === tid)) for (const e of m.ev.passes) {
-        if (e.tm === tid || !f.qs.has(e.q) || !e.c) continue;
-        if (e.br) { dz.push({x: e.x1, y: e.y1}); lbP.push(e); (hurt[e.p] = hurt[e.p] || {lb: 0, bx: 0, tm: e.tm}).lb++; }
-        if (inBox(e.x1, e.y1) && !inBox(e.x0, e.y0)) { BX.push(e); (hurt[e.p] = hurt[e.p] || {lb: 0, bx: 0, tm: e.tm}).bx++; }
-      }
-      $('#dzASub').textContent = `${cnt(dz.length)} passes adverses${PMODE ? ' par match' : ''} cassant nos lignes · où elles sont reçues (attaque adverse →, notre but à droite)`;
-      $('#dzAGrid').innerHTML = zoneGridSVG(dz, '#d0453f', {xs: [0, 35, 52.5, 70, 88.5, 105], div: PMODE ? nM : 1});
-      $('#lbAMap').innerHTML = passMapSVG(lbP, PI, TN, '#d0453f');
-      const lc = [0, 0, 0]; BX.forEach(e => lc[e.y0 < 22.67 ? 0 : e.y0 < 45.33 ? 1 : 2]++);
-      $('#boxASub').textContent = `${cnt(BX.length)} entrées adverses${PMODE ? ' par match' : ''} dans notre surface par la passe · selon le couloir d’où part la passe (vu par l’adversaire)`;
-      $('#boxALanes').innerHTML = laneBars(lc, ['Côté gauche adverse', 'Axe', 'Côté droit adverse'], '#d0453f', BX.length, cnt);
-      const HT = Object.entries(hurt).filter(([id]) => PI[id]).map(([id, h]) => ({r: {name: PI[id].name, tid: h.tm, o: h}, v: h.lb + h.bx})).sort((a, b) => b.v - a.v).slice(0, 5);
-      $('#oppTop').innerHTML = topList(HT, v => fmt(v), o => `${fmt(o.lb)} passes cassant nos lignes · ${fmt(o.bx)} entrées dans la surface · ${TN[o.tm] || ''}`);
-    }
+    // 1. Comment entrer dans ses 30 derniers mètres
+    if (!tid) $('#e30Vis').innerHTML = '<p class="rnote">Sélectionnez une équipe pour voir comment ses adversaires entrent dans ses 30 derniers mètres.</p>';
+    else { const lgM = CM().filter(m => (f.j0 == null || m.j >= f.j0) && (f.j1 == null || m.j <= f.j1)); $('#e30Vis').innerHTML = e30HTML(ms, lgM, tid, f, nM, PI); }
     // 3. 30 derniers mètres
     const sa = [];
     if (tid) for (const m of ms) if (m.ev && (m.home.id === tid || m.away.id === tid)) for (const x of m.ev.shots) if (f.qs.has(x.q) && x.tm !== tid) sa.push(x);
@@ -3907,7 +3891,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-20 10:24 UTC';
+const BUILD = '2026-11-20 10:30 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4992,6 +4976,54 @@ function cmpRows(items, o = {}) {
       + `<div class="cmp-b"><div class="cmp-t"><i style="width:${Math.max(0, (it.v || 0) / mx * 100)}%;background:${it.c}"></i><span>${it.txt}</span></div>`
       + (it.a != null ? `<div class="cmp-a"><i style="width:${Math.max(0, it.a / mx * 100)}%"></i><span>${it.atxt}</span></div>` : '') + `</div>`
       + (o.noDiff ? '' : `<div class="cmp-d ${o.neutral ? 'neu' : dc}">${d == null ? '' : (d > 0 ? '+' : d < 0 ? '−' : '') + fmt(Math.abs(d), o.dd ?? 0) + (o.du ?? ' pt')}</div>`) + `</div>`; }).join('')}</div>`;
+}
+
+/* ---------- Comment entrer dans ses 30 derniers mètres (défensif) ----------
+   Entrée = passe réussie ou conduite qui part d'avant la ligne des 30 m (x < 75) et arrive au-delà (x ≥ 75), dans le sens de l'adversaire. */
+function e30After(E, tm, per, t) { let n = 0, xg = 0; for (const s of E.shots || []) if (s.tm === tm && s.per === per && s.mi * 60 >= t - .5 && s.mi * 60 - t <= 10) { n++; xg += s.xg || 0; } return {n, xg}; }
+function e30List(ms, tid, qs) {
+  const L = [];
+  for (const m of ms) { const E = m.ev; if (!E || !E.passes) continue; if (tid && m.home.id !== tid && m.away.id !== tid) continue;
+    const add = (e, how) => { if (tid && e.tm === tid) return; if (!e.per || (qs && !qs.has(e.q))) return; const a = e30After(E, e.tm, e.per, e.mi * 60);
+      L.push({m, tm: e.tm, p: e.p, how, x0: e.x0, y0: e.y0, x1: e.x1, y1: e.y1, sh: a.n > 0, xg: a.xg}); };
+    for (const e of E.passes) if (e.c && e.x0 < 75 && e.x1 >= 75) add(e, Math.hypot(e.x1 - e.x0, e.y1 - e.y0) >= 30 ? 'pl' : 'pc');
+    for (const e of E.carries || []) if (e.x0 < 75 && e.x1 >= 75) add(e, 'cd'); }
+  return L;
+}
+// terrain en zones : part de l'équipe (gros) et moyenne (petit) ; rouge = plus que la moyenne (porte d'entrée), vert = moins
+function zonesSVG(P, PL, XS, YS, nM, unit, rect) {
+  const nx = XS.length - 1, ny = YS.length - 1, ci = p => { let i = XS.findIndex((v, k) => k && p.x < v) - 1; if (i < 0) i = nx - 1; let j = YS.findIndex((v, k) => k && p.y < v) - 1; if (j < 0) j = ny - 1; return j * nx + Math.max(0, i); };
+  const grid = A => { const G = Array(nx * ny).fill(0); for (const p of A) if (p.x >= XS[0] && p.x <= XS[nx]) G[ci(p)]++; return G; };
+  const G = grid(P), R = pct100(G), RA = pct100(grid(PL)), SH = Array(nx * ny).fill(0); P.forEach(p => { if (p.sh && p.x >= XS[0]) SH[ci(p)]++; });
+  const cells = G.map((n, k) => { const i = k % nx, j = Math.floor(k / nx), x = XS[i], y = YS[j], w = XS[i + 1] - x, h = YS[j + 1] - y, d = R[k] - RA[k], dk = -d, dark = zAl(dk) > .45;
+    return `<g data-tip="${esc(`${n} ${unit} (${fmt(n / nM, 1)} par match)\n${R[k]} % de ses ${unit}, contre ${RA[k]} % en moyenne\n${SH[k]} suivie(s) d’un tir dans les 10 s`)}"><rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${zCol(dk)}" fill-opacity="${zAl(dk)}" stroke="#fff" stroke-width=".3"/>`
+      + `<text x="${x + w / 2}" y="${y + h / 2 - .5}" text-anchor="middle" font-size="${Math.min(6, w / 4.2)}" font-weight="800" fill="${dark ? '#fff' : 'var(--text)'}">${R[k]} %</text>`
+      + `<text x="${x + w / 2}" y="${y + h / 2 + Math.min(6, w / 4.2)}" text-anchor="middle" font-size="${Math.min(3.8, w / 6.5)}" font-weight="700" fill="${dark ? '#fff' : 'var(--text-2)'}">moy. ${RA[k]} %</text></g>`; }).join('');
+  return `<svg class="pitch pz-map" viewBox="${rect || '-2 -2 109 72'}">${pitchLines(true)}<line x1="75" y1="0" x2="75" y2="68" stroke="#d0453f" stroke-width=".5" stroke-dasharray="1.5 1"/>${cells}</svg>`;
+}
+function e30HTML(ms, lgM, tid, f, nM, PI) {
+  const L = e30List(ms, tid, f.qs), LG = e30List(lgM, null, f.qs);
+  if (!L.length) return `<p class="rnote">${ms.some(m => m.ev && m.ev.passes) ? 'Aucune entrée adverse sur la période.' : 'Importez les fichiers insight.jsonl.'}</p>`;
+  const shR = A => A.length ? A.filter(e => e.sh).length / A.length * 100 : 0;
+  // comment : passe courte, passe longue, conduite
+  const HOW = [['pc', 'Passe courte', 'passe de moins de 30 m qui franchit la ligne des 30 m', '#3b6fd8'], ['pl', 'Passe longue', 'passe de 30 m ou plus', '#8a63d2'], ['cd', 'Conduite de balle', 'un joueur franchit la ligne balle au pied', '#e0842b']];
+  const hP = pct100(HOW.map(([k]) => L.filter(e => e.how === k).length)), hA = pct100(HOW.map(([k]) => LG.filter(e => e.how === k).length));
+  const how = cmpRows(HOW.map(([k, l, sub, c], i) => { const A = L.filter(e => e.how === k), G = LG.filter(e => e.how === k);
+    return {l, sub, c, v: hP[i], a: hA[i], d: hP[i] - hA[i], txt: `${hP[i]} % · ${fmt(A.length / nM, 1)} / match · ${fmt(shR(A), 0)} % finissent en tir`, atxt: `moy. ${hA[i]} % · ${fmt(shR(G), 0)} % finissent en tir`}; }), {max: 100, neutral: true});
+  // ce qui marche le mieux contre elle : couloir d'arrivée × façon d'entrer, classé par tirs provoqués
+  const lane = y => y < 68 / 3 ? 'à gauche' : y < 136 / 3 ? 'dans l’axe' : 'à droite';
+  const G = {}; for (const e of L) { const k = e.how + '|' + lane(e.y1); (G[k] || (G[k] = [])).push(e); }
+  const best = Object.entries(G).filter(([, A]) => A.length >= 5).map(([k, A]) => [k, A, shR(A)]).sort((a, b) => b[2] - a[2] || b[1].length - a[1].length).slice(0, 3);
+  const bestH = best.length ? `<div class="loss-pats">${best.map(([k, A, r]) => { const [h, ln] = k.split('|'), H = HOW.find(x => x[0] === h), xg = A.reduce((s, e) => s + e.xg, 0);
+    return `<div class="loss-pat"><span class="sty-dot" style="background:${H[3]}"></span><div><b>${H[1]} ${ln}</b><small><b>${fmt(r, 0)} %</b> finissent en tir (${A.filter(e => e.sh).length} sur ${A.length}) · ${fmt(xg, 2)} xG · moy. du championnat pour ce type d’entrée : ${fmt(shR(LG.filter(e => e.how === h && lane(e.y1) === ln)), 0)} %</small></div></div>`; }).join('')}</div>` : '';
+  const P0 = L.map(e => ({x: e.x0, y: e.y0, sh: e.sh})), PL0 = LG.map(e => ({x: e.x0, y: e.y0})), P1 = L.map(e => ({x: e.x1, y: e.y1, sh: e.sh})), PL1 = LG.map(e => ({x: e.x1, y: e.y1}));
+  return `<div class="style-grid" style="grid-template-columns:1fr 1fr">`
+    + `<div><h3>D’où partent les entrées</h3><p class="sub">Où l’adversaire a le ballon juste avant de franchir la ligne des 30 m (pointillés rouges) · l’adversaire attaque vers la droite</p>${zonesSVG(P0, PL0, [0, 35, 52.5, 75], [0, 68 / 3, 136 / 3, 68], nM, 'entrées')}</div>`
+    + `<div><h3>Où elles arrivent</h3><p class="sub">Où le ballon arrive dans ses 30 derniers mètres (surface à droite)</p>${zonesSVG(P1, PL1, [75, 88.5, 105], [0, 68 / 3, 136 / 3, 68], nM, 'entrées')}</div></div>`
+    + `<p class="sub" style="margin:6px 0 10px">Chaque zone : part de ses entrées concédées (gros) et moyenne du championnat (petit) · <span style="color:#d0453f;font-weight:700">rouge</span> = l’adversaire y passe plus souvent que la moyenne (porte d’entrée), <span style="color:#2e9e5b;font-weight:700">vert</span> = moins souvent</p>`
+    + `<h3 class="sty-h">Comment l’adversaire entre</h3>${how}`
+    + (bestH ? `<h3 class="sty-h">Ce qui marche le mieux contre elle</h3><p class="sub" style="margin:0 0 6px">Façons d’entrer (au moins 5 fois) qui finissent le plus souvent par un tir dans les 10 s</p>${bestH}` : '')
+    + `<p class="note">Entrée = passe réussie ou conduite de balle qui part d’avant la ligne des 30 derniers mètres et arrive au-delà. Tir derrière = tir de l’adversaire dans les 10 secondes. D’après les passes et conduites Second Spectrum.</p>`;
 }
 /* ---------- Style de jeu offensif : construction ou transition, et d'où vient le danger ---------- */
 const STYLE_SP = {corner_kick: 1, free_kick: 1, penalty: 1};
