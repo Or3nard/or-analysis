@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-20 09:01 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-20 09:22 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3907,7 +3907,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-20 09:01 UTC';
+const BUILD = '2026-11-20 09:22 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -5014,8 +5014,21 @@ const pressLabel = (i, h, e) => { if (i == null || h == null || e == null) retur
 const defLabel = (p, s) => p == null || s == null ? '' : p >= 60 && s >= 60 ? 'Pressing haut et solide' : p >= 60 && s < 40 ? 'Presse haut mais concède des occasions' : p < 40 && s >= 60 ? 'Bloc bas et solide' : p < 40 && s < 40 ? 'Bloc bas et perméable' : p >= s + 15 ? 'Plutôt pressing' : s >= p + 15 ? 'Plutôt solide en place' : 'Profil équilibré';
 // Défensif : comment l'équipe défend, et ce qu'elle concède
 // barre buts (pleine) / xG (claire) dans les tableaux par origine
+// Position de l'équipe dans le championnat (← moins bon · meilleur →), trait = médiane
+function posBar(v, vals, dir, col, tip) {
+  const V = vals.filter(x => x != null && isFinite(x)).sort((a, b) => a - b); if (v == null || !V.length) return '';
+  const lo = V[0], hi = V[V.length - 1], med = V.length % 2 ? V[(V.length - 1) / 2] : (V[V.length / 2 - 1] + V[V.length / 2]) / 2;
+  const pos = x => hi > lo ? (dir > 0 ? (x - lo) / (hi - lo) : (hi - x) / (hi - lo)) * 100 : 50;
+  return `<span class="kbar"${tip ? ` data-tip="${esc(tip)}"` : ''}><i class="avg" style="left:${pos(med)}%"></i><b style="left:${pos(v)}%;background:${col}"></b></span>`;
+}
+// buts par match d'une origine : position de l'équipe vs les autres, avec rang et médiane
+function goalPos(T, ids, tid, key, dir, unit) {
+  const val = t => (T[t][key] || 0) / T[t].mp, V = ids.map(val), v = val(tid), S = [...V].sort((a, b) => a - b);
+  const med = S.length % 2 ? S[(S.length - 1) / 2] : (S[S.length / 2 - 1] + S[S.length / 2]) / 2, rk = 1 + V.filter(x => dir > 0 ? x > v + 1e-9 : x < v - 1e-9).length;
+  return posBar(v, V, dir, '#d32f2f', `${fmt(v, 2)} ${unit} par match · médiane ${fmt(med, 2)} · ${ordFr(rk)} sur ${V.length}`);
+}
 const gxBar = (g, x, mx, c) => `<div class="gxb"><i style="width:${g / mx * 100}%;background:${c}"></i><u style="width:${x / mx * 100}%;background:${color4(c, .28)}"></u></div>`;
-function concedeBlock(me, tid, lg, f, TN) {
+function concedeBlock(me, tid, lg, f, TN, T, ids) {
   const PI = playerInfo(), C = teamCodes();
   const GO = [...STY_O.map(([k, l, , c]) => [k, k === 'sp' ? 'CPA hors penalty' : l, c]), ['pen', 'Penaltys', '#b58ad6'], ['og', 'Contre son camp', '#b9bec6'], ['nc', 'Non classés', '#d9dce0']];
   const L = {}; for (const m of lg) if (m.ev && (m.home.id === tid || m.away.id === tid)) {
@@ -5031,10 +5044,10 @@ function concedeBlock(me, tid, lg, f, TN) {
   const effCell = (g, x, extra = '') => { if (!x) return '<td class="muted">—</td>'; const p = (g / x - 1) * 100; return `<td class="${p < -5 ? 'pos' : p > 5 ? 'neg' : 'neu'}" title="${esc(tip(g, x) + extra)}">${p > 0 ? '+' : p < 0 ? '−' : ''}${fmt(Math.abs(p), 0)} %</td>`; };
   const MXc = Math.max(1, ...GO.map(([k]) => Math.max(n(k), me['xSA_' + k] || 0)));
   const rows = GO.filter(([k]) => k !== 'og' && (n(k) || me['xSA_' + k] > .05)).map(([k, l, c]) => { const g = n(k), x = me['xSA_' + k] || 0, d = g - x;
-    return `<tr data-tip="${esc((L[k] || []).join('\n') || 'Aucun but encaissé')}"><td class="txt"><i class="sty-dot" style="background:${c}"></i>${l}</td><td class="txt">${gxBar(g, x, MXc, c)}</td><td><b>${g}</b></td><td>${fmt(x, 1)}</td><td class="${d < -.5 ? 'pos' : d > .5 ? 'neg' : ''}">${d >= 0 ? '+' : ''}${fmt(d, 1)}</td>${effCell(g, x)}</tr>`; }).join('')
-    + (n('og') ? `<tr data-tip="${esc((L.og || []).join('\n'))}"><td class="txt"><i class="sty-dot" style="background:#b9bec6"></i>Contre son camp</td><td class="txt">${gxBar(n('og'), 0, MXc, '#b9bec6')}</td><td><b>${n('og')}</b></td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td></tr>` : '')
+    return `<tr data-tip="${esc((L[k] || []).join('\n') || 'Aucun but encaissé')}"><td class="txt"><i class="sty-dot" style="background:${c}"></i>${l}</td><td class="txt">${goalPos(T, ids, tid, 'gSA_' + k, -1, 'but(s) encaissé(s)')}</td><td><b>${g}</b></td><td>${fmt(x, 1)}</td><td class="${d < -.5 ? 'pos' : d > .5 ? 'neg' : ''}">${d >= 0 ? '+' : ''}${fmt(d, 1)}</td>${effCell(g, x)}</tr>`; }).join('')
+    + (n('og') ? `<tr data-tip="${esc((L.og || []).join('\n'))}"><td class="txt"><i class="sty-dot" style="background:#b9bec6"></i>Contre son camp</td><td class="txt">${goalPos(T, ids, tid, 'gSA_og', -1, 'CSC')}</td><td><b>${n('og')}</b></td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td></tr>` : '')
     + (() => { const xT = GO.reduce((a, [k]) => a + (me['xSA_' + k] || 0), 0), gNo = tot - n('og'), d = gNo - xT; return `<tr class="sty-tot"><td class="txt"><b>Total</b></td><td></td><td><b>${tot}</b></td><td><b>${fmt(xT, 1)}</b></td><td class="${d < -.5 ? 'pos' : d > .5 ? 'neg' : ''}"><b>${d >= 0 ? '+' : ''}${fmt(d, 1)}</b></td>${effCell(gNo, xT, n('og') ? ' (hors CSC)' : '')}</tr>`; })();
-  return `<h3 class="sty-h">Comment elle encaisse</h3><p class="sub" style="margin:0 0 6px">${tot} but${tot > 1 ? 's' : ''} encaissé${tot > 1 ? 's' : ''} · barre pleine = buts, barre claire = xG concédés sur les mêmes origines</p><table class="gkz sty-eff"><tr><th class="txt">Origine</th><th class="txt" style="width:34%"></th><th>Buts encaissés</th><th>xG concédés</th><th>Écart</th><th title="Buts encaissés par rapport aux xG concédés sur les mêmes tirs : −20 % = 20 % de buts en moins que prévu (gardien, défense en dernier recours ou maladresse adverse)">Écart en %</th></tr>${rows}</table>`
+  return `<h3 class="sty-h">Comment elle encaisse</h3><p class="sub" style="margin:0 0 6px">${tot} but${tot > 1 ? 's' : ''} encaissé${tot > 1 ? 's' : ''} · position = buts encaissés par match sur cette origine, comparés aux autres équipes (trait = médiane)</p><table class="gkz sty-eff"><tr><th class="txt">Origine</th><th class="txt" style="width:30%">Position (← moins bon · meilleur →)</th><th>Buts encaissés</th><th>xG concédés</th><th>Écart</th><th title="Buts encaissés par rapport aux xG concédés sur les mêmes tirs : −20 % = 20 % de buts en moins que prévu (gardien, défense en dernier recours ou maladresse adverse)">Écart en %</th></tr>${rows}</table>`
     + `<p class="note">Ici, <span class="pos">en vert</span> l’équipe encaisse <b>moins</b> que ce que les occasions adverses laissaient attendre (bon gardien, défense en dernier recours ou maladresse adverse) ; <span class="neg">en rouge</span> elle encaisse plus que prévu. Entre −5 % et +5 %, en noir : à peu près ce qui était attendu. Survolez pour voir les buts.</p>`;
 }
 /* ---------- Sorties de balle (structure de la relance, tracking) ---------- */
@@ -5318,7 +5331,7 @@ function renderDefStyle(f, tid, TN) {
       + '\u0001' + `<h3 class="sty-h">Comment elle presse</h3><div class="ph-kpis">${kpiRowHTML(hasPz ? [['Passes adverses sous pression', 'pzPct', 1, '%', 1], ['Part des pressions dans le camp adverse', 'pzHShare', 1, '%', 1], ['Pressions qui font rater la passe (camp adverse)', 'pzKoPct', 1, '%'], ['Pressions contournées', 'pzBPct', -1, '%']] : [['PPDA (bas = pressing intense)', 'ppda', -1, '', 1], ['Hauteur des récupérations (m)', 'recH', 1, '', 1], ['Récupérations dans le camp adverse', 'recovH', 1, 'pm', 1], ['Duels défensifs gagnés', 'duelDPct', 1, '%']], f, tid, false, me.mp)}</div>`
       + (hasPz ? `<div class="ph-kpis">${kpiRowHTML([['PPDA (bas = pressing intense)', 'ppda', -1, '', 1], ['Hauteur des récupérations (m)', 'recH', 1, '', 1], ['Récupérations dans le camp adverse', 'recovH', 1, 'pm', 1], ['Duels défensifs gagnés', 'duelDPct', 1, '%']], f, tid, false, me.mp)}</div>` : '')
       + `<h3 class="sty-h">Comment on la met en danger</h3><p class="sub" style="margin:0 0 6px">D’où viennent les xG concédés · barre grise = moyenne du championnat${top[1] - top[2] > 3 ? ` · point faible : <b>${({pl: 'en attaque placée', tr: 'en transition', di: 'sur le jeu direct', sp: 'sur coups de pied arrêtés'})[top[0][0]]}</b> (${fmt(top[1], 0)} % de ses xG concédés, contre ${fmt(top[2], 0)} % en moyenne)` : ''}</p>${originCmp(S, lgS, me, ids, T, 'xga_', true)}`
-      + concedeBlock(me, tid, lg, f, TN)
+      + concedeBlock(me, tid, lg, f, TN, T, ids)
       + `<div class="ph-kpis" style="margin-top:10px">${kpiRowHTML([['xG concédés en attaque placée', 'xga_pl', -1, 'pm'], ['xG concédés en transition', 'xga_tr', -1, 'pm'], ['xG concédés en jeu direct', 'xga_di', -1, 'pm'], ['xG concédés sur CPA', 'xga_sp', -1, 'pm']], f, tid, false, me.mp)}</div>`;
   }
   { const [a, b] = left.split('\u0001'); $('#dstyleL').innerHTML = a; $('#dstyleB').innerHTML = b || ''; }
@@ -5343,7 +5356,7 @@ function styleScores(T, ids) {
 }
 const styleLabel = (c, t) => c == null || t == null ? '' : c >= 60 && t >= 60 ? 'Équipe complète : elle construit et elle accélère' : c >= 60 ? 'Équipe de construction' : t >= 60 ? 'Équipe de transition' : c < 40 && t < 40 ? 'Peu de maîtrise et peu de transitions' : c >= t + 15 ? 'Plutôt construction' : t >= c + 15 ? 'Plutôt transition' : 'Profil équilibré';
 // Comment l'équipe marque : buts par origine, comparés aux xG des mêmes tirs
-function goalsBlock(me, tid, lg, f, TN) {
+function goalsBlock(me, tid, lg, f, TN, T, ids) {
   const PI = playerInfo(), C = teamCodes();
   const GO = [...STY_O.map(([k, l, , c]) => [k, k === 'sp' ? 'CPA hors penalty' : l, c]), ['pen', 'Penaltys', '#b58ad6'], ['og', 'Contre son camp', '#b9bec6'], ['nc', 'Non classés', '#d9dce0']];
   const L = {}; for (const m of lg) if (m.ev && (m.home.id === tid || m.away.id === tid)) {
@@ -5360,13 +5373,13 @@ function goalsBlock(me, tid, lg, f, TN) {
     return `<td class="${p > 5 ? 'pos' : p < -5 ? 'neg' : 'neu'}" title="${esc(effTip(g, x) + extra)}">${p > 0 ? '+' : p < 0 ? '−' : ''}${fmt(Math.abs(p), 0)} %</td>`; };
   const MXg = Math.max(1, ...GO.map(([k]) => Math.max(n(k), me['xS_' + k] || 0)));
   const rows = GO.filter(([k]) => k !== 'og' && (n(k) || me['xS_' + k] > .05)).map(([k, l, c]) => { const g = n(k), x = me['xS_' + k] || 0, d = g - x;
-    return `<tr data-tip="${esc((L[k] || []).join('\n') || 'Aucun but')}"><td class="txt"><i class="sty-dot" style="background:${c}"></i>${l}</td><td class="txt">${gxBar(g, x, MXg, c)}</td><td><b>${g}</b></td><td>${fmt(x, 1)}</td><td class="${d > .5 ? 'pos' : d < -.5 ? 'neg' : ''}">${d >= 0 ? '+' : ''}${fmt(d, 1)}</td>${effCell(g, x)}</tr>`; }).join('')
-    + (n('og') ? `<tr data-tip="${esc((L.og || []).join('\n'))}"><td class="txt"><i class="sty-dot" style="background:#b9bec6"></i>Contre son camp (adversaire)</td><td class="txt">${gxBar(n('og'), 0, MXg, '#b9bec6')}</td><td><b>${n('og')}</b></td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td></tr>` : '')
+    return `<tr data-tip="${esc((L[k] || []).join('\n') || 'Aucun but')}"><td class="txt"><i class="sty-dot" style="background:${c}"></i>${l}</td><td class="txt">${goalPos(T, ids, tid, 'gS_' + k, 1, 'but(s)')}</td><td><b>${g}</b></td><td>${fmt(x, 1)}</td><td class="${d > .5 ? 'pos' : d < -.5 ? 'neg' : ''}">${d >= 0 ? '+' : ''}${fmt(d, 1)}</td>${effCell(g, x)}</tr>`; }).join('')
+    + (n('og') ? `<tr data-tip="${esc((L.og || []).join('\n'))}"><td class="txt"><i class="sty-dot" style="background:#b9bec6"></i>Contre son camp (adversaire)</td><td class="txt">${goalPos(T, ids, tid, 'gS_og', 1, 'CSC adverse(s)')}</td><td><b>${n('og')}</b></td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td></tr>` : '')
     + (() => { const xT = GO.reduce((a, [k]) => a + (me['xS_' + k] || 0), 0), gT = tot, gNo = tot - n('og'), d = gNo - xT; return `<tr class="sty-tot"><td class="txt"><b>Total</b></td><td></td><td><b>${gT}</b></td><td><b>${fmt(xT, 1)}</b></td><td class="${d > .5 ? 'pos' : d < -.5 ? 'neg' : ''}"><b>${d >= 0 ? '+' : ''}${fmt(d, 1)}</b></td>${effCell(gNo, xT, n('og') ? ' (hors CSC)' : '')}</tr>`; })();
   const apx = me.clApx ? `<p class="note">${me.clApx} tir(s) sans possession Second Spectrum correspondante : origine déduite du schéma Opta (contre-attaque, CPA, sinon non classé).</p>` : '';
   const old = me.clOld && !me.clN ? `<p class="note">Origine des buts approchée (fichiers importés avant cette version) : réimportez les fichiers insight.jsonl pour la classer exactement comme les xG.</p>` : me.clOld ? `<p class="note">${me.clOld} tir(s) de matchs importés avant cette version : réimportez leurs fichiers insight.jsonl pour un classement exact.</p>` : '';
-  return `<h3 class="sty-h">Comment elle marque</h3><p class="sub" style="margin:0 0 6px">${tot} but${tot > 1 ? 's' : ''} · barre pleine = buts, barre claire = xG des mêmes tirs</p>`
-    + `<table class="gkz sty-eff"><tr><th class="txt">Origine</th><th class="txt" style="width:34%"></th><th>Buts</th><th>xG des tirs</th><th>Écart</th><th title="Buts marqués par rapport aux xG des mêmes tirs : +14 % = 14 % de buts en plus que ce que ses occasions laissaient attendre, −56 % = 56 % de buts en moins">Efficacité</th></tr>${rows}</table>`
+  return `<h3 class="sty-h">Comment elle marque</h3><p class="sub" style="margin:0 0 6px">${tot} but${tot > 1 ? 's' : ''} · position = buts marqués par match sur cette origine, comparés aux autres équipes (trait = médiane)</p>`
+    + `<table class="gkz sty-eff"><tr><th class="txt">Origine</th><th class="txt" style="width:30%">Position (← moins bon · meilleur →)</th><th>Buts</th><th>xG des tirs</th><th>Écart</th><th title="Buts marqués par rapport aux xG des mêmes tirs : +14 % = 14 % de buts en plus que ce que ses occasions laissaient attendre, −56 % = 56 % de buts en moins">Efficacité</th></tr>${rows}</table>`
     + `<p class="note"><b>Efficacité</b> : buts marqués par rapport à ce que ses occasions laissaient attendre (xG des mêmes tirs). <span class="pos">+14 %</span> = 14 % de buts en plus que prévu, <span class="neg">−56 %</span> = 56 % de buts en moins ; entre −5 % et +5 %, en noir, elle marque à peu près ce qui était attendu. Les CSC ne comptent ni dans les xG ni dans l’efficacité. Sur quelques matchs, un seul but fait beaucoup varier l’écart. Survolez pour voir les buts.</p>${old}${apx}`;
 }
 function renderStyle(f, tid, TN) {
@@ -5387,7 +5400,7 @@ function renderStyle(f, tid, TN) {
       + gauge('Construction', sc.cons, '#3b6fd8', 'possession, passes par possession, % de passes, xG en attaque placée') + gauge('Transition', sc.tran, '#e0842b', 'verticalité, xG en transition, récupérations hautes, tirs en contre')
       + '\u0001' + `<h3 class="sty-h">Comment elle construit</h3><div class="ph-kpis">${kpiRowHTML([['Possession', 'possPct', 1, '%', 1], ['Passes par possession', 'npPoss', 1, '', 1], ['Verticalité', 'vert', 1, '', 1], ['Jeu long (tiers déf.)', 'blongPct', 1, '%', 1]], f, tid, false, me.mp)}</div>`
       + `<h3 class="sty-h">Comment elle est dangereuse</h3><p class="sub" style="margin:0 0 6px">D’où viennent ses xG : surtout <b>${esc(top[0][4])}</b> (${pct100(S)[STY_O.indexOf(top[0])]} %) · barre grise = moyenne du championnat</p>${originCmp(S, lgS, me, ids, T, 'xg_', false)}`
-      + goalsBlock(me, tid, lg, f, TN)
+      + goalsBlock(me, tid, lg, f, TN, T, ids)
       + `<div class="ph-kpis" style="margin-top:10px">${kpiRowHTML([['xG en attaque placée', 'xg_pl', 1, 'pm'], ['xG en transition', 'xg_tr', 1, 'pm'], ['xG en jeu direct', 'xg_di', 1, 'pm'], ['xG sur CPA', 'xg_sp', 1, 'pm']], f, tid, false, me.mp)}</div>`;
   }
   { const [a, b] = left.split('\u0001'); $('#styleL').innerHTML = a; $('#styleB').innerHTML = b || ''; }
