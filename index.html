@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-23 09:28 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-23 09:41 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -612,8 +612,9 @@ input.j{width:64px}
           <div class="cr-blk"><h3 class="cr-h">Les centres <span class="muted">— dans le jeu, hors coups de pied arrêtés</span></h3><div class="ph-kpis" id="crK"></div>
             <div class="ph-vis">
               <div><h3>D’où partent les centres</h3><p class="sub" id="crSub"></p><div id="crGrid" data-crgrid="off"></div><div id="crMap" hidden></div></div>
-              <div><h3>Où arrivent les centres</h3><p class="sub" id="crEndSub"></p><div id="crEnd"></div></div>
+              <div><h3>Où arrivent les centres</h3><p class="sub" id="crEndSub"></p><div id="crEnd" data-crarr="off"></div></div>
             </div>
+            <div id="crBox"></div>
           </div>
         </div>
         <details class="card c12 det" id="offDet" open>
@@ -701,8 +702,9 @@ input.j{width:64px}
           <div class="cr-blk"><h3 class="cr-h">Les centres concédés <span class="muted">— dans le jeu, hors coups de pied arrêtés</span></h3><div class="ph-kpis" id="dcrK"></div>
             <div class="ph-vis">
               <div><h3>D’où l’adversaire centre</h3><p class="sub" id="dcrSub"></p><div id="dcrGrid" data-crgrid="def"></div><div id="dcrMap" hidden></div></div>
-              <div><h3>Où arrivent les centres adverses</h3><p class="sub" id="dcrEndSub"></p><div id="dcrEnd"></div></div>
+              <div><h3>Où arrivent les centres adverses</h3><p class="sub" id="dcrEndSub"></p><div id="dcrEnd" data-crarr="def"></div></div>
             </div>
+            <div id="dcrBox"></div>
           </div>
         </div>
         <div class="card c12 ph" id="dph4">
@@ -1636,7 +1638,7 @@ function baseFromMeta(meta, md) {
 }
 
 /* ---------- Insight : événements Opta + marquages tracking ---------- */
-const EV_VER = 20; // version du traitement des événements (à incrémenter si procInsight change)
+const EV_VER = 21; // version du traitement des événements (à incrémenter si procInsight change)
 const OPTA_KEEP = new Set([1, 3, 4, 7, 8, 10, 11, 12, 17, 41, 44, 45, 49, 50, 52, 53, 59, 61, 74]);
 function procInsight(m, rows) {
   const L = m.L, W = m.W;
@@ -1695,7 +1697,7 @@ function procInsight(m, rows) {
   const setup = {};
   const subs = [];
   const D1 = (m.periods.find(p => p.n === 1) || {dur: 2820}).dur;
-  const airOf = {}; for (const k of Object.values(mkById)) if (k.markingType === 'pass' && k.optaId && k.air != null) airOf[k.optaId] = k.air;
+  const airOf = {}, boxOf = {}; for (const k of Object.values(mkById)) if (k.markingType === 'pass' && k.optaId) { if (k.air != null) airOf[k.optaId] = k.air; if (Array.isArray(k.attInBox)) boxOf[k.optaId] = [k.attInBox.length, (k.defInBox || []).length]; }
   for (const o of optaRaw) {
     const tm = teamOf[o.contestantId];
     if (!tm) continue;
@@ -1730,7 +1732,7 @@ function procInsight(m, rows) {
     const e = {t: o.typeId, o: o.outcome, p: pid, tm, q, x: o.x, y: o.y, per: pm.per, mi: pm.mi};
     if (o.typeId === 1) {
       e.cr = qv[2] !== undefined ? 1 : 0; if (qv[6] !== undefined) e.co = 1;
-      if (e.cr) { const k = airOf[o.id]; if (k != null) e.air = k ? 1 : 0; } if (qv[124] !== undefined) e.gk = 1; if (qv[1] !== undefined) e.lg = 1;
+      if (e.cr) { const k = airOf[o.id]; if (k != null) e.air = k ? 1 : 0; const b = boxOf[o.id]; if (b) { e.aib = b[0]; e.dib = b[1]; } } if (qv[124] !== undefined) e.gk = 1; if (qv[1] !== undefined) e.lg = 1;
       if (qv[140] !== undefined) { e.ex = +qv[140]; e.ey = +qv[141]; }
       passByEid[tm + '|' + o.eventId] = e;
     }
@@ -3401,7 +3403,7 @@ function renderTactical() {
     }
     // 3 bis. Centres concédés
     if (!tid) { $('#dcrK').innerHTML = kpiRowHTML([['Centres concédés', 'crA', -1, 'pm'], ['Centres adverses trouvés', 'crAPct', -1, '%'], ['Centres concédés menant directement à un tir', 'crASh', -1, 'pm'], ['Part menant à un tir', 'crAShPct', -1, '%']], f, null, false, 1);
-      needFocus('#dcrGrid', '#dcrSub', 'Sélectionnez une équipe pour voir les centres qu’elle concède.'); needFocus('#dcrEnd', '#dcrEndSub', 'Sélectionnez une équipe.'); $('#dcrMap').innerHTML = ''; }
+      needFocus('#dcrGrid', '#dcrSub', 'Sélectionnez une équipe pour voir les centres qu’elle concède.'); needFocus('#dcrEnd', '#dcrEndSub', 'Sélectionnez une équipe.'); $('#dcrMap').innerHTML = ''; $('#dcrBox').innerHTML = ''; }
     else {
       const CR = crossList(ms, f.qs, (e, m) => (m.home.id === tid || m.away.id === tid) && e.tm !== tid), RED = '#d0453f';
       $('#dcrK').innerHTML = kpiRowHTML([['Centres concédés', 'crA', -1, 'pm'], ['Centres adverses trouvés', 'crAPct', -1, '%'], ['Centres concédés menant directement à un tir', 'crASh', -1, 'pm'], ['Part menant à un tir', 'crAShPct', -1, '%']], f, tid, !PMODE, T[tid] ? T[tid].mp : 1);
@@ -3877,7 +3879,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-23 09:28 UTC';
+const BUILD = '2026-11-23 09:41 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -5876,9 +5878,12 @@ function crossZoneSVG(pts, col, div = 1, sel, over) {
 // Trajectoires des centres partis des zones choisies : couleur = hauteur (Second Spectrum), épaisseur / cercle = tir, but
 const CR_H = [['sol', 'Centre au sol', '#2e9e5b'], ['air', 'Centre aérien', '#3b6fd8'], ['nc', 'Hauteur inconnue (réimporter)', '#9aa1ab']];
 const CRS = {};   // état par carte : {L, sel, col, PI, TN}
+const crDep = e => CRZ.findIndex(z => e.x0 >= z.x0 && e.x0 <= z.x1 && e.y0 >= z.y0 && e.y0 <= z.y1);
+const crArr = e => e.x1 == null ? -1 : CRA.findIndex(z => e.x1 >= z.x0 && e.x1 <= z.x1 && e.y1 >= z.y0 && e.y1 <= z.y1);
+const crInD = st => e => !st.sel.size || st.sel.has(crDep(e)), crInA = st => e => !st.asel.size || st.asel.has(crArr(e));
 function crossTrajSVG(key) {
-  const st = CRS[key], inZ = e => !st.sel.size || st.sel.has(CRZ.findIndex(z => e.x0 >= z.x0 && e.x0 <= z.x1 && e.y0 >= z.y0 && e.y0 <= z.y1));
-  const L = st.L.filter(e => e.x1 != null && inZ(e)), h = e => e.air == null ? 'nc' : e.air ? 'air' : 'sol', col = e => CR_H.find(x => x[0] === h(e))[2];
+  const st = CRS[key], inD = crInD(st), inA = crInA(st), any = st.sel.size || st.asel.size;
+  const L = st.L.filter(e => e.x1 != null && inD(e) && inA(e)), h = e => e.air == null ? 'nc' : e.air ? 'air' : 'sol', col = e => CR_H.find(x => x[0] === h(e))[2];
   const defs = `<defs>${CR_H.map(([k, , c]) => `<marker id="crm-${key}-${k}" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="3.6" markerHeight="3.6" orient="auto"><path d="M0 0L6 3L0 6Z" fill="${c}"/></marker>`).join('')}</defs>`;
   const ord = [...L].sort((a, b) => (a.sh + a.g * 2) - (b.sh + b.g * 2));
   const ln = ord.map(e => { const c = col(e), tip = `${(st.PI[e.p] || {}).name || '?'} · J${e.j || '?'}\n${CR_H.find(x => x[0] === h(e))[1]} · ${e.c ? 'trouvé' : 'pas trouvé'}${e.g ? `\nBUT sur ce centre (${fmt(e.xg, 2)} xG)` : e.sh ? `\nTir sur ce centre (${fmt(e.xg, 2)} xG)` : ''}`;
@@ -5887,40 +5892,60 @@ function crossTrajSVG(key) {
       + (e.g ? `<circle cx="${e.x1}" cy="${e.y1}" r="1.4" fill="none" stroke="#111" stroke-width=".4"/><circle cx="${e.x1}" cy="${e.y1}" r=".75" fill="#f2c200"/>` : e.sh ? `<circle cx="${e.x1}" cy="${e.y1}" r="1.1" fill="none" stroke="#d0453f" stroke-width=".35"/>` : '') + `</g>`; }).join('');
   const n = k => L.filter(e => h(e) === k).length, nSh = L.filter(e => e.sh).length, nG = L.filter(e => e.g).length;
   const leg = `<div class="sty-leg" style="margin-top:6px">${CR_H.filter(([k]) => n(k)).map(([k, l, c]) => `<span><i style="background:${c}"></i>${l} (${n(k)})</span>`).join('')}<span><i style="background:none;border:2px solid #d0453f;border-radius:50%"></i>Tir direct sur le centre (${nSh})</span><span><i style="background:#f2c200;border:2px solid #111;border-radius:50%"></i>But direct sur le centre (${nG})</span><span class="muted">pointillés = centre pas trouvé</span></div>`;
-  const filt = st.sel.size ? `<p class="e30-f">${st.sel.size} zone${st.sel.size > 1 ? 's' : ''} choisie${st.sel.size > 1 ? 's' : ''} · ${L.length} centre${L.length > 1 ? 's' : ''} <button class="btn" data-crclear="${key}">Tout afficher</button></p>` : `<p class="sub" style="margin:4px 0">Cliquez sur une ou plusieurs zones pour voir les trajectoires de leurs centres</p>`;
-  return {filt, over: st.sel.size ? defs + `<g class="cr-traj">${ln}</g>` : '', leg: st.sel.size ? leg : ''};
+  const parts = [st.sel.size ? `${st.sel.size} zone${st.sel.size > 1 ? 's' : ''} de départ` : '', st.asel.size ? `${st.asel.size} zone${st.asel.size > 1 ? 's' : ''} d’arrivée` : ''].filter(Boolean);
+  const filt = any ? `<p class="e30-f">${parts.join(' · ')} · ${L.length} centre${L.length > 1 ? 's' : ''} <button class="btn" data-crclear="${key}">Tout afficher</button></p>` : `<p class="sub" style="margin:4px 0">Cliquez sur une ou plusieurs zones (départ ou arrivée) pour voir les trajectoires</p>`;
+  return {filt, over: any ? defs + `<g class="cr-traj">${ln}</g>` : '', leg: any ? leg : ''};
 }
 function crossDraw(key) {
-  const st = CRS[key], T = crossTrajSVG(key), dim = st.sel.size > 0;
-  $('#' + st.gridId).innerHTML = T.filt + `<div class="${dim ? 'cr-dim' : ''}">${crossZoneSVG(st.L.map(e => ({x: e.x0, y: e.y0})), st.col, 1, st.sel, T.over)}</div>` + T.leg;
-  if (st.arrId) { const inZ = e => !st.sel.size || st.sel.has(CRZ.findIndex(z => e.x0 >= z.x0 && e.x0 <= z.x1 && e.y0 >= z.y0 && e.y0 <= z.y1));
-    const el = $('#' + st.arrId); if (el) el.innerHTML = (st.sel.size ? `<p class="e30-f">Centres partis des ${st.sel.size} zone${st.sel.size > 1 ? 's' : ''} choisie${st.sel.size > 1 ? 's' : ''}</p>` : `<p class="sub" style="margin:4px 0">Tous les centres · se met à jour avec les zones de départ choisies</p>`) + crossArrSVG(st.L.filter(inZ), st.col); }
+  const st = CRS[key], T = crossTrajSVG(key), dim = st.sel.size + st.asel.size > 0, inD = crInD(st), inA = crInA(st);
+  $('#' + st.gridId).innerHTML = T.filt + `<div class="${dim ? 'cr-dim' : ''}">${crossZoneSVG(st.L.filter(inA).map(e => ({x: e.x0, y: e.y0})), st.col, 1, st.sel, T.over)}</div>` + T.leg;
+  const LA = st.L.filter(inD);
+  if (st.arrId) { const el = $('#' + st.arrId); if (el) el.innerHTML = (st.sel.size ? `<p class="e30-f">Centres partis des ${st.sel.size} zone${st.sel.size > 1 ? 's' : ''} de départ choisie${st.sel.size > 1 ? 's' : ''}</p>` : `<p class="sub" style="margin:4px 0">Cliquez sur une ou plusieurs zones d’arrivée pour filtrer les zones de départ</p>`) + crossArrSVG(LA, st.col, st.asel); }
+  if (st.boxId) { const el = $('#' + st.boxId); if (el) el.innerHTML = crossBoxHTML(st.L.filter(e => inD(e) && inA(e)), key === 'def'); }
+}
+// Joueurs dans la surface au moment du centre (Second Spectrum) et ce que ça donne
+function crossBoxHTML(L, D) {
+  const A = L.filter(e => e.aib != null);
+  if (!A.length) return `<h3 class="sty-h">Joueurs dans la surface au moment du centre</h3><p class="rnote">${L.length ? 'Réimportez les fichiers insight.jsonl pour avoir le nombre de joueurs dans la surface.' : 'Aucun centre.'}</p>`;
+  const avg = k => fmt(A.reduce((s, e) => s + e[k], 0) / A.length, 1), att = D ? 'Attaquants adverses' : 'Attaquants de l’équipe', def = D ? 'Défenseurs de l’équipe' : 'Défenseurs adverses';
+  const B = [['0 ou 1', e => e.aib <= 1], ['2', e => e.aib === 2], ['3', e => e.aib === 3], ['4 ou plus', e => e.aib >= 4]];
+  const rows = B.map(([l, fn]) => { const X = A.filter(fn), n = X.length; if (!n) return `<tr><td class="txt">${l}</td><td>0</td><td>—</td><td>—</td><td>—</td><td></td></tr>`;
+    return `<tr><td class="txt">${l}</td><td><b>${n}</b> <small class="muted">${Math.round(n / A.length * 100)} %</small></td><td>${fmt(X.reduce((s, e) => s + e.dib, 0) / n, 1)}</td><td>${Math.round(X.filter(e => e.c).length / n * 100)} %</td><td>${X.filter(e => e.sh).length} <small class="muted">${Math.round(X.filter(e => e.sh).length / n * 100)} %</small></td><td>${X.filter(e => e.g).length || ''}</td></tr>`; }).join('');
+  return `<h3 class="sty-h">Joueurs dans la surface au moment du centre</h3><p class="sub" style="margin:0 0 6px">${A.length} centre${A.length > 1 ? 's' : ''}${A.length < L.length ? ` (sur ${L.length})` : ''} · suit les zones choisies · défenseurs gardien compris</p>`
+    + `<div class="ph-kpis cr-box"><div class="phk"><span>${att} dans la surface <small>/ centre</small></span><div><b>${avg('aib')}</b></div></div><div class="phk"><span>${def} dans la surface <small>/ centre</small></span><div><b>${avg('dib')}</b></div></div>`
+    + `<div class="phk"><span>Centres avec 3 ${D ? 'attaquants adverses' : 'attaquants'} ou plus</span><div><b>${Math.round(A.filter(e => e.aib >= 3).length / A.length * 100)} %</b></div></div>`
+    + `<div class="phk"><span>Centres en infériorité numérique ${D ? 'adverse' : ''}</span><div><b>${Math.round(A.filter(e => e.aib < e.dib - 1).length / A.length * 100)} %</b></div><small>moins d’attaquants que de défenseurs de champ</small></div></div>`
+    + `<table class="gkz"><tr><th class="txt">${D ? 'Attaquants adverses' : 'Attaquants'} dans la surface</th><th>Centres</th><th>${D ? 'Nos défenseurs' : 'Défenseurs'} (moy.)</th><th>Trouvés</th><th>Tirs directs</th><th>Buts</th></tr>${rows}</table>`;
 }
 
 // Zones d'arrivée des centres (même repère que le départ : but adverse à droite, gauche en haut)
 const CRA = [[99.5, 105, 24.84, 43.16, 'Petit rectangle'], [88.5, 99.5, 24.84, 43.16, 'Zone du point de penalty'], [88.5, 105, 13.84, 24.84, 'Surface, côté gauche'], [88.5, 105, 43.16, 54.16, 'Surface, côté droit'],
   [70, 88.5, 13.84, 54.16, 'Devant la surface'], [70, 105, 0, 13.84, 'Côté gauche, hors surface'], [70, 105, 54.16, 68, 'Côté droit, hors surface']].map(([x0, x1, y0, y1, l]) => ({x0, x1, y0, y1, l}));
-function crossArrSVG(L, col) {
-  const C = CRA.map(z => ({...z, A: []})); let tot = 0;
+function crossArrSVG(L, col, asel) {
+  const C = CRA.map((z, k) => ({...z, k, A: []})); let tot = 0;
   for (const e of L) { if (e.x1 == null) continue; const c = C.find(z => e.x1 >= z.x0 && e.x1 <= z.x1 && e.y1 >= z.y0 && e.y1 <= z.y1); if (c) { c.A.push(e); tot++; } }
   const mx = Math.max(1, ...C.map(c => c.A.length));
   const cells = C.map(c => { const n = c.A.length, w = c.x1 - c.x0, h = c.y1 - c.y0, a = n / mx, fs = Math.min(5.2, w / 3.2, h / 2.1), txt = a > .55 ? '#fff' : 'var(--text)', pc = Math.round(n / (tot || 1) * 100);
     const ok = c.A.filter(e => e.c).length, sh = c.A.filter(e => e.sh).length, g = c.A.filter(e => e.g).length;
-    return `<g data-tip="${esc(`${c.l}\n${n} centre${n > 1 ? 's' : ''} · ${pc} %\n${n ? Math.round(ok / n * 100) : 0} % trouvent un partenaire\n${sh} tir${sh > 1 ? 's' : ''} direct${sh > 1 ? 's' : ''} · ${g} but${g > 1 ? 's' : ''}`)}"><rect x="${c.x0}" y="${c.y0}" width="${w}" height="${h}" fill="${col}" fill-opacity="${(.1 + .8 * a).toFixed(2)}" stroke="#fff" stroke-width=".6"/>`
+    const on = asel && asel.has(c.k);
+    return `<g data-ak="${c.k}" style="cursor:pointer"${asel && asel.size && !on ? ' opacity=".4"' : ''} data-tip="${esc(`${c.l}\n${n} centre${n > 1 ? 's' : ''} · ${pc} %\n${n ? Math.round(ok / n * 100) : 0} % trouvent un partenaire\n${sh} tir${sh > 1 ? 's' : ''} direct${sh > 1 ? 's' : ''} · ${g} but${g > 1 ? 's' : ''}`)}"><rect x="${c.x0}" y="${c.y0}" width="${w}" height="${h}" fill="${col}" fill-opacity="${(.1 + .8 * a).toFixed(2)}" stroke="${on ? 'var(--text)' : '#fff'}" stroke-width="${on ? .9 : .6}"/>`
       + (n ? `<text x="${c.x0 + w / 2}" y="${c.y0 + h / 2 + .2}" text-anchor="middle" font-size="${fs.toFixed(1)}" font-weight="800" fill="${txt}">${n}</text>`
         + (h > 6.5 && w > 8 ? `<text x="${c.x0 + w / 2}" y="${c.y0 + h / 2 + fs * .55 + 1.6}" text-anchor="middle" font-size="${(fs * .55).toFixed(1)}" fill="${txt}" fill-opacity=".9">${w > 25 ? `${pc} % · ${Math.round(ok / n * 100)} % trouvés` : pc + ' %'}</text>` : '') : '') + `</g>`; }).join('');
   return `<svg class="pitch cr-svg" viewBox="50.5 -1.5 56 71">${cells}<g opacity=".45" pointer-events="none">${pitchLines(true)}</g></svg>`
     + `<p class="note" style="margin-top:4px">${tot} centre${tot > 1 ? 's' : ''} · chiffre = nombre de centres arrivés dans la zone, puis part et % trouvant un partenaire · survolez pour les tirs et buts directs</p>`;
 }
 function crossBlock(key, L, col, PI, TN, gridId, mapId, arrId) {
-  const st = CRS[key] = {L, col, PI, TN, sel: CRS[key] && CRS[key].keep === JSON.stringify(S.f) ? CRS[key].sel : new Set(), keep: JSON.stringify(S.f)};
-  st.gridId = gridId; st.arrId = arrId; crossDraw(key);
+  const same = CRS[key] && CRS[key].keep === JSON.stringify(S.f);
+  const st = CRS[key] = {L, col, PI, TN, sel: same ? CRS[key].sel : new Set(), asel: same ? CRS[key].asel : new Set(), keep: JSON.stringify(S.f)};
+  st.gridId = gridId; st.arrId = arrId; st.boxId = key === 'def' ? 'dcrBox' : 'crBox'; crossDraw(key);
 }
 document.addEventListener('click', e => {
-  const t = e.target, z = t.closest && t.closest('[data-crgrid] g[data-zk]'), c = t.closest && t.closest('[data-crclear]');
-  if (!z && !c) return;
-  const key = c ? c.dataset.crclear : z.closest('[data-crgrid]').dataset.crgrid, st = CRS[key]; if (!st) return;
-  if (c) st.sel.clear(); else { const k = +z.dataset.zk; st.sel.has(k) ? st.sel.delete(k) : st.sel.add(k); }
+  const t = e.target, z = t.closest && t.closest('[data-crgrid] g[data-zk]'), a = t.closest && t.closest('[data-crarr] g[data-ak]'), c = t.closest && t.closest('[data-crclear]');
+  if (!z && !c && !a) return;
+  const key = c ? c.dataset.crclear : z ? z.closest('[data-crgrid]').dataset.crgrid : a.closest('[data-crarr]').dataset.crarr, st = CRS[key]; if (!st) return;
+  if (c) { st.sel.clear(); st.asel.clear(); }
+  else if (z) { const k = +z.dataset.zk; st.sel.has(k) ? st.sel.delete(k) : st.sel.add(k); }
+  else { const k = +a.dataset.ak; st.asel.has(k) ? st.asel.delete(k) : st.asel.add(k); }
   crossDraw(key);
 });
 /* ---------- Centres dans le jeu (hors CPA) ---------- */
@@ -5957,7 +5982,7 @@ function crossList(ms, qs, keep) {
       if (e.t !== 1 || !e.cr || SPC.has(e) || !qs.has(e.q) || !keep(e, m)) continue;
       const S = e.kp ? (shK[e.tm + '|' + e.per] || []).filter(s => s.mi >= e.mi && s.mi - e.mi <= 10 / 60).slice(0, 1) : [];
       out.push({x0: r1(e.x * 1.05), y0: r1((100 - e.y) * .68), x1: e.ex != null ? r1(e.ex * 1.05) : null, y1: e.ex != null ? r1((100 - e.ey) * .68) : null, c: e.o ? 1 : 0, p: e.p, tm: e.tm,
-        sh: e.kp ? 1 : 0, g: e.as ? 1 : 0, xg: S.length ? S[0].xg || 0 : 0, air: e.air, j: m.j});
+        sh: e.kp ? 1 : 0, g: e.as ? 1 : 0, xg: S.length ? S[0].xg || 0 : 0, air: e.air, aib: e.aib, dib: e.dib, j: m.j});
     }
   }
   return out;
