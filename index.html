@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-23 10:42 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-23 10:55 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3879,7 +3879,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-23 10:42 UTC';
+const BUILD = '2026-11-23 10:55 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4594,8 +4594,9 @@ function qualityChecks(list) {
         for (const t of ids) for (const per of [1, 2]) {
           const g = (m.ev.passes || []).filter(e => e.tm === t && e.per === per && GK.has(e.p));
           if (g.length >= 3) { const mx = mean(g.map(e => FL(t, per) ? 105 - e.x0 : e.x0)); if (mx > 40) add('err', m, 'Sens du terrain', `${TNm[t]} (${per}re/2e période) : les passes du gardien partent en moyenne à ${fmt(mx, 0)} m de son but — sens d’attaque inversé`); } }
-        for (const t of ids) { const sh = m.ev.shots.filter(x => x.tm === t && x.x != null && !x.pen), r = pct(sh, x => x.x >= 52.5);
-          if (sh.length >= 4 && r < 90) add('err', m, 'Sens du terrain', `${TNm[t]} : seulement ${fmt(r, 0)} % de ses tirs sont dans la moitié adverse`); }
+        // une frappe lointaine de sa moitié arrive ; plusieurs tirs près de son propre but, non
+        for (const t of ids) { const sh = m.ev.shots.filter(x => x.tm === t && x.x != null && !x.pen), r = pct(sh, x => x.x >= 52.5), deep = sh.filter(x => x.x < 40).length;
+          if (sh.length >= 4 && (r < 70 || deep >= 2)) add('err', m, 'Sens du terrain', `${TNm[t]} : seulement ${fmt(r, 0)} % de ses tirs dans la moitié adverse (${deep} à plus de 65 m du but)`); }
         const CRm = crossList([m], ALLQ, () => true), rc = pct(CRm, e => e.x0 >= 52.5);
         if (CRm.length >= 5 && rc < 85) add('err', m, 'Sens du terrain', `seulement ${fmt(rc, 0)} % des centres partent de la moitié adverse`);
         const badL = (m.ev.loss || []).filter(l => l[5] >= 50).length; if (badL) add('err', m, 'Sens du terrain', `${badL} perte(s) « dans son camp » situées dans le camp adverse`);
@@ -4645,8 +4646,9 @@ function qualityChecks(list) {
           if (o.dIP + o.dOP > o.dist + tol(o.dist)) flag('Physique · calculs', 'err', pid, `distance avec + sans ballon (${fmt(o.dIP + o.dOP, 0)} m) > distance totale (${fmt(o.dist, 0)} m)`);
           if (o.hIP + o.hOP > o.hsr + o.spr + 20) flag('Physique · calculs', 'err', pid, `haute intensité avec + sans ballon (${fmt(o.hIP + o.hOP, 0)} m) > haute intensité totale (${fmt(o.hsr + o.spr, 0)} m)`);
           if (o.sIP + o.sOP > o.spr + 10) flag('Physique · calculs', 'err', pid, `sprint avec + sans ballon (${fmt(o.sIP + o.sOP, 0)} m) > sprint total (${fmt(o.spr, 0)} m)`);
-          if ((o.spr > 5) !== (o.nspr > 0)) flag('Physique · calculs', 'warn', pid, `${fmt(o.spr, 0)} m de sprint pour ${o.nspr} sprint(s)`);
-          if (o.nspr && (o.spr / o.nspr < 2 || o.spr / o.nspr > 90)) flag('Physique · calculs', 'warn', pid, `longueur moyenne d’un sprint de ${fmt(o.spr / o.nspr, 0)} m, à vérifier`);
+          // Second Spectrum ne compte un sprint qu'au-delà d'une durée minimale : quelques mètres > 25 km/h sans sprint compté sont normaux
+          if ((o.nspr === 0 && o.spr > 30) || (o.nspr > 0 && o.spr < 1)) flag('Physique · calculs', 'warn', pid, `${fmt(o.spr, 0)} m de sprint pour ${o.nspr} sprint(s)`);
+          if (o.nspr && (o.spr / o.nspr < 1 || o.spr / o.nspr > 90)) flag('Physique · calculs', 'warn', pid, `longueur moyenne d’un sprint de ${fmt(o.spr / o.nspr, 0)} m, à vérifier`);
           if (o.nhsr && (o.hsr / o.nhsr < 2 || o.hsr / o.nhsr > 90)) flag('Physique · calculs', 'warn', pid, `longueur moyenne d’une course à haute vitesse de ${fmt(o.hsr / o.nhsr, 0)} m, à vérifier`);
           if (o.spr > 5 && o.vmax < 24.5) flag('Physique · calculs', 'err', pid, `${fmt(o.spr, 0)} m de sprint (> 25 km/h) mais vitesse max de ${fmt(o.vmax, 1)} km/h`);
           if (o.nspr === 0 && o.vmax > 26.5) flag('Physique · calculs', 'warn', pid, `vitesse max de ${fmt(o.vmax, 1)} km/h sans aucun sprint compté`);
@@ -4656,7 +4658,7 @@ function qualityChecks(list) {
           let nb = 0; for (const r of m.phys.sum) { const sq = Q[r.p] || 0; if (r.v[0] > 300 && Math.abs(sq - r.v[1]) > Math.max(80, r.v[1] * .04)) { nb++; if (nb <= 3) add('warn', m, 'Physique · quarts d’heure', `${nmOf(r.p)} : somme des 6 quarts d’heure ${fmt(sq, 0)} m pour ${fmt(r.v[1], 0)} m au total`); } }
           if (nb > 3) add('warn', m, 'Physique · quarts d’heure', `${nb} joueurs au total dont les quarts d’heure ne recollent pas`); }
         // explosivité (tracking) : chaque course retenue doit être cohérente, et la vitesse max du tracking proche de celle du fichier physique
-        if (m.spd && m.spd.v === SPD_VER) { let nb = 0;
+        if (m.spd && m.spd.v === SPD_VER) { let nb = 0, nDv = 0;
           for (const [pid, sp] of Object.entries(m.spd.P || {})) { for (const e of sp.r || []) { const [v0, d28, t28, d30, t30, vm] = e, sd = e.slice(6, 12).filter(x => x != null); let why = '';
               if (v0 > 5.5) why = `départ à ${fmt(v0, 1)} km/h (au lieu de moins de 5)`;
               else if (d28 != null && vm < 27.5) why = `distance pour 28 km/h calculée alors que la vitesse max est ${fmt(vm, 1)}`;
@@ -4664,7 +4666,10 @@ function qualityChecks(list) {
               else if (sd.some((x, i) => i && i <= sd.indexOf(Math.max(...sd)) && x < sd[i - 1] - 3)) why = 'vitesse qui baisse avant d’atteindre sa vitesse max';
               else if (sd.some(x => x > vm + 1)) why = 'vitesse à un palier supérieure à la vitesse max de la course';
               if (why) { nb++; if (nb <= 3) add('warn', m, 'Explosivité', `${nmOf(pid)} : course incohérente (${why})`); } }
-            const ph = PH.P[pid]; if (ph && ph.time > 900 && sp.vm && Math.abs(sp.vm - ph.vmax) > 2.5) add('warn', m, 'Explosivité', `${nmOf(pid)} : vitesse max ${fmt(sp.vm, 1)} km/h au tracking pour ${fmt(ph.vmax, 1)} km/h dans le fichier physique`); }
+            // vitesse lissée du tracking (explosivité) vs vitesse officielle Second Spectrum : quelques km/h d'écart sont normaux, au-delà de 5 km/h c'est suspect
+            const ph = PH.P[pid], dv = ph && sp.vm ? Math.abs(sp.vm - ph.vmax) : 0; if (ph && ph.time > 900 && dv > 5) add('warn', m, 'Explosivité', `${nmOf(pid)} : vitesse max ${fmt(sp.vm, 1)} km/h au tracking pour ${fmt(ph.vmax, 1)} km/h dans le fichier physique`);
+            else if (ph && ph.time > 900 && dv > 2.5) nDv = (nDv || 0) + 1; }
+          if (nDv) add('info', m, 'Explosivité', `${nDv} joueur(s) avec 2,5 à 5 km/h d’écart de vitesse max entre le tracking lissé et le fichier physique (normal)`);
           if (nb > 3) add('warn', m, 'Explosivité', `${nb} courses incohérentes au total`); } }
     } else add('info', m, 'Fichiers', 'pas de données physiques');
     if (m.ev && !m.trk) add('info', m, 'Fichiers', 'pas de tracking : positions sur corners / CFI et vitesses indisponibles');
