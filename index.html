@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-23 09:06 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-23 09:14 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -611,8 +611,8 @@ input.j{width:64px}
           </div>
           <div class="cr-blk"><h3 class="cr-h">Les centres <span class="muted">— dans le jeu, hors coups de pied arrêtés</span></h3><div class="ph-kpis" id="crK"></div>
             <div class="ph-vis">
-              <div><h3>D’où partent les centres</h3><p class="sub" id="crSub"></p><div id="crGrid"></div>
-                <button class="btn ph-more" data-more="cr">Voir chaque centre</button><div class="ph-arrows" id="crWrap" hidden><div id="crMap"></div></div></div>
+              <div><h3>D’où partent les centres</h3><p class="sub" id="crSub"></p><div id="crGrid" data-crgrid="off"></div>
+                <h3 style="margin-top:14px">Trajectoires des centres</h3><div id="crMap"></div></div>
               <div><h3>Où arrivent les centres</h3><p class="sub" id="crEndSub"></p><div id="crEnd"></div>
                 <h3 style="margin-top:14px">Les meilleurs centreurs</h3><p class="sub" id="crTopSub"></p><div id="crTop"></div></div>
             </div>
@@ -702,8 +702,8 @@ input.j{width:64px}
           </div>
           <div class="cr-blk"><h3 class="cr-h">Les centres concédés <span class="muted">— dans le jeu, hors coups de pied arrêtés</span></h3><div class="ph-kpis" id="dcrK"></div>
             <div class="ph-vis">
-              <div><h3>D’où l’adversaire centre</h3><p class="sub" id="dcrSub"></p><div id="dcrGrid"></div>
-                <button class="btn ph-more" data-more="dcr">Voir chaque centre</button><div class="ph-arrows" id="dcrWrap" hidden><div id="dcrMap"></div></div></div>
+              <div><h3>D’où l’adversaire centre</h3><p class="sub" id="dcrSub"></p><div id="dcrGrid" data-crgrid="def"></div>
+                <h3 style="margin-top:14px">Trajectoires des centres adverses</h3><div id="dcrMap"></div></div>
               <div><h3>Où arrivent les centres adverses</h3><p class="sub" id="dcrEndSub"></p><div id="dcrEnd"></div>
                 <h3 style="margin-top:14px">Les adversaires qui centrent le plus</h3><p class="sub" id="dcrTopSub"></p><div id="dcrTop"></div></div>
             </div>
@@ -1640,7 +1640,7 @@ function baseFromMeta(meta, md) {
 }
 
 /* ---------- Insight : événements Opta + marquages tracking ---------- */
-const EV_VER = 19; // version du traitement des événements (à incrémenter si procInsight change)
+const EV_VER = 20; // version du traitement des événements (à incrémenter si procInsight change)
 const OPTA_KEEP = new Set([1, 3, 4, 7, 8, 10, 11, 12, 17, 41, 44, 45, 49, 50, 52, 53, 59, 61, 74]);
 function procInsight(m, rows) {
   const L = m.L, W = m.W;
@@ -1699,6 +1699,7 @@ function procInsight(m, rows) {
   const setup = {};
   const subs = [];
   const D1 = (m.periods.find(p => p.n === 1) || {dur: 2820}).dur;
+  const airOf = {}; for (const k of Object.values(mkById)) if (k.markingType === 'pass' && k.optaId && k.air != null) airOf[k.optaId] = k.air;
   for (const o of optaRaw) {
     const tm = teamOf[o.contestantId];
     if (!tm) continue;
@@ -1732,7 +1733,8 @@ function procInsight(m, rows) {
     if (!OPTA_KEEP.has(o.typeId)) continue;
     const e = {t: o.typeId, o: o.outcome, p: pid, tm, q, x: o.x, y: o.y, per: pm.per, mi: pm.mi};
     if (o.typeId === 1) {
-      e.cr = qv[2] !== undefined ? 1 : 0; if (qv[6] !== undefined) e.co = 1; if (qv[124] !== undefined) e.gk = 1; if (qv[1] !== undefined) e.lg = 1;
+      e.cr = qv[2] !== undefined ? 1 : 0; if (qv[6] !== undefined) e.co = 1;
+      if (e.cr) { const k = airOf[o.id]; if (k != null) e.air = k ? 1 : 0; } if (qv[124] !== undefined) e.gk = 1; if (qv[1] !== undefined) e.lg = 1;
       if (qv[140] !== undefined) { e.ex = +qv[140]; e.ey = +qv[141]; }
       passByEid[tm + '|' + o.eventId] = e;
     }
@@ -3346,8 +3348,7 @@ function renderTactical() {
       $('#crK').innerHTML = kpiRowHTML([['Centres', 'crO', 1, 'pm'], ['Centres trouvés', 'crOPct', 1, '%'], ['Centres suivis d’un tir', 'crSh', 1, 'pm'], ['Part des centres suivis d’un tir', 'crShPct', 1, '%']], f, tmFocus, !PMODE, tmFocus && T[tmFocus] ? T[tmFocus].mp : 1);
       const ok = CR.filter(e => e.c).length, sh = CR.filter(e => e.sh).length;
       $('#crSub').textContent = `${cnt(CR.length)} centres${PMODE ? ' par match' : ''} · ${CR.length ? Math.round(ok / CR.length * 100) : 0} % trouvés · ${cnt(sh)} suivis d’un tir dans les 10 s · sens d’attaque →`;
-      $('#crGrid').innerHTML = crossZoneSVG(CR.map(e => ({x: e.x0, y: e.y0})), cc);
-      $('#crMap').innerHTML = crossMapSVG(CR, PI, TN, cc);
+      crossBlock('off', CR, cc, PI, TN, 'crGrid', 'crMap');
       $('#crEndSub').textContent = 'Point d’arrivée du ballon · % de centres trouvant un partenaire';
       $('#crEnd').innerHTML = crossEndsHTML(CR, cc, cnt);
       $('#crTopSub').textContent = `Centres dans le jeu${tmFocus ? '' : ' · tout le championnat'}`;
@@ -3414,8 +3415,7 @@ function renderTactical() {
       $('#dcrK').innerHTML = kpiRowHTML([['Centres concédés', 'crA', -1, 'pm'], ['Centres adverses trouvés', 'crAPct', -1, '%'], ['Centres concédés suivis d’un tir', 'crASh', -1, 'pm'], ['Part suivie d’un tir', 'crAShPct', -1, '%']], f, tid, !PMODE, T[tid] ? T[tid].mp : 1);
       const ok = CR.filter(e => e.c).length, sh = CR.filter(e => e.sh).length;
       $('#dcrSub').textContent = `${cnt(CR.length)} centres adverses${PMODE ? ' par match' : ''} · ${CR.length ? Math.round(ok / CR.length * 100) : 0} % trouvés · ${cnt(sh)} suivis d’un tir dans les 10 s · attaque adverse →, notre but à droite`;
-      $('#dcrGrid').innerHTML = crossZoneSVG(CR.map(e => ({x: e.x0, y: e.y0})), RED);
-      $('#dcrMap').innerHTML = crossMapSVG(CR, PI, TN, RED);
+      crossBlock('def', CR, RED, PI, TN, 'dcrGrid', 'dcrMap');
       $('#dcrEndSub').textContent = 'Point d’arrivée du ballon · % de centres adverses trouvant un partenaire';
       $('#dcrEnd').innerHTML = crossEndsHTML(CR, RED, cnt);
       const H = {}; for (const e of CR) { const h = H[e.p] = H[e.p] || {n: 0, ok: 0, sh: 0, tm: e.tm}; h.n++; h.ok += e.c; h.sh += e.sh; }
@@ -3891,7 +3891,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-23 09:06 UTC';
+const BUILD = '2026-11-23 09:14 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -5872,23 +5872,52 @@ const CRZ = (() => { const Z = [], T = 5, Y6 = [24.84, 43.16], YB = [13.84, 54.1
     add(52.5, 70, ...m(45.33, 68), `Couloir ${side}, entre la ligne médiane et 35 m du but`);
     add(70, 88.5, ...m(45.33, 68), `Couloir ${side}, entre 35 m et la ligne de la surface`);
     add(88.5, 99.5, ...m(45.33, 68 - T), `Côté ${side}, à hauteur de surface`);
-    add(88.5, 99.5, ...m(68 - T, 68), `Côté ${side}, le long de la touche, à hauteur de surface`);
     add(99.5, 105, ...m(Y6[1], YB[1]), `Côté ${side}, entre le petit rectangle et le bord de la surface, près de la ligne de but`);
     add(99.5, 105, ...m(YB[1], 68 - T), `Côté ${side}, hors surface, près de la ligne de but`);
-    add(99.5, 105, ...m(68 - T, 68), `Côté ${side}, coin du terrain`); }
-  add(52.5, 70, 22.67, 45.33, 'Axe, entre la ligne médiane et 35 m du but'); add(70, 88.5, 22.67, 45.33, 'Axe, entre 35 m et la surface');
-  add(88.5, 99.5, 22.67, 45.33, 'Axe, dans la surface'); add(99.5, 105, Y6[0], Y6[1], 'Petit rectangle');
+    add(88.5, 105, ...m(68 - T, 68), `Côté ${side}, le long de la touche, de la surface au coin`); }
   return Z; })();
-function crossZoneSVG(pts, col, div = 1) {
-  const C = CRZ.map(z => ({...z, n: 0})); let tot = 0;
+function crossZoneSVG(pts, col, div = 1, sel) {
+  const C = CRZ.map((z, k) => ({...z, k, n: 0})); let tot = 0;
   for (const p of pts) { const c = C.find(z => p.x >= z.x0 && p.x <= z.x1 && p.y >= z.y0 && p.y <= z.y1); if (c) { c.n++; tot++; } }
   const mx = Math.max(1, ...C.map(c => c.n));
   const cells = C.map(c => { const w = c.x1 - c.x0, h = c.y1 - c.y0, a = c.n / mx, fs = Math.min(5.2, w / 3.2, h / 2.1), txt = a > .55 ? '#fff' : 'var(--text)', pc = Math.round(c.n / (tot || 1) * 100);
-    return `<g data-tip="${esc(`${c.l}\n${div > 1 ? fmt(c.n / div, 1) + ' par match · ' : ''}${c.n} centre${c.n > 1 ? 's' : ''} · ${pc} %`)}"><rect x="${c.x0}" y="${c.y0}" width="${w}" height="${h}" fill="${col}" fill-opacity="${(.1 + .8 * a).toFixed(2)}" stroke="var(--text-2)" stroke-width=".45"/>`
+    return `<g data-zk="${c.k}"${sel && sel.size && !sel.has(c.k) ? ' opacity=".4"' : ''} style="cursor:pointer" data-tip="${esc(`${c.l}\n${div > 1 ? fmt(c.n / div, 1) + ' par match · ' : ''}${c.n} centre${c.n > 1 ? 's' : ''} · ${pc} %`)}"><rect x="${c.x0}" y="${c.y0}" width="${w}" height="${h}" fill="${col}" fill-opacity="${(.1 + .8 * a).toFixed(2)}" stroke="${sel && sel.has(c.k) ? 'var(--text)' : '#fff'}" stroke-width="${sel && sel.has(c.k) ? .9 : .6}"/>`
       + (c.n ? `<text x="${c.x0 + w / 2}" y="${c.y0 + h / 2 + (h > 6.5 && w > 8 ? .2 : fs * .35)}" text-anchor="middle" font-size="${fs.toFixed(1)}" font-weight="800" fill="${txt}">${div > 1 ? fmt(c.n / div, 1) : c.n}</text>`
         + (h > 6.5 && w > 8 ? `<text x="${c.x0 + w / 2}" y="${c.y0 + h / 2 + fs * .55 + 1.6}" text-anchor="middle" font-size="${(fs * .55).toFixed(1)}" fill="${txt}" fill-opacity=".85">${pc} %</text>` : '') : '') + `</g>`; }).join('');
-  return `<svg class="pitch" viewBox="50.5 -1.5 56 71">${cells}<g opacity=".35" pointer-events="none">${pitchLines(true)}</g></svg>`;
+  return `<svg class="pitch" viewBox="50.5 -1.5 56 71">${cells}<g opacity=".45" pointer-events="none">${pitchLines(true)}</g></svg>`;
 }
+
+// Trajectoires des centres partis des zones choisies : couleur = hauteur (Second Spectrum), épaisseur / cercle = tir, but
+const CR_H = [['sol', 'Centre au sol', '#2e9e5b'], ['air', 'Centre aérien', '#3b6fd8'], ['nc', 'Hauteur inconnue (réimporter)', '#9aa1ab']];
+const CRS = {};   // état par carte : {L, sel, col, PI, TN}
+function crossTrajSVG(key) {
+  const st = CRS[key], inZ = e => !st.sel.size || st.sel.has(CRZ.findIndex(z => e.x0 >= z.x0 && e.x0 <= z.x1 && e.y0 >= z.y0 && e.y0 <= z.y1));
+  const L = st.L.filter(e => e.x1 != null && inZ(e)), h = e => e.air == null ? 'nc' : e.air ? 'air' : 'sol', col = e => CR_H.find(x => x[0] === h(e))[2];
+  const defs = `<defs>${CR_H.map(([k, , c]) => `<marker id="crm-${key}-${k}" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="3.6" markerHeight="3.6" orient="auto"><path d="M0 0L6 3L0 6Z" fill="${c}"/></marker>`).join('')}</defs>`;
+  const ord = [...L].sort((a, b) => (a.sh + a.g * 2) - (b.sh + b.g * 2));
+  const ln = ord.map(e => { const c = col(e), tip = `${(st.PI[e.p] || {}).name || '?'} · J${e.j || '?'}\n${CR_H.find(x => x[0] === h(e))[1]} · ${e.c ? 'trouvé' : 'pas trouvé'}${e.g ? '\nBUT dans les 10 s' : e.sh ? `\nSuivi d’un tir (${fmt(e.xg, 2)} xG)` : ''}`;
+    return `<g data-tip="${esc(tip)}"><line x1="${e.x0}" y1="${e.y0}" x2="${e.x1}" y2="${e.y1}" stroke="${c}" stroke-width="${e.g ? .55 : e.sh ? .42 : .22}" stroke-opacity="${e.sh ? 1 : .45}" ${e.c ? '' : 'stroke-dasharray="1 .7"'} marker-end="url(#crm-${key}-${h(e)})"/>`
+      + `<circle cx="${e.x0}" cy="${e.y0}" r=".45" fill="${c}"/>`
+      + (e.g ? `<circle cx="${e.x1}" cy="${e.y1}" r="1.4" fill="none" stroke="#111" stroke-width=".4"/><circle cx="${e.x1}" cy="${e.y1}" r=".75" fill="#f2c200"/>` : e.sh ? `<circle cx="${e.x1}" cy="${e.y1}" r="1.1" fill="none" stroke="#d0453f" stroke-width=".35"/>` : '') + `</g>`; }).join('');
+  const n = k => L.filter(e => h(e) === k).length, nSh = L.filter(e => e.sh).length, nG = L.filter(e => e.g).length;
+  const leg = `<div class="sty-leg" style="margin-top:6px">${CR_H.filter(([k]) => n(k)).map(([k, l, c]) => `<span><i style="background:${c}"></i>${l} (${n(k)})</span>`).join('')}<span><i style="background:none;border:2px solid #d0453f;border-radius:50%"></i>Suivi d’un tir (${nSh})</span><span><i style="background:#f2c200;border:2px solid #111;border-radius:50%"></i>But (${nG})</span><span class="muted">pointillés = centre pas trouvé</span></div>`;
+  const filt = st.sel.size ? `<p class="e30-f">${st.sel.size} zone${st.sel.size > 1 ? 's' : ''} choisie${st.sel.size > 1 ? 's' : ''} · ${L.length} centre${L.length > 1 ? 's' : ''} <button class="btn" data-crclear="${key}">Tout afficher</button></p>` : `<p class="sub" style="margin:4px 0">Cliquez sur une ou plusieurs zones pour n’afficher que leurs centres</p>`;
+  return filt + `<svg class="pitch" viewBox="50.5 -1.5 56 71">${defs}<g opacity=".5" pointer-events="none">${pitchLines(true)}</g>${ln}</svg>` + leg;
+}
+function crossBlock(key, L, col, PI, TN, gridId, mapId) {
+  const st = CRS[key] = {L, col, PI, TN, sel: CRS[key] && CRS[key].keep === JSON.stringify(S.f) ? CRS[key].sel : new Set(), keep: JSON.stringify(S.f)};
+  $('#' + gridId).innerHTML = crossZoneSVG(L.map(e => ({x: e.x0, y: e.y0})), col, 1, st.sel);
+  $('#' + mapId).innerHTML = crossTrajSVG(key);
+  st.gridId = gridId; st.mapId = mapId;
+}
+document.addEventListener('click', e => {
+  const t = e.target, z = t.closest && t.closest('[data-crgrid] g[data-zk]'), c = t.closest && t.closest('[data-crclear]');
+  if (!z && !c) return;
+  const key = c ? c.dataset.crclear : z.closest('[data-crgrid]').dataset.crgrid, st = CRS[key]; if (!st) return;
+  if (c) st.sel.clear(); else { const k = +z.dataset.zk; st.sel.has(k) ? st.sel.delete(k) : st.sel.add(k); }
+  $('#' + st.gridId).innerHTML = crossZoneSVG(st.L.map(x => ({x: x.x0, y: x.y0})), st.col, 1, st.sel);
+  $('#' + st.mapId).innerHTML = crossTrajSVG(key);
+});
 /* ---------- Centres dans le jeu (hors CPA) ---------- */
 // Centres liés à un coup de pied arrêté : le corner ou le coup franc lui-même, et tout centre de la même équipe
 // dans les 15 s qui suivent un corner ou un coup franc (seconde phase). Les touches ne sont pas des CPA ici.
@@ -5923,7 +5952,7 @@ function crossList(ms, qs, keep) {
       if (e.t !== 1 || !e.cr || SPC.has(e) || !qs.has(e.q) || !keep(e, m)) continue;
       const S = (shK[e.tm + '|' + e.per] || []).filter(s => s.mi >= e.mi && s.mi - e.mi <= 10 / 60);
       out.push({x0: r1(e.x * 1.05), y0: r1((100 - e.y) * .68), x1: e.ex != null ? r1(e.ex * 1.05) : null, y1: e.ex != null ? r1((100 - e.ey) * .68) : null, c: e.o ? 1 : 0, p: e.p, tm: e.tm,
-        sh: S.length ? 1 : 0, g: S.some(s => s.g) ? 1 : 0, xg: S.reduce((a, s) => Math.max(a, s.xg || 0), 0)});
+        sh: S.length ? 1 : 0, g: S.some(s => s.g) ? 1 : 0, xg: S.reduce((a, s) => Math.max(a, s.xg || 0), 0), air: e.air, j: m.j});
     }
   }
   return out;
