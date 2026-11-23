@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-23 09:02 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-23 09:06 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3346,7 +3346,7 @@ function renderTactical() {
       $('#crK').innerHTML = kpiRowHTML([['Centres', 'crO', 1, 'pm'], ['Centres trouvés', 'crOPct', 1, '%'], ['Centres suivis d’un tir', 'crSh', 1, 'pm'], ['Part des centres suivis d’un tir', 'crShPct', 1, '%']], f, tmFocus, !PMODE, tmFocus && T[tmFocus] ? T[tmFocus].mp : 1);
       const ok = CR.filter(e => e.c).length, sh = CR.filter(e => e.sh).length;
       $('#crSub').textContent = `${cnt(CR.length)} centres${PMODE ? ' par match' : ''} · ${CR.length ? Math.round(ok / CR.length * 100) : 0} % trouvés · ${cnt(sh)} suivis d’un tir dans les 10 s · sens d’attaque →`;
-      $('#crGrid').innerHTML = crossZoneSVG(CR.map(e => ({x: e.x0, y: e.y0})), cc, PMODE ? nM : 1);
+      $('#crGrid').innerHTML = crossZoneSVG(CR.map(e => ({x: e.x0, y: e.y0})), cc);
       $('#crMap').innerHTML = crossMapSVG(CR, PI, TN, cc);
       $('#crEndSub').textContent = 'Point d’arrivée du ballon · % de centres trouvant un partenaire';
       $('#crEnd').innerHTML = crossEndsHTML(CR, cc, cnt);
@@ -3414,7 +3414,7 @@ function renderTactical() {
       $('#dcrK').innerHTML = kpiRowHTML([['Centres concédés', 'crA', -1, 'pm'], ['Centres adverses trouvés', 'crAPct', -1, '%'], ['Centres concédés suivis d’un tir', 'crASh', -1, 'pm'], ['Part suivie d’un tir', 'crAShPct', -1, '%']], f, tid, !PMODE, T[tid] ? T[tid].mp : 1);
       const ok = CR.filter(e => e.c).length, sh = CR.filter(e => e.sh).length;
       $('#dcrSub').textContent = `${cnt(CR.length)} centres adverses${PMODE ? ' par match' : ''} · ${CR.length ? Math.round(ok / CR.length * 100) : 0} % trouvés · ${cnt(sh)} suivis d’un tir dans les 10 s · attaque adverse →, notre but à droite`;
-      $('#dcrGrid').innerHTML = crossZoneSVG(CR.map(e => ({x: e.x0, y: e.y0})), RED, PMODE ? nM : 1);
+      $('#dcrGrid').innerHTML = crossZoneSVG(CR.map(e => ({x: e.x0, y: e.y0})), RED);
       $('#dcrMap').innerHTML = crossMapSVG(CR, PI, TN, RED);
       $('#dcrEndSub').textContent = 'Point d’arrivée du ballon · % de centres adverses trouvant un partenaire';
       $('#dcrEnd').innerHTML = crossEndsHTML(CR, RED, cnt);
@@ -3891,7 +3891,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-23 09:02 UTC';
+const BUILD = '2026-11-23 09:06 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -5883,11 +5883,11 @@ function crossZoneSVG(pts, col, div = 1) {
   const C = CRZ.map(z => ({...z, n: 0})); let tot = 0;
   for (const p of pts) { const c = C.find(z => p.x >= z.x0 && p.x <= z.x1 && p.y >= z.y0 && p.y <= z.y1); if (c) { c.n++; tot++; } }
   const mx = Math.max(1, ...C.map(c => c.n));
-  const cells = C.map(c => { const w = c.x1 - c.x0, h = c.y1 - c.y0, a = c.n / mx, fs = Math.min(3.8, w / 4.2, h / 2.6), txt = a > .6 ? '#fff' : 'var(--text)', pc = Math.round(c.n / (tot || 1) * 100);
-    return `<g data-tip="${esc(`${c.l}\n${div > 1 ? fmt(c.n / div, 1) + ' par match · ' : ''}${c.n} centre${c.n > 1 ? 's' : ''} · ${pc} %`)}"><rect x="${c.x0}" y="${c.y0}" width="${w}" height="${h}" fill="${col}" fill-opacity="${(.05 + .8 * a).toFixed(2)}" stroke="var(--surface)" stroke-width=".35"/>`
-      + (c.n ? `<text x="${c.x0 + w / 2}" y="${c.y0 + h / 2 + (h > 9 ? .2 : fs * .35)}" text-anchor="middle" font-size="${fs.toFixed(1)}" font-weight="800" fill="${txt}">${div > 1 ? fmt(c.n / div, 1) : c.n}</text>`
-        + (h > 9 && w > 8 ? `<text x="${c.x0 + w / 2}" y="${c.y0 + h / 2 + fs * .55 + 2}" text-anchor="middle" font-size="${(fs * .55).toFixed(1)}" fill="${txt}" fill-opacity=".85">${pc} %</text>` : '') : '') + `</g>`; }).join('');
-  return `<svg class="pitch" viewBox="50.5 -1.5 56 71">${cells}<g opacity=".55" pointer-events="none">${pitchLines(true)}</g></svg>`;
+  const cells = C.map(c => { const w = c.x1 - c.x0, h = c.y1 - c.y0, a = c.n / mx, fs = Math.min(5.2, w / 3.2, h / 2.1), txt = a > .55 ? '#fff' : 'var(--text)', pc = Math.round(c.n / (tot || 1) * 100);
+    return `<g data-tip="${esc(`${c.l}\n${div > 1 ? fmt(c.n / div, 1) + ' par match · ' : ''}${c.n} centre${c.n > 1 ? 's' : ''} · ${pc} %`)}"><rect x="${c.x0}" y="${c.y0}" width="${w}" height="${h}" fill="${col}" fill-opacity="${(.1 + .8 * a).toFixed(2)}" stroke="var(--text-2)" stroke-width=".45"/>`
+      + (c.n ? `<text x="${c.x0 + w / 2}" y="${c.y0 + h / 2 + (h > 6.5 && w > 8 ? .2 : fs * .35)}" text-anchor="middle" font-size="${fs.toFixed(1)}" font-weight="800" fill="${txt}">${div > 1 ? fmt(c.n / div, 1) : c.n}</text>`
+        + (h > 6.5 && w > 8 ? `<text x="${c.x0 + w / 2}" y="${c.y0 + h / 2 + fs * .55 + 1.6}" text-anchor="middle" font-size="${(fs * .55).toFixed(1)}" fill="${txt}" fill-opacity=".85">${pc} %</text>` : '') : '') + `</g>`; }).join('');
+  return `<svg class="pitch" viewBox="50.5 -1.5 56 71">${cells}<g opacity=".35" pointer-events="none">${pitchLines(true)}</g></svg>`;
 }
 /* ---------- Centres dans le jeu (hors CPA) ---------- */
 // Centres liés à un coup de pied arrêté : le corner ou le coup franc lui-même, et tout centre de la même équipe
