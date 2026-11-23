@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-23 09:49 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-23 10:08 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -520,7 +520,7 @@ input.j{width:64px}
       <div id="matchList"></div>
     </div>
     <div class="card c12" id="qcCard">
-      <div class="card-head"><div><h2>Contrôle des données</h2><p class="sub">Vérifie que chaque match est cohérent : score et buts, quarts d’heure, joueurs et équipe, données physiques, corners, journées. À lancer après chaque import.</p></div>
+      <div class="card-head"><div><h2>Contrôle des données</h2><p class="sub">Vérifie que chaque match est cohérent : score et buts, quarts d’heure, joueurs et équipe, données physiques, corners, journées, sens d’attaque et zones des terrains, et que les calculs se recollent entre eux. À lancer après chaque import.</p></div>
         <div class="ctrl"><select id="qcScope"><option value="all">Toutes les compétitions</option><option value="cur">Compétition et saison choisies</option></select><button class="btn primary" id="qcRun">Lancer le contrôle</button></div></div>
       <p class="sub" id="qcSum"></p>
       <div class="tbl-wrap" id="qcList"></div>
@@ -3879,7 +3879,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-23 09:49 UTC';
+const BUILD = '2026-11-23 10:08 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4588,6 +4588,42 @@ function qualityChecks(list) {
       // 6. composition
       for (const t of ids) { const byNum = {}; for (const [id, pl] of Object.entries(m.players)) if (pl.team === t && pl.pos) byNum[pl.num || id] = pl; // doublons de metadata : un par numéro
         const n = Object.values(byNum).filter(pl => String(pl.pos).toUpperCase() !== 'SUB').length; if (n && n !== 11) add('warn', m, 'Composition', `${teamNames()[t]} : ${n} titulaires dans la feuille de match`); }
+
+      // 7. sens d'attaque et zones : chaque donnée doit être du bon côté du terrain
+      { const GK = gkSetOf(m), FL = passFlip(m), pct = (A, fn) => A.length ? A.filter(fn).length / A.length * 100 : null, TNm = teamNames();
+        for (const t of ids) for (const per of [1, 2]) {
+          const g = (m.ev.passes || []).filter(e => e.tm === t && e.per === per && GK.has(e.p));
+          if (g.length >= 3) { const mx = mean(g.map(e => FL(t, per) ? 105 - e.x0 : e.x0)); if (mx > 40) add('err', m, 'Sens du terrain', `${TNm[t]} (${per}re/2e période) : les passes du gardien partent en moyenne à ${fmt(mx, 0)} m de son but — sens d’attaque inversé`); } }
+        for (const t of ids) { const sh = m.ev.shots.filter(x => x.tm === t && x.x != null && !x.pen), r = pct(sh, x => x.x >= 52.5);
+          if (sh.length >= 4 && r < 90) add('err', m, 'Sens du terrain', `${TNm[t]} : seulement ${fmt(r, 0)} % de ses tirs sont dans la moitié adverse`); }
+        const CRm = crossList([m], ALLQ, () => true), rc = pct(CRm, e => e.x0 >= 52.5);
+        if (CRm.length >= 5 && rc < 85) add('err', m, 'Sens du terrain', `seulement ${fmt(rc, 0)} % des centres partent de la moitié adverse`);
+        const badL = (m.ev.loss || []).filter(l => l[5] >= 50).length; if (badL) add('err', m, 'Sens du terrain', `${badL} perte(s) « dans son camp » situées dans le camp adverse`);
+        // pressing : les passes du gardien adverse doivent tomber près du but adverse dans le repère de l'équipe qui presse
+        for (const t of ids) { const o = t === m.home.id ? m.away.id : m.home.id, X = [];
+          for (const e of m.ev.passes || []) if (e.tm === o && GK.has(e.p) && e.per) { const fl = FL(o, e.per); X.push(105 - (fl ? 105 - e.x0 : e.x0)); }
+          if (X.length >= 3 && mean(X) < 65) add('err', m, 'Sens du terrain', `${TNm[t]} : terrain « Où elle presse » inversé (gardien adverse placé à ${fmt(mean(X), 0)} m au lieu de près du but adverse)`); }
+        const E30 = e30List([m], null, null).filter(e => !(e.x0 < 75 && e.x1 >= 75)); if (E30.length) add('err', m, 'Zones', `${E30.length} entrée(s) dans les 30 derniers mètres qui ne franchissent pas la ligne des 30 m`);
+        const outP = (m.ev.passes || []).filter(e => e.x0 < -2 || e.x0 > 107 || e.y0 < -2 || e.y0 > 70).length; if (outP > 5) add('warn', m, 'Zones', `${outP} passes avec un point de départ hors du terrain`);
+        const zc = crossList([m], ALLQ, () => true).filter(e => e.x0 >= 52.5), inZ = zc.filter(e => CRZ.some(z => e.x0 >= z.x0 && e.x0 <= z.x1 && e.y0 >= z.y0 && e.y0 <= z.y1)).length;
+        if (zc.length >= 5 && inZ / zc.length < .7) add('warn', m, 'Zones', `seulement ${inZ} centres sur ${zc.length} tombent dans une zone de départ (couloirs) — découpage à vérifier`); }
+      // 8. les calculs se recollent entre eux
+      { const TNm = teamNames();
+        for (const t of ids) { const o = T[t]; if (!o) continue; const nm = TNm[t];
+          const gO = Object.keys(o).filter(k => /^gS_/.test(k)).reduce((a, k) => a + (o[k] || 0), 0); if (gO !== o.gf) add('err', m, 'Calculs', `${nm} : buts par origine (${gO}) ≠ buts marqués (${o.gf})`);
+          const gA = Object.keys(o).filter(k => /^gSA_/.test(k)).reduce((a, k) => a + (o[k] || 0), 0), ga = T[ids.find(x => x !== t)] ? T[ids.find(x => x !== t)].gf : null; if (ga != null && gA !== ga) add('err', m, 'Calculs', `${nm} : buts encaissés par origine (${gA}) ≠ buts encaissés (${ga})`);
+          const xO = Object.keys(o).filter(k => /^xS_/.test(k)).reduce((a, k) => a + (o[k] || 0), 0); if (!near(xO, o.xg, .05)) add('err', m, 'Calculs', `${nm} : xG par origine des tirs (${fmt(xO, 2)}) ≠ xG total (${fmt(o.xg, 2)})`);
+          const xP = STY_O.reduce((a, [k]) => a + (o['xg_' + k] || 0), 0), xPA = STY_O.reduce((a, [k]) => a + (o['xga_' + k] || 0), 0), xA = T[ids.find(x => x !== t)];
+          if (xA && xPA && !near(xPA, xA ? STY_O.reduce((a, [k]) => a + (xA['xg_' + k] || 0), 0) : 0, .01)) add('err', m, 'Calculs', `${nm} : xG concédés par origine ≠ xG adverses par origine`);
+          if (o.pzP > o.pzN || o.pzHP > o.pzP || o.pzT > o.pzHP || o.pzHKo > o.pzHP || o.pzB > o.pzPOk) add('err', m, 'Calculs', `${nm} : compteurs de pressing incohérents`);
+          if ((o.duelDW || 0) > (o.duelD || 0) || (o.gdDW || 0) > (o.gdD || 0) || (o.aerDW || 0) > (o.aerD || 0)) add('err', m, 'Calculs', `${nm} : plus de duels gagnés que de duels`);
+          if (o.crSh > o.crO || o.crOk > o.crO) add('err', m, 'Calculs', `${nm} : centres menant à un tir ou trouvés > centres`);
+          const nCr = crossList([m], ALLQ, e => e.tm === t).length; if (nCr !== o.crO) add('err', m, 'Calculs', `${nm} : ${nCr} centres listés pour ${o.crO} comptés`);
+          const nLs = lossList([m], t, 'off', null).length; if (nLs !== (o.lsN || 0)) add('err', m, 'Calculs', `${nm} : ${nLs} pertes dans son camp listées pour ${o.lsN || 0} comptées`);
+          const nLf = lossList([m], t, 'def', null).length; if (nLf !== (o.lfN || 0)) add('err', m, 'Calculs', `${nm} : ${nLf} pertes adverses listées pour ${o.lfN || 0} comptées`);
+          const nE = e30List([m], t, null).length; if (nE !== (o.e30A || 0)) add('err', m, 'Calculs', `${nm} : ${nE} entrées adverses dans les 30 derniers mètres listées pour ${o.e30A || 0} comptées`);
+          if ((o.e30Sh || 0) > (o.e30A || 0)) add('err', m, 'Calculs', `${nm} : plus d’entrées suivies d’un tir que d’entrées`);
+          const pP = (pressPoints([m], t, null)[t] || []).length; if (pP !== (o.pzP || 0)) add('err', m, 'Calculs', `${nm} : ${pP} pressions placées sur le terrain pour ${o.pzP || 0} comptées`); } }
     } else add('warn', m, 'Fichiers', 'pas de fichier insight (événements) : match absent de l’analyse tactique');
     if (m.phys) {
       const PH = aggPhys([m]);
@@ -4603,6 +4639,8 @@ function qualityChecks(list) {
     } else add('info', m, 'Fichiers', 'pas de données physiques');
     if (m.ev && !m.trk) add('info', m, 'Fichiers', 'pas de tracking : positions sur corners / CFI et vitesses indisponibles');
   }
+  // arrondis : les parts affichées font toujours 100
+  for (const V of [[15, 180, 176], [1, 1, 1], [3, 3, 3, 1], [0, 0, 5], [2, 2, 2, 2, 2, 2, 1]]) { const r = pct100(V); if (r.reduce((a, b) => a + b, 0) !== 100) { add('err', null, 'Calculs', `arrondi des pourcentages : ${V.join('/')} donne ${r.join(' + ')} ≠ 100`); break; } }
   // 7. journées : une équipe ne joue qu'une fois par journée et par compétition
   const byJ = {};
   for (const m of list) { if (!m || !m.j) continue; for (const t of [m.home.id, m.away.id]) { const k = (m.comp || '') + '|' + seasonOf(m) + '|' + m.j + '|' + t; if (byJ[k]) add('warn', m, 'Journées', `${teamNames()[t]} joue deux fois en J${m.j}`); byJ[k] = 1; } }
