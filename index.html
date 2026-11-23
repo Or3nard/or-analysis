@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-23 10:08 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-23 10:42 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -520,7 +520,7 @@ input.j{width:64px}
       <div id="matchList"></div>
     </div>
     <div class="card c12" id="qcCard">
-      <div class="card-head"><div><h2>Contrôle des données</h2><p class="sub">Vérifie que chaque match est cohérent : score et buts, quarts d’heure, joueurs et équipe, données physiques, corners, journées, sens d’attaque et zones des terrains, et que les calculs se recollent entre eux. À lancer après chaque import.</p></div>
+      <div class="card-head"><div><h2>Contrôle des données</h2><p class="sub">Vérifie que chaque match est cohérent : score et buts, quarts d’heure, joueurs et équipe, données physiques, corners, journées, sens d’attaque et zones des terrains, cohérence de chaque donnée physique (allures, avec / sans ballon, sprints, vitesses, quarts d’heure, explosivité) et que les calculs se recollent entre eux. À lancer après chaque import.</p></div>
         <div class="ctrl"><select id="qcScope"><option value="all">Toutes les compétitions</option><option value="cur">Compétition et saison choisies</option></select><button class="btn primary" id="qcRun">Lancer le contrôle</button></div></div>
       <p class="sub" id="qcSum"></p>
       <div class="tbl-wrap" id="qcList"></div>
@@ -3879,7 +3879,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-23 10:08 UTC';
+const BUILD = '2026-11-23 10:42 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4636,6 +4636,36 @@ function qualityChecks(list) {
         if (o.vmax > 37.5) add('warn', m, 'Physique', `${nm2} : vitesse max de ${fmt(o.vmax, 1)} km/h, à vérifier`);
         if (dur && o.time > dur + 120) add('warn', m, 'Physique', `${nm2} : ${fmt(o.time / 60, 0)} min jouées pour un match de ${fmt(dur / 60, 0)} min`);
         if (o.time > 600 && o.dist / (o.time / 60) > (o.time < 1800 ? 175 : 160)) add('warn', m, 'Physique', `${nm2} : ${fmt(o.dist / (o.time / 60), 0)} m/min, à vérifier`); }
+
+      // contrôles physiques complets : chaque joueur doit être cohérent avec lui-même
+      { const PI2 = playerInfo(), nmOf = pid => (PI2[pid] || m.players[pid] || {}).name || pid.slice(0, 6), bad = {}; const flag = (cat, lvl, pid, msg) => { const k = cat + msg.replace(/[\d,.]+/g, ''); if ((bad[k] = (bad[k] || 0) + 1) <= 3) add(lvl, m, cat, `${nmOf(pid)} : ${msg}`); };
+        for (const [pid, o] of Object.entries(PH.P)) { if (!o.time || o.time < 300) continue; const tol = x => Math.max(30, x * .03);
+          const zs = o.walk + o.jog + o.lsr + o.hsr + o.spr; if (Math.abs(zs - o.dist) > tol(o.dist)) flag('Physique · calculs', 'err', pid, `distances par allure (${fmt(zs, 0)} m) ≠ distance totale (${fmt(o.dist, 0)} m)`);
+          const tz = o.tWalk + o.tJog + o.tLsr + o.tHsr + o.tSpr; if (tz && Math.abs(tz - o.time) > Math.max(60, o.time * .05)) flag('Physique · calculs', 'warn', pid, `temps par allure (${fmt(tz / 60, 0)} min) ≠ temps joué (${fmt(o.time / 60, 0)} min)`);
+          if (o.dIP + o.dOP > o.dist + tol(o.dist)) flag('Physique · calculs', 'err', pid, `distance avec + sans ballon (${fmt(o.dIP + o.dOP, 0)} m) > distance totale (${fmt(o.dist, 0)} m)`);
+          if (o.hIP + o.hOP > o.hsr + o.spr + 20) flag('Physique · calculs', 'err', pid, `haute intensité avec + sans ballon (${fmt(o.hIP + o.hOP, 0)} m) > haute intensité totale (${fmt(o.hsr + o.spr, 0)} m)`);
+          if (o.sIP + o.sOP > o.spr + 10) flag('Physique · calculs', 'err', pid, `sprint avec + sans ballon (${fmt(o.sIP + o.sOP, 0)} m) > sprint total (${fmt(o.spr, 0)} m)`);
+          if ((o.spr > 5) !== (o.nspr > 0)) flag('Physique · calculs', 'warn', pid, `${fmt(o.spr, 0)} m de sprint pour ${o.nspr} sprint(s)`);
+          if (o.nspr && (o.spr / o.nspr < 2 || o.spr / o.nspr > 90)) flag('Physique · calculs', 'warn', pid, `longueur moyenne d’un sprint de ${fmt(o.spr / o.nspr, 0)} m, à vérifier`);
+          if (o.nhsr && (o.hsr / o.nhsr < 2 || o.hsr / o.nhsr > 90)) flag('Physique · calculs', 'warn', pid, `longueur moyenne d’une course à haute vitesse de ${fmt(o.hsr / o.nhsr, 0)} m, à vérifier`);
+          if (o.spr > 5 && o.vmax < 24.5) flag('Physique · calculs', 'err', pid, `${fmt(o.spr, 0)} m de sprint (> 25 km/h) mais vitesse max de ${fmt(o.vmax, 1)} km/h`);
+          if (o.nspr === 0 && o.vmax > 26.5) flag('Physique · calculs', 'warn', pid, `vitesse max de ${fmt(o.vmax, 1)} km/h sans aucun sprint compté`);
+          if (o.hsr > 5 && o.vmax < 19.5) flag('Physique · calculs', 'err', pid, `course à haute vitesse (> 20 km/h) avec une vitesse max de ${fmt(o.vmax, 1)} km/h`); }
+        // les tranches de 5 minutes (quarts d'heure) se recollent avec le total du match
+        if (m.phys.bins && m.phys.sum) { const Q = {}; for (let q = 0; q < 6; q++) { const R = physRowsBase(m, new Set([q])) || []; for (const r of R) Q[r.p] = (Q[r.p] || 0) + r.v[1]; }
+          let nb = 0; for (const r of m.phys.sum) { const sq = Q[r.p] || 0; if (r.v[0] > 300 && Math.abs(sq - r.v[1]) > Math.max(80, r.v[1] * .04)) { nb++; if (nb <= 3) add('warn', m, 'Physique · quarts d’heure', `${nmOf(r.p)} : somme des 6 quarts d’heure ${fmt(sq, 0)} m pour ${fmt(r.v[1], 0)} m au total`); } }
+          if (nb > 3) add('warn', m, 'Physique · quarts d’heure', `${nb} joueurs au total dont les quarts d’heure ne recollent pas`); }
+        // explosivité (tracking) : chaque course retenue doit être cohérente, et la vitesse max du tracking proche de celle du fichier physique
+        if (m.spd && m.spd.v === SPD_VER) { let nb = 0;
+          for (const [pid, sp] of Object.entries(m.spd.P || {})) { for (const e of sp.r || []) { const [v0, d28, t28, d30, t30, vm] = e, sd = e.slice(6, 12).filter(x => x != null); let why = '';
+              if (v0 > 5.5) why = `départ à ${fmt(v0, 1)} km/h (au lieu de moins de 5)`;
+              else if (d28 != null && vm < 27.5) why = `distance pour 28 km/h calculée alors que la vitesse max est ${fmt(vm, 1)}`;
+              else if (d30 != null && (d28 == null || d30 < d28 || t30 < t28)) why = 'atteint 30 km/h avant 28 km/h';
+              else if (sd.some((x, i) => i && i <= sd.indexOf(Math.max(...sd)) && x < sd[i - 1] - 3)) why = 'vitesse qui baisse avant d’atteindre sa vitesse max';
+              else if (sd.some(x => x > vm + 1)) why = 'vitesse à un palier supérieure à la vitesse max de la course';
+              if (why) { nb++; if (nb <= 3) add('warn', m, 'Explosivité', `${nmOf(pid)} : course incohérente (${why})`); } }
+            const ph = PH.P[pid]; if (ph && ph.time > 900 && sp.vm && Math.abs(sp.vm - ph.vmax) > 2.5) add('warn', m, 'Explosivité', `${nmOf(pid)} : vitesse max ${fmt(sp.vm, 1)} km/h au tracking pour ${fmt(ph.vmax, 1)} km/h dans le fichier physique`); }
+          if (nb > 3) add('warn', m, 'Explosivité', `${nb} courses incohérentes au total`); } }
     } else add('info', m, 'Fichiers', 'pas de données physiques');
     if (m.ev && !m.trk) add('info', m, 'Fichiers', 'pas de tracking : positions sur corners / CFI et vitesses indisponibles');
   }
