@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-23 09:41 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-23 09:49 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3879,7 +3879,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-23 09:41 UTC';
+const BUILD = '2026-11-23 09:49 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -5919,8 +5919,8 @@ function crossBoxHTML(L, D) {
 }
 
 // Zones d'arrivée des centres (même repère que le départ : but adverse à droite, gauche en haut)
-const CRA = [[99.5, 105, 24.84, 43.16, 'Petit rectangle'], [88.5, 99.5, 24.84, 43.16, 'Zone du point de penalty'], [88.5, 105, 13.84, 24.84, 'Surface, côté gauche'], [88.5, 105, 43.16, 54.16, 'Surface, côté droit'],
-  [70, 88.5, 13.84, 54.16, 'Devant la surface'], [70, 105, 0, 13.84, 'Côté gauche, hors surface'], [70, 105, 54.16, 68, 'Côté droit, hors surface']].map(([x0, x1, y0, y1, l]) => ({x0, x1, y0, y1, l}));
+const CRA = [[99.5, 105, 24.84, 34, 'Petit rectangle, moitié gauche'], [99.5, 105, 34, 43.16, 'Petit rectangle, moitié droite'], [88.5, 99.5, 24.84, 34, 'Zone du point de penalty, moitié gauche'], [88.5, 99.5, 34, 43.16, 'Zone du point de penalty, moitié droite'],
+  [88.5, 105, 13.84, 24.84, 'Surface, côté gauche'], [88.5, 105, 43.16, 54.16, 'Surface, côté droit'], [70, 88.5, 13.84, 54.16, 'Devant la surface']].map(([x0, x1, y0, y1, l]) => ({x0, x1, y0, y1, l}));
 function crossArrSVG(L, col, asel) {
   const C = CRA.map((z, k) => ({...z, k, A: []})); let tot = 0;
   for (const e of L) { if (e.x1 == null) continue; const c = C.find(z => e.x1 >= z.x0 && e.x1 <= z.x1 && e.y1 >= z.y0 && e.y1 <= z.y1); if (c) { c.A.push(e); tot++; } }
