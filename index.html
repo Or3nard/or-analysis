@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-20 10:52 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-23 08:50 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -721,7 +721,7 @@ input.j{width:64px}
           </div>
         </div>
         <details class="card c12 det" id="defDet" open>
-          <summary><b>Détails</b> <span class="muted">— duels par joueur, classement des joueurs, tableau des équipes</span></summary>
+          <summary><b>Détails</b> <span class="muted">— duels par joueur, classement des joueurs</span></summary>
           <div class="grid" style="margin-top:12px">
             <div class="card c12">
               <div class="card-head">
@@ -735,7 +735,7 @@ input.j{width:64px}
               <div class="ctrl"><label class="lbl" style="margin:0">Min. duels <input type="number" id="duelMin" value="10" min="0" step="5" style="width:60px"></label><button class="btn" data-csv="tblDuels">CSV</button></div></div>
               <div class="tbl-wrap" id="tblDuels"></div>
             </div>
-            <div class="card c12">
+            <div class="card c12" style="display:none">
               <div class="card-head">
                 <div><h2>Statistiques défensives par équipe</h2><p class="sub">Cliquez sur une équipe pour filtrer</p></div>
                 <div class="ctrl"><select id="defTeamMode"><option value="pm">Moyenne par match</option><option value="tot">Total</option></select><button class="btn" data-csv="tblDefTeams">CSV</button></div>
@@ -3891,7 +3891,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-20 10:52 UTC';
+const BUILD = '2026-11-23 08:50 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
