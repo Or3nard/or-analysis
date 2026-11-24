@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-23 10:55 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-24 07:52 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -521,7 +521,7 @@ input.j{width:64px}
     </div>
     <div class="card c12" id="qcCard">
       <div class="card-head"><div><h2>Contrôle des données</h2><p class="sub">Vérifie que chaque match est cohérent : score et buts, quarts d’heure, joueurs et équipe, données physiques, corners, journées, sens d’attaque et zones des terrains, cohérence de chaque donnée physique (allures, avec / sans ballon, sprints, vitesses, quarts d’heure, explosivité) et que les calculs se recollent entre eux. À lancer après chaque import.</p></div>
-        <div class="ctrl"><select id="qcScope"><option value="all">Toutes les compétitions</option><option value="cur">Compétition et saison choisies</option></select><button class="btn primary" id="qcRun">Lancer le contrôle</button></div></div>
+        <div class="ctrl"><select id="qcScope"><option value="all">Toutes les compétitions</option><option value="cur">Compétition et saison choisies</option></select><button class="btn primary" id="qcRun">Lancer le contrôle</button><button class="btn" id="qcPdf" disabled title="Lancez d’abord le contrôle">Exporter en PDF</button></div></div>
       <p class="sub" id="qcSum"></p>
       <div class="tbl-wrap" id="qcList"></div>
     </div>
@@ -3879,7 +3879,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-23 10:55 UTC';
+const BUILD = '2026-11-24 07:52 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -4681,6 +4681,25 @@ function qualityChecks(list) {
   for (const m of list) { if (!m || !m.j) continue; for (const t of [m.home.id, m.away.id]) { const k = (m.comp || '') + '|' + seasonOf(m) + '|' + m.j + '|' + t; if (byJ[k]) add('warn', m, 'Journées', `${teamNames()[t]} joue deux fois en J${m.j}`); byJ[k] = 1; } }
   return out;
 }
+let QC_LAST = null;
+// Export PDF du contrôle : page imprimable dans un cadre caché, enregistrée en PDF par la boîte d'impression du navigateur
+function exportQualityPdf() {
+  if (!QC_LAST) return; const L = {err: 'Erreur', warn: 'À vérifier', info: 'Info'}, C = {err: '#c0392b', warn: '#b7791f', info: '#555'};
+  const by = k => QC_LAST.rows.filter(x => x.lvl === k);
+  const tbl = k => { const R = by(k); if (!R.length) return ''; return `<h2 style="color:${C[k]}">${L[k] === 'Info' ? 'Infos' : L[k] === 'Erreur' ? 'Erreurs' : 'Points à vérifier'} (${R.length})</h2><table><tr><th>#</th><th>Match</th><th>Contrôle</th><th>Détail</th></tr>${R.map((x, i) => `<tr><td>${i + 1}</td><td>${esc(x.match)}${x.tip ? `<div class="ms">${esc(x.tip).replace(/\n/g, ' · ')}</div>` : ''}</td><td>${esc(x.cat)}</td><td>${esc(x.msg)}</td></tr>`).join('')}</table>`; };
+  const d = QC_LAST.at, ds = d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'});
+  const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Contrôle des données — ${ds}</title><style>
+    @page{size:A4 landscape;margin:12mm} body{font:11px/1.4 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#111;margin:0}
+    h1{font-size:18px;margin:0 0 4px} h2{font-size:14px;margin:16px 0 6px} .sub{color:#555;margin:0 0 10px}
+    table{width:100%;border-collapse:collapse;page-break-inside:auto} tr{page-break-inside:avoid} th,td{border-bottom:1px solid #ddd;padding:4px 6px;text-align:left;vertical-align:top}
+    th{background:#f2f2f2;font-weight:700} td:first-child,th:first-child{width:22px;color:#777} td:nth-child(2){width:26%} td:nth-child(3){width:16%} .ms{color:#777;font-size:9.5px;margin-top:2px}</style></head><body>
+    <h1>OR Analysis · Contrôle des données</h1><p class="sub">${esc(QC_LAST.sum)} · exporté le ${ds}</p>${tbl('err')}${tbl('warn')}${tbl('info')}
+    ${QC_LAST.rows.length ? '' : '<p>Aucune anomalie.</p>'}</body></html>`;
+  let fr = document.getElementById('qcPrintFrame'); if (fr) fr.remove();
+  fr = document.createElement('iframe'); fr.id = 'qcPrintFrame'; fr.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0'; document.body.appendChild(fr);
+  const doc = fr.contentDocument; doc.open(); doc.write(html); doc.close();
+  setTimeout(() => { fr.contentWindow.focus(); fr.contentWindow.print(); }, 250);
+}
 function renderQuality() {
   const all = $('#qcScope').value === 'all', list = all ? Object.values(S.matches) : CM(), Q = qualityChecks(list), L = {err: 'Erreur', warn: 'À vérifier', info: 'Info'};
   if (all) { const CN = Object.fromEntries(COMPS), byId = Object.fromEntries(list.map(m => [m.id, m]));
@@ -4692,6 +4711,7 @@ function renderQuality() {
   for (const x of Q) { if (x.lvl !== 'info') { Q2.push(x); continue; } const k = x.cat + '|' + x.msg.replace(/^\d+ /, 'n '); (G[k] = G[k] || {...x, ms: []}).ms.push(x.match); }
   for (const g of Object.values(G)) Q2.push(g.ms.length > 1 ? {...g, match: `${g.ms.length} matchs`, tip: g.ms.join('\n')} : g);
   const rows = Q2.slice().sort((a, b) => ({err: 0, warn: 1, info: 2}[a.lvl] - {err: 0, warn: 1, info: 2}[b.lvl]) || a.match.localeCompare(b.match));
+  QC_LAST = {rows, sum: $('#qcSum').textContent, at: new Date()}; const bp = $('#qcPdf'); if (bp) { bp.disabled = false; bp.title = 'Exporter la liste en PDF'; }
   $('#qcList').innerHTML = rows.length ? `<table class="gkz qct"><tr><th class="txt">Niveau</th><th class="txt">Match</th><th class="txt">Contrôle</th><th class="txt">Détail</th></tr>${rows.map(x => `<tr class="qc-${x.lvl}"><td class="txt"><b>${L[x.lvl]}</b></td><td class="txt"${x.tip ? ` title="${esc(x.tip)}"` : ''}>${esc(x.match)}</td><td class="txt">${esc(x.cat)}</td><td class="txt">${esc(x.msg)}</td></tr>`).join('')}</table>` : '';
   return Q;
 }
@@ -6648,6 +6668,7 @@ function bindUI() {
     sc.classList.toggle('shfoc-' + t.dataset.sh); sc.classList.toggle('shfoc', ['g', 'ot', 'off'].some(k => sc.classList.contains('shfoc-' + k))); });
   document.addEventListener('click', e => { const b = e.target.closest('[data-more]'); if (!b) return; const w = document.getElementById(b.dataset.more + 'Wrap'); if (!w) return; w.hidden = !w.hidden; b.textContent = b.textContent.replace(/^(Voir|Masquer)/, w.hidden ? 'Voir' : 'Masquer'); });
   [['#ckSide', 'side'], ['#ckZoneMode', 'zm'], ['#ckPlMode', 'pl'], ['#spType', 'ty'], ['#fkDir', 'fd']].forEach(([id, k]) => $(id).onclick = e => { const b = e.target.closest('[data-v]'); if (!b || b.disabled) return; S.ck = S.ck || {}; S.ck[k] = b.dataset.v; if (k === 'ty') S.ck.dt = b.dataset.v; scheduleRender(); });
+  $('#qcPdf').onclick = exportQualityPdf;
   $('#qcRun').onclick = () => { $('#qcSum').textContent = 'Contrôle en cours…'; setTimeout(renderQuality, 30); };
   document.querySelectorAll('.spdThrSel').forEach(sel => sel.onchange = () => { S.spdThr = +sel.value; scheduleRender(); });
   $('#dngSide').onclick = e => { const b = e.target.closest('.chip'); if (!b) return; S.ck = S.ck || {}; S.ck.ds = b.dataset.v; scheduleRender(); };
