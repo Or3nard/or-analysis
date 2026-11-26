@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-26 08:03 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-26 08:10 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -676,6 +676,10 @@ input.j{width:64px}
           <div id="lossDef"></div>
           <div class="dloss" id="recTopBox"><h3 class="sty-h" style="font-size:16px;margin-top:22px">Les joueurs qui récupèrent le plus de ballons</h3><p class="sub" id="recTopSub"></p><div id="recTop"></div></div>
         </div>
+        <div class="card c12" id="dDangerCard">
+          <div class="card-head"><div class="ph-title"><span class="chap-n">2</span><div><h2>Comment elle est mise en danger</h2><p class="sub">D’où viennent les xG qu’elle concède et comment elle encaisse ses buts</p></div></div></div>
+          <div id="dDanger"></div>
+        </div>
         <div class="card c12 ph" id="dph1" style="display:none">
           <div class="ph-head"><span class="chap-n">1</span><div><h2>Pressing et récupération</h2><p>Est-ce que l’équipe récupère le ballon haut et souvent ?</p></div><span class="ph-verdict" id="dphV1"></span></div>
           <div class="ph-kpis" id="dphK1"></div>
@@ -687,12 +691,12 @@ input.j{width:64px}
           </div>
         </div>
         <div class="card c12 ph" id="dph2">
-          <div class="ph-head"><span class="chap-n">2</span><div><h2>Comment entrer dans ses 30 derniers mètres</h2><p>Par où et comment l’adversaire atteint ses 30 derniers mètres, et ce qui fonctionne le mieux</p></div><span class="ph-verdict" id="dphV2"></span></div>
+          <div class="ph-head"><span class="chap-n">3</span><div><h2>Comment entrer dans ses 30 derniers mètres</h2><p>Par où et comment l’adversaire atteint ses 30 derniers mètres, et ce qui fonctionne le mieux</p></div><span class="ph-verdict" id="dphV2"></span></div>
           <div class="ph-kpis" id="dphK2"></div>
           <div id="e30Vis"></div>
         </div>
         <div class="card c12 ph" id="dph3">
-          <div class="ph-head"><span class="chap-n">3</span><div><h2>30 derniers mètres</h2><p>Est-ce que l’équipe protège son but ?</p></div><span class="ph-verdict" id="dphV3"></span></div>
+          <div class="ph-head"><span class="chap-n">4</span><div><h2>30 derniers mètres</h2><p>Est-ce que l’équipe protège son but ?</p></div><span class="ph-verdict" id="dphV3"></span></div>
           <div class="ph-kpis" id="dphK3"></div>
           <div class="ph-vis">
             <div><h3>D’où l’adversaire tire</h3><p class="sub" id="shotAgSub"></p><div id="shotMapAg"></div><div class="legend shleg shf"><span data-sh="g" title="Cliquer pour mettre en avant (plusieurs choix possibles) ; nouveau clic pour retirer"><b class="lgball">⚽</b>But</span><span data-sh="ot" title="Cliquer pour mettre en avant (plusieurs choix possibles) ; nouveau clic pour retirer"><i style="background:color-mix(in srgb, var(--s1) 50%, transparent);border:1px solid var(--s1)"></i>Tir cadré</span><span data-sh="off" title="Cliquer pour mettre en avant (plusieurs choix possibles) ; nouveau clic pour retirer"><i style="border:1.5px solid var(--s1);background:transparent"></i>Non cadré / contré</span><span class="muted">taille = xG · cliquez sur la légende pour filtrer</span></div></div>
@@ -708,7 +712,7 @@ input.j{width:64px}
           </div>
         </div>
         <div class="card c12 ph" id="dph4">
-          <div class="ph-head"><span class="chap-n">4</span><div><h2>Duels</h2><p>Est-ce que l’équipe gagne ses duels ?</p></div><span class="ph-verdict" id="dphV4"></span></div>
+          <div class="ph-head"><span class="chap-n">5</span><div><h2>Duels</h2><p>Est-ce que l’équipe gagne ses duels ?</p></div><span class="ph-verdict" id="dphV4"></span></div>
           <div class="ph-kpis" id="dphK4"></div>
           <div class="ph-vis">
             <div><h3>Où l’équipe gagne et perd ses duels</h3><p class="sub" id="duelSub"></p><div id="duelGrid"></div>
@@ -3875,7 +3879,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-26 08:03 UTC';
+const BUILD = '2026-11-26 08:10 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -5546,11 +5550,11 @@ function renderDefStyle(f, tid, TN) {
       + (hasPz ? '' : '<p class="rnote">Réimportez les fichiers insight.jsonl pour séparer intensité, hauteur et efficacité du pressing.</p>')
       + '\u0001' + `<h3 class="sty-h">Comment elle presse</h3><div class="ph-kpis">${kpiRowHTML(hasPz ? [['Passes adverses sous pression', 'pzPct', 1, '%'], ['Part des pressions dans le camp adverse', 'pzHShare', 1, '%'], ['Pressions qui font rater la passe (camp adverse)', 'pzKoPct', 1, '%'], ['Pressions contournées', 'pzBPct', -1, '%']] : [['PPDA (bas = pressing intense)', 'ppda', -1, ''], ['Hauteur des récupérations (m)', 'recH', 1, ''], ['Récupérations dans le camp adverse', 'recovH', 1, 'pm'], ['Duels défensifs gagnés', 'duelDPct', 1, '%']], f, tid, false, me.mp)}</div>`
       + (hasPz ? `<div class="ph-kpis">${kpiRowHTML([['PPDA (bas = pressing intense)', 'ppda', -1, ''], ['Hauteur des récupérations (m)', 'recH', 1, ''], ['Récupérations dans le camp adverse', 'recovH', 1, 'pm'], ['Duels défensifs gagnés', 'duelDPct', 1, '%']], f, tid, false, me.mp)}</div>` : '')
-      + `<h3 class="sty-h">Comment on la met en danger</h3><p class="sub" style="margin:0 0 6px">D’où viennent les xG concédés · barre grise = moyenne du championnat${top[1] - top[2] > 3 ? ` · point faible : <b>${({pl: 'en attaque placée', tr: 'en transition', di: 'sur le jeu direct', sp: 'sur coups de pied arrêtés'})[top[0][0]]}</b> (${fmt(top[1], 0)} % de ses xG concédés, contre ${fmt(top[2], 0)} % en moyenne)` : ''}</p>${originCmp(S, lgS, me, ids, T, 'xga_', true)}`
+      + '\u0003' + `<h3 class="sty-h" style="margin-top:0">D’où viennent les occasions adverses</h3><p class="sub" style="margin:0 0 6px">D’où viennent les xG concédés · barre grise = moyenne du championnat${top[1] - top[2] > 3 ? ` · point faible : <b>${({pl: 'en attaque placée', tr: 'en transition', di: 'sur le jeu direct', sp: 'sur coups de pied arrêtés'})[top[0][0]]}</b> (${fmt(top[1], 0)} % de ses xG concédés, contre ${fmt(top[2], 0)} % en moyenne)` : ''}</p>${originCmp(S, lgS, me, ids, T, 'xga_', true)}`
       + concedeBlock(me, tid, lg, f, TN, T, ids)
       + `<div class="ph-kpis" style="margin-top:10px">${kpiRowHTML([['xG concédés en attaque placée', 'xga_pl', -1, 'pm'], ['xG concédés en transition', 'xga_tr', -1, 'pm'], ['xG concédés en jeu direct', 'xga_di', -1, 'pm'], ['xG concédés sur CPA', 'xga_sp', -1, 'pm']], f, tid, false, me.mp)}</div>`;
   }
-  { const [a, b] = left.split('\u0001'); $('#dstyleL').innerHTML = a; $('#dstyleB').innerHTML = b || ''; }
+  { const [a, b] = left.split('\u0001'), [b1, b2] = (b || '').split('\u0003'); $('#dstyleL').innerHTML = a; $('#dstyleB').innerHTML = b1 || ''; $('#dDanger').innerHTML = b2 || '<p class="rnote">Choisissez une équipe pour voir comment elle est mise en danger.</p>'; }
   const sz = 26, icon = t => { const d = logoData(t); if (!d) return null; const k = t + '@' + sz; let im = XC_IMG[k]; if (!im) { im = new Image(sz, sz); im.onload = () => scheduleRender(); im.src = d; XC_IMG[k] = im; } return im.complete && im.naturalWidth ? im : null; };
   const md = ($('#dsMode') || {}).value || 'ps', AX = md === 'ie' ? ['int', 'eff', 'Intensité du pressing →', 'Efficacité du pressing →'] : md === 'ih' ? ['high', 'int', 'Hauteur du pressing →', 'Intensité du pressing →'] : ['press', 'solid', 'Pressing (intensité + hauteur) →', 'Solidité →'];
   $('#dsNote').textContent = md === 'ie' ? 'En haut à droite : presse beaucoup et bien ; en bas à droite : presse beaucoup mais se fait contourner ; en haut à gauche : presse peu mais efficace quand elle y va.' : md === 'ih' ? 'En haut à droite : presse beaucoup et haut ; en bas à gauche : bloc bas, peu de pressing.' : 'En haut à droite : presse haut et concède peu ; en haut à gauche : bloc bas solide ; en bas à droite : presse haut mais se fait transpercer.';
