@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-24 09:41 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-26 08:03 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -3875,7 +3875,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-24 09:41 UTC';
+const BUILD = '2026-11-26 08:03 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -5544,8 +5544,8 @@ function renderDefStyle(f, tid, TN) {
         + `<h3 class="sty-h">Sa solidité</h3>` : gauge('Pressing', sc.press, '#e0842b', 'PPDA, hauteur des récupérations, récupérations dans le camp adverse'))
       + gauge('Solidité', sc.solid, '#2e9e5b', 'xG concédés, tirs concédés, xG par tir concédé, entrées adverses dans la surface')
       + (hasPz ? '' : '<p class="rnote">Réimportez les fichiers insight.jsonl pour séparer intensité, hauteur et efficacité du pressing.</p>')
-      + '\u0001' + `<h3 class="sty-h">Comment elle presse</h3><div class="ph-kpis">${kpiRowHTML(hasPz ? [['Passes adverses sous pression', 'pzPct', 1, '%', 1], ['Part des pressions dans le camp adverse', 'pzHShare', 1, '%', 1], ['Pressions qui font rater la passe (camp adverse)', 'pzKoPct', 1, '%'], ['Pressions contournées', 'pzBPct', -1, '%']] : [['PPDA (bas = pressing intense)', 'ppda', -1, '', 1], ['Hauteur des récupérations (m)', 'recH', 1, '', 1], ['Récupérations dans le camp adverse', 'recovH', 1, 'pm', 1], ['Duels défensifs gagnés', 'duelDPct', 1, '%']], f, tid, false, me.mp)}</div>`
-      + (hasPz ? `<div class="ph-kpis">${kpiRowHTML([['PPDA (bas = pressing intense)', 'ppda', -1, '', 1], ['Hauteur des récupérations (m)', 'recH', 1, '', 1], ['Récupérations dans le camp adverse', 'recovH', 1, 'pm', 1], ['Duels défensifs gagnés', 'duelDPct', 1, '%']], f, tid, false, me.mp)}</div>` : '')
+      + '\u0001' + `<h3 class="sty-h">Comment elle presse</h3><div class="ph-kpis">${kpiRowHTML(hasPz ? [['Passes adverses sous pression', 'pzPct', 1, '%'], ['Part des pressions dans le camp adverse', 'pzHShare', 1, '%'], ['Pressions qui font rater la passe (camp adverse)', 'pzKoPct', 1, '%'], ['Pressions contournées', 'pzBPct', -1, '%']] : [['PPDA (bas = pressing intense)', 'ppda', -1, ''], ['Hauteur des récupérations (m)', 'recH', 1, ''], ['Récupérations dans le camp adverse', 'recovH', 1, 'pm'], ['Duels défensifs gagnés', 'duelDPct', 1, '%']], f, tid, false, me.mp)}</div>`
+      + (hasPz ? `<div class="ph-kpis">${kpiRowHTML([['PPDA (bas = pressing intense)', 'ppda', -1, ''], ['Hauteur des récupérations (m)', 'recH', 1, ''], ['Récupérations dans le camp adverse', 'recovH', 1, 'pm'], ['Duels défensifs gagnés', 'duelDPct', 1, '%']], f, tid, false, me.mp)}</div>` : '')
       + `<h3 class="sty-h">Comment on la met en danger</h3><p class="sub" style="margin:0 0 6px">D’où viennent les xG concédés · barre grise = moyenne du championnat${top[1] - top[2] > 3 ? ` · point faible : <b>${({pl: 'en attaque placée', tr: 'en transition', di: 'sur le jeu direct', sp: 'sur coups de pied arrêtés'})[top[0][0]]}</b> (${fmt(top[1], 0)} % de ses xG concédés, contre ${fmt(top[2], 0)} % en moyenne)` : ''}</p>${originCmp(S, lgS, me, ids, T, 'xga_', true)}`
       + concedeBlock(me, tid, lg, f, TN, T, ids)
       + `<div class="ph-kpis" style="margin-top:10px">${kpiRowHTML([['xG concédés en attaque placée', 'xga_pl', -1, 'pm'], ['xG concédés en transition', 'xga_tr', -1, 'pm'], ['xG concédés en jeu direct', 'xga_di', -1, 'pm'], ['xG concédés sur CPA', 'xga_sp', -1, 'pm']], f, tid, false, me.mp)}</div>`;
