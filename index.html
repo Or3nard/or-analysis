@@ -426,7 +426,7 @@ input.j{width:64px}
 </head>
 <body>
 <header>
-  <h1 title="Version du 2026-11-26 08:10 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
+  <h1 title="Version du 2026-11-26 08:12 UTC">OR <span>Analysis</span><small id="hdrCount"></small></h1>
   <select id="compSel" class="comp-sel" title="Championnat"></select>
   <select id="seasonSel" class="comp-sel" title="Saison"></select>
   <nav class="tabs" role="tablist">
@@ -670,7 +670,7 @@ input.j{width:64px}
           <p class="syn-read" id="dsynRead"></p>
         </div>
         <div class="card c12" id="dstyleCard">
-          <div class="card-head"><div class="ph-title"><span class="chap-n">1</span><div><h2>Pressing et comment s’en sortir</h2><p class="sub" id="dstyleSub"></p></div></div></div>
+          <div class="card-head"><div class="ph-title"><span class="chap-n">1</span><div><h2>Comment elle presse</h2><p class="sub" id="dstyleSub"></p></div></div></div>
           <div class="style-grid sty-top"><div id="dstyleL"></div><div><div class="ctrl" style="justify-content:flex-end;margin-bottom:6px"><select id="dsMode"><option value="ps">Pressing × solidité</option><option value="ie">Intensité × efficacité du pressing</option><option value="ih">Hauteur × intensité du pressing</option></select></div><div class="chart-box" style="height:520px"><canvas id="chDefStyle"></canvas></div><p class="note">Chaque équipe selon deux notes sur 100 · lignes pointillées = 50 · <span id="dsNote"></span></p></div></div>
           <div id="dstyleB"></div>
           <div id="lossDef"></div>
@@ -3879,7 +3879,7 @@ function renderCorners(ms, TN, PI, f, LMS) {
 }
 
 // Nouvelle version publiée ? (vérifiée au chargement puis toutes les 5 minutes)
-const BUILD = '2026-11-26 08:10 UTC';
+const BUILD = '2026-11-26 08:12 UTC';
 async function checkVersion() {
   if (location.protocol === 'file:') return;
   try {
@@ -5548,7 +5548,7 @@ function renderDefStyle(f, tid, TN) {
         + `<h3 class="sty-h">Sa solidité</h3>` : gauge('Pressing', sc.press, '#e0842b', 'PPDA, hauteur des récupérations, récupérations dans le camp adverse'))
       + gauge('Solidité', sc.solid, '#2e9e5b', 'xG concédés, tirs concédés, xG par tir concédé, entrées adverses dans la surface')
       + (hasPz ? '' : '<p class="rnote">Réimportez les fichiers insight.jsonl pour séparer intensité, hauteur et efficacité du pressing.</p>')
-      + '\u0001' + `<h3 class="sty-h">Comment elle presse</h3><div class="ph-kpis">${kpiRowHTML(hasPz ? [['Passes adverses sous pression', 'pzPct', 1, '%'], ['Part des pressions dans le camp adverse', 'pzHShare', 1, '%'], ['Pressions qui font rater la passe (camp adverse)', 'pzKoPct', 1, '%'], ['Pressions contournées', 'pzBPct', -1, '%']] : [['PPDA (bas = pressing intense)', 'ppda', -1, ''], ['Hauteur des récupérations (m)', 'recH', 1, ''], ['Récupérations dans le camp adverse', 'recovH', 1, 'pm'], ['Duels défensifs gagnés', 'duelDPct', 1, '%']], f, tid, false, me.mp)}</div>`
+      + '\u0001' + `<h3 class="sty-h">Ses indicateurs de pressing</h3><div class="ph-kpis">${kpiRowHTML(hasPz ? [['Passes adverses sous pression', 'pzPct', 1, '%'], ['Part des pressions dans le camp adverse', 'pzHShare', 1, '%'], ['Pressions qui font rater la passe (camp adverse)', 'pzKoPct', 1, '%'], ['Pressions contournées', 'pzBPct', -1, '%']] : [['PPDA (bas = pressing intense)', 'ppda', -1, ''], ['Hauteur des récupérations (m)', 'recH', 1, ''], ['Récupérations dans le camp adverse', 'recovH', 1, 'pm'], ['Duels défensifs gagnés', 'duelDPct', 1, '%']], f, tid, false, me.mp)}</div>`
       + (hasPz ? `<div class="ph-kpis">${kpiRowHTML([['PPDA (bas = pressing intense)', 'ppda', -1, ''], ['Hauteur des récupérations (m)', 'recH', 1, ''], ['Récupérations dans le camp adverse', 'recovH', 1, 'pm'], ['Duels défensifs gagnés', 'duelDPct', 1, '%']], f, tid, false, me.mp)}</div>` : '')
       + '\u0003' + `<h3 class="sty-h" style="margin-top:0">D’où viennent les occasions adverses</h3><p class="sub" style="margin:0 0 6px">D’où viennent les xG concédés · barre grise = moyenne du championnat${top[1] - top[2] > 3 ? ` · point faible : <b>${({pl: 'en attaque placée', tr: 'en transition', di: 'sur le jeu direct', sp: 'sur coups de pied arrêtés'})[top[0][0]]}</b> (${fmt(top[1], 0)} % de ses xG concédés, contre ${fmt(top[2], 0)} % en moyenne)` : ''}</p>${originCmp(S, lgS, me, ids, T, 'xga_', true)}`
       + concedeBlock(me, tid, lg, f, TN, T, ids)
